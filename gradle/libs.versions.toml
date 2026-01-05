@@ -1,8 +1,11 @@
 [versions]
 kotlin = "2.3.0"
+spotless = "8.1.0"
+ktfmt = "0.61"
 
 [libraries]
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
