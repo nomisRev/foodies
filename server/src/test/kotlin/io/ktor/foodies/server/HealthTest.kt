@@ -10,7 +10,7 @@ import kotlin.test.assertEquals
 class HealthTest {
     @Test
     fun ok() = testApplication {
-        application {  app() }
+        application { app() }
         val response = client.get("/health")
         assertEquals(HttpStatusCode.OK, response.status)
     }
