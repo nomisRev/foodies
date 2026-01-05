@@ -16,6 +16,8 @@ kotlin {
 
 dependencies {
     implementation(ktorLibs.server.netty)
+    testImplementation(kotlin("test"))
+    testImplementation(ktorLibs.server.testHost)
 }
 
 tasks.withType<Test>().configureEach {
