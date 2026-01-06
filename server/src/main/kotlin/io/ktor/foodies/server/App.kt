@@ -12,7 +12,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 
 fun main() {
-    val env = ApplicationConfig("application.yaml").property("env").getAs<Config>()
+    val env = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = env.host, port = env.port) {
             val module = Module(database(env.dataSource))
             app(module)
