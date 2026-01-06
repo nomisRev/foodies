@@ -1,6 +1,9 @@
 import com.diffplug.spotless.kotlin.KtfmtStep
 
-plugins { alias(libs.plugins.spotless) }
+plugins {
+    alias(libs.plugins.spotless)
+    alias(libs.plugins.kotlin.assert)
+}
 
 spotless {
     kotlin {
