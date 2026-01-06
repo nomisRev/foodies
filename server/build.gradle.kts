@@ -24,6 +24,8 @@ dependencies {
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.config.yaml)
 
+    implementation(ktorLibs.server.htmlBuilder)
+
     implementation(ktorLibs.serialization.kotlinx.json)
 
     implementation(libs.logback)
