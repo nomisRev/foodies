@@ -29,20 +29,14 @@ private fun PostgreSQLContainer.env(): Config =
         dataSource = Config.DataSource(jdbcUrl, username, password),
     )
 
-private fun TestSuite.database(
-    dataSource: TestSuite.Fixture<HikariDataSource>
-): TestSuite.Fixture<Database> =
-    testFixture { Database.connect(dataSource()) } closeWith
-        {
-            TransactionManager.closeAndUnregister(this)
-        }
+private fun TestSuite.database(dataSource: TestSuite.Fixture<HikariDataSource>): TestSuite.Fixture<Database> =
+    testFixture { Database.connect(dataSource()) } closeWith { TransactionManager.closeAndUnregister(this) }
 
-private fun TestSuite.hikari(env: Config): TestSuite.Fixture<HikariDataSource> = testFixture {
-    HikariDataSource(
-        HikariConfig().apply {
+private fun TestSuite.hikari(env: Config): TestSuite.Fixture<HikariDataSource> =
+    testFixture {
+        HikariDataSource(HikariConfig().apply {
             jdbcUrl = env.dataSource.url
             username = env.dataSource.username
             password = env.dataSource.password
-        }
-    )
-}
+        })
+    }

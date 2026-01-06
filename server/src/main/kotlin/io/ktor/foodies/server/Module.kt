@@ -10,14 +10,11 @@ import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 class Module(val database: Database)
 
 fun Application.database(database: Config.DataSource): Database {
-    val hikari =
-        HikariDataSource(
-            HikariConfig().apply {
-                jdbcUrl = database.url
-                username = database.username
-                password = database.password
-            }
-        )
+    val hikari = HikariDataSource(HikariConfig().apply {
+        jdbcUrl = database.url
+        username = database.username
+        password = database.password
+    })
     val db = Database.connect(hikari)
     monitor.subscribe(ApplicationStopped) {
         TransactionManager.closeAndUnregister(db)

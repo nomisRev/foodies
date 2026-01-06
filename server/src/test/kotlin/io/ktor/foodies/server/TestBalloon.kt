@@ -8,7 +8,5 @@ import io.ktor.server.testing.ApplicationTestBuilder
 @TestRegistering
 fun TestSuite.testApplication(
     name: String,
-    block:
-        suspend context(TestExecutionScope)
-        ApplicationTestBuilder.() -> Unit,
+    block: suspend context(TestExecutionScope)ApplicationTestBuilder.() -> Unit,
 ) = test(name) { io.ktor.server.testing.testApplication { block() } }

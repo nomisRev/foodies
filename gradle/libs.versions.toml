@@ -7,9 +7,7 @@ postgresql = "42.7.8"
 testcontainers = "1.21.4"
 flyway = "11.20.0"
 micrometer = "1.16.1"
-spotless = "8.1.0"
-ktfmt = "0.61"
-testballoon="0.7.1-K2.3.0"
+testballoon = "0.7.1-K2.3.0"
 
 [libraries]
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -19,11 +17,10 @@ hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
-testballoon = { module="de.infix.testBalloon:testBalloon-framework-core", version.ref="testballoon"  }
+testballoon = { module = "de.infix.testBalloon:testBalloon-framework-core", version.ref = "testballoon" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-assert = { id = "org.jetbrains.kotlin.plugin.power-assert", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
-testballoon = { id = "de.infix.testBalloon", version.ref="testballoon" }
+testballoon = { id = "de.infix.testBalloon", version.ref = "testballoon" }
