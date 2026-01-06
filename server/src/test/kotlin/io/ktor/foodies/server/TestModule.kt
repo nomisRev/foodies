@@ -3,8 +3,6 @@ package io.ktor.foodies.server
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import de.infix.testBalloon.framework.core.TestSuite
-import io.ktor.app.io.ktor.foodies.server.Config
-import io.ktor.app.io.ktor.foodies.server.Module
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.testcontainers.containers.PostgreSQLContainer as PostgreSQLTestContainer
@@ -27,6 +25,7 @@ private fun PostgreSQLContainer.env(): Config =
         host = "0.0.0.0",
         port = 8080,
         dataSource = Config.DataSource(jdbcUrl, username, password),
+        security = Config.Security("", "", "") // TODO
     )
 
 private fun TestSuite.database(dataSource: TestSuite.Fixture<HikariDataSource>): TestSuite.Fixture<Database> =

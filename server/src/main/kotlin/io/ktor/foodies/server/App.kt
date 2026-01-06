@@ -1,4 +1,4 @@
-package io.ktor.app.io.ktor.foodies.server
+package io.ktor.foodies.server
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
@@ -14,10 +14,10 @@ import io.ktor.server.routing.routing
 fun main() {
     val env = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = env.host, port = env.port) {
-            val module = Module(database(env.dataSource))
-            app(module)
-        }
-        .start(wait = true)
+        val module = Module(database(env.dataSource))
+        security(env.security)
+        app(module)
+    }.start(wait = true)
 }
 
 fun Application.app(module: Module) {
