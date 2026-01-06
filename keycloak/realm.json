@@ -1,5 +1,5 @@
 {
-  "realm": "ktor-keycloak-example",
+  "realm": "foodies-keycloak",
   "enabled": true,
   "clients": [
     {
@@ -8,7 +8,10 @@
       "publicClient": false,
       "secret": "foodies_client_secret",
       "redirectUris": ["http://localhost:8080/oauth/callback"],
-      "webOrigins": ["http://localhost:8080"]
+      "webOrigins": ["http://localhost:8080"],
+      "attributes": {
+        "post.logout.redirect.uris": "http://localhost:8080/*"
+      }
     }
   ],
   "users": [
