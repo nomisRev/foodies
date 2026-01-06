@@ -1,6 +1,6 @@
-env:
-  host: "0.0.0.0"
-  port: 8080
+config:
+  host: "$HOST:0.0.0.0"
+  port: "$PORT:8080"
   data_source:
     url: "$DB_URL:jdbc:postgresql://localhost:5432/foodies-database"
     username: "$DB_USERNAME:foodies_admin"
