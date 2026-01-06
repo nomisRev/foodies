@@ -5,3 +5,7 @@ config:
     url: "$DB_URL:jdbc:postgresql://localhost:5432/foodies-database"
     username: "$DB_USERNAME:foodies_admin"
     password: "$DB_PASSWORD:foodies_password"
+  security:
+    issuer: "$AUTH_ISSUER:http://localhost:8000/realms/foodies-keycloak"
+    clientId: "$AUTH_CLIENT_ID:foodies"
+    clientSecret: "$AUTH_CLIENT_SECRET:foodies_client_secret"

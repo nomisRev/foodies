@@ -1,0 +1,39 @@
+{
+  "realm": "ktor-keycloak-example",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "foodies",
+      "directAccessGrantsEnabled": true,
+      "publicClient": false,
+      "secret": "foodies_client_secret",
+      "redirectUris": ["http://localhost:8080/oauth/callback"],
+      "webOrigins": ["http://localhost:8080"]
+    }
+  ],
+  "users": [
+    {
+      "username": "food_lover",
+      "enabled": true,
+      "email": "food_lover@gmail.com",
+      "firstName": "Food",
+      "lastName": "Lover",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "Regular user with standard permissions"
+      }
+    ]
+  }
+}

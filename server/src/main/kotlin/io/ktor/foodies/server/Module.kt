@@ -1,4 +1,4 @@
-package io.ktor.app.io.ktor.foodies.server
+package io.ktor.foodies.server
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
