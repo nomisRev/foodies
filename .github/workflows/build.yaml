@@ -23,10 +23,7 @@ jobs:
           distribution: 'zulu'
           java-version: '24'
 
-      - uses: gradle/actions/setup-gradle@v5
-
-      - name: Check root project
-        run: ./gradlew build
+      - run: ./gradlew build
 
       - name: (Fail-only) Upload reports
         if: failure()
