@@ -7,7 +7,10 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
-            <option value="$PROJECT_DIR$/server" />
+            <option value="$PROJECT_DIR$/profile" />
+            <option value="$PROJECT_DIR$/server-shared" />
+            <option value="$PROJECT_DIR$/server-shared-test" />
+            <option value="$PROJECT_DIR$/webapp" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="true" />
