@@ -25,6 +25,7 @@ dependencies {
     implementation(ktorLibs.server.config.yaml)
 
     implementation(ktorLibs.server.htmlBuilder)
+    implementation(ktorLibs.server.htmx)
 
     implementation(ktorLibs.serialization.kotlinx.json)
 
