@@ -17,13 +17,12 @@ import io.ktor.server.routing.routing
 fun main() {
     val env = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = env.host, port = env.port) {
-        val module = Module(dataSource(env.dataSource))
         security(env.security)
-        app(module)
+        app()
     }.start(wait = true)
 }
 
-fun Application.app(module: Module) {
+fun Application.app() {
     val menuService = InMemoryMenuService()
 
     routing {
