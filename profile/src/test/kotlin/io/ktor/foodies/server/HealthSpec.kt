@@ -2,6 +2,7 @@ package io.ktor.foodies.server
 
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.client.request.get
+import io.ktor.foodies.server.test.testApplication
 import io.ktor.http.HttpStatusCode
 import kotlin.test.assertEquals
 

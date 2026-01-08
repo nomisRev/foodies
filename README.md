@@ -1,23 +1,57 @@
 # foodies
 
-This project uses [Gradle](https://gradle.org/).
-To build and run the application, use the *Gradle* tool window by clicking the Gradle icon in the right-hand toolbar,
-or run it directly from the terminal:
+## Modules
 
-* Run `./gradlew run` to build and run the application.
-* Run `./gradlew build` to only build the application.
-* Run `./gradlew check` to run all checks, including tests.
-* Run `./gradlew clean` to clean all build outputs.
+- `webapp`: Ktor server serving the web UI and handling authentication with Keycloak.
+- `profile`: Ktor service for user profile data and webhooks.
+- `keycloak-webhook`: Custom Keycloak event listener provider that forwards registration events to the profile service.
+- `server-shared` and `server-shared-test`: Shared server utilities and test helpers.
 
-Note the usage of the Gradle Wrapper (`./gradlew`).
-This is the suggested way to use Gradle in production projects.
+## Running Keycloak with the profile registration webhook
 
-[Learn more about the Gradle Wrapper](https://docs.gradle.org/current/userguide/gradle_wrapper.html).
+1) Build the provider jar so Keycloak can load it:
 
-[Learn more about Gradle tasks](https://docs.gradle.org/current/userguide/command_line_interface.html#common_tasks).
+```bash
+./gradlew :keycloak-webhook:build
+```
 
-This project follows the suggested multi-module setup and consists of the `app` and `utils` subprojects.
-The shared build logic was extracted to a convention plugin located in `buildSrc`.
+2) Start Keycloak and RabbitMQ (from the `webapp` module directory) with the included `docker-compose.yml`:
 
-This project uses a version catalog (see `gradle/libs.versions.toml`) to declare and version dependencies
-and both a build cache and a configuration cache (see `gradle.properties`).
+```bash
+cd webapp
+docker compose up keycloak rabbitmq
+```
+
+Environment variables (with defaults) used by the Keycloak container for RabbitMQ delivery:
+
+- `RABBITMQ_HOST` (default `rabbitmq`)
+- `RABBITMQ_PORT` (default `5672`)
+- `RABBITMQ_USERNAME` (default `guest`)
+- `RABBITMQ_PASSWORD` (default `guest`)
+- `RABBITMQ_QUEUE` (default `profile.registration`)
+
+The realm import in `webapp/keycloak/realm.json` enables the `profile-webhook` listener for `REGISTER` events.
+
+## Running the profile service
+
+The profile service listens on port `8081` by default (see `profile/src/main/resources/application.yaml`) and consumes Keycloak registration events from RabbitMQ.
+Update the `rabbit` section in `application.yaml` (or the corresponding environment variables) so it can reach your broker. A RabbitMQ container is included in `profile/docker-compose.yml`:
+
+```bash
+cd profile
+docker compose up rabbitmq
+```
+
+Start the service with:
+
+```bash
+./gradlew :profile:run
+```
+
+## Running tests
+
+Use the Gradle Wrapper from the project root:
+
+```bash
+./gradlew check
+```
