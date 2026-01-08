@@ -8,7 +8,7 @@ testcontainers = "1.21.4"
 flyway = "11.20.0"
 micrometer = "1.16.1"
 testballoon = "0.7.1-K2.3.0"
-keycloak = "25.0.0"
+keycloak = "26.5.0"
 rabbitmq = "5.21.0"
 
 [libraries]
