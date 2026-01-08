@@ -2,6 +2,7 @@ package io.ktor.foodies.keycloak
 
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.user.event.UserEvent
+import kotlinx.serialization.json.Json
 import org.keycloak.events.Event
 import org.keycloak.events.EventType
 import kotlin.test.assertNotNull
@@ -26,14 +27,15 @@ val userRegistrationEvent by rabbitSuite {
         factory().channel { channel ->
             val response = channel.basicGet(queueName, true)
             assertNotNull(response, "Expected a message in the queue")
-
-            val body = String(response.body)
-            val receivedEvent = json.decodeFromString<UserEvent.Registration>(body)
-
-            assertEquals("test-user-123", receivedEvent.subject)
-            assertEquals("test@example.com", receivedEvent.email)
-            assertEquals("John", receivedEvent.firstName)
-            assertEquals("Doe", receivedEvent.lastName)
+            assertEquals(
+                UserEvent.Registration(
+                    subject = "test-user-123",
+                    email = "test@example.com",
+                    firstName = "John",
+                    lastName = "Doe"
+                ),
+                Json.decodeFromString<UserEvent>(response.body.decodeToString())
+            )
         }
     }
 

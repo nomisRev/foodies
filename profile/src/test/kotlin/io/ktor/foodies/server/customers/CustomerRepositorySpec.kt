@@ -16,14 +16,14 @@ val customerRepositorySpec by testSuite {
     val repository = testFixture { ExposedProfileRepository(database().database) }
 
     test("create profile from InsertProfile") {
-        val profile = repository().insertOrIgnore(
+        repository().insertOrIgnore(
             subject = "keycloak-123",
             email = "test@example.com",
             firstName = "Test",
             lastName = "User",
         )
-
-        assertNotNull(profile.id)
+        val profile = repository().findBySubject("keycloak-123")
+        assertNotNull(profile?.id)
         assertEquals("keycloak-123", profile.subject)
         assertEquals("test@example.com", profile.email)
         assertEquals("Test", profile.firstName)
