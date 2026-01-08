@@ -4,7 +4,8 @@ import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.server.DataSource
 import io.ktor.foodies.server.profile.ExposedProfileRepository
-import io.ktor.foodies.server.test.postgresDataSource
+import io.ktor.foodies.server.test.dataSource
+import io.ktor.foodies.server.test.postgresContainer
 import org.flywaydb.core.Flyway
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -51,7 +52,8 @@ val customerRepositorySpec by testSuite {
 
 fun TestSuite.migratedPostgresDataSource(): TestSuite.Fixture<DataSource> =
     testFixture {
-        val ds = postgresDataSource()()
-        Flyway.configure().dataSource(ds.hikari).load().migrate()
-        ds
+        val container = postgresContainer()()
+        val dataSource = container.dataSource()()
+        Flyway.configure().dataSource(dataSource.hikari).load().migrate()
+        dataSource
     }

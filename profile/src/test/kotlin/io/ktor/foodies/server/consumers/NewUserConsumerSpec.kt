@@ -1,32 +1,18 @@
 package io.ktor.foodies.server.consumers
 
-import com.rabbitmq.client.ConnectionFactory
-import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
-import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.server.customers.migratedPostgresDataSource
 import io.ktor.foodies.server.profile.ExposedProfileRepository
-import io.ktor.foodies.server.profile.Profile
-import io.ktor.foodies.server.profile.ProfileTable
-import io.ktor.foodies.server.test.PostgreSQLContainer
-import io.ktor.foodies.server.test.RabbitContainer
 import io.ktor.foodies.server.test.channel
-import io.ktor.foodies.server.test.connectionFactory
-import io.ktor.foodies.server.test.postgresContainer
 import io.ktor.foodies.server.test.rabbitContainer
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
-import org.jetbrains.exposed.v1.jdbc.Database
-import org.jetbrains.exposed.v1.jdbc.SchemaUtils
-import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 val newUserConsumerSpec by testSuite {
     val dataSource = migratedPostgresDataSource()
-    val rabbit = connectionFactory()
+    val rabbit = testFixture { rabbitContainer()().connectionFactory() }
     val repository = testFixture { ExposedProfileRepository(dataSource().database) }
     val json = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 

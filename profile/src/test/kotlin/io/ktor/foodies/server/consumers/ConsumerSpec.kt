@@ -3,7 +3,6 @@ package io.ktor.foodies.server.consumers
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.rabbitContainer
-import io.ktor.foodies.server.test.connectionFactory
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -20,7 +19,7 @@ import kotlin.time.Duration.Companion.seconds
 data class TestPayload(val id: String, val value: Int)
 
 val consumerSpec by testSuite {
-    val rabbit = connectionFactory()
+    val rabbit = testFixture { rabbitContainer()().connectionFactory() }
     val json = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
     test("messages - successfully deserializes and emits message") {
