@@ -1,17 +1,15 @@
 package io.ktor.foodies.server.profile
 
-import kotlinx.html.Entities
 import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
-import org.jetbrains.exposed.v1.jdbc.insert
-import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.insertIgnoreAndGetId
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.upsert
 
 @Serializable
 data class Profile(
@@ -25,6 +23,7 @@ data class Profile(
 interface ProfileRepository {
     fun findBySubject(subject: String): Profile?
     fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Long?
+    fun upsert(subject: String, email: String, firstName: String, lastName: String)
     fun deleteBySubject(subject: String): Boolean
 }
 
@@ -52,6 +51,17 @@ class ExposedProfileRepository(private val database: Database) : ProfileReposito
                 row[ProfileTable.lastName] = lastName
             }
         }?.value
+
+    override fun upsert(subject: String, email: String, firstName: String, lastName: String) {
+        transaction(database) {
+            ProfileTable.upsert(ProfileTable.subject) { row ->
+                row[ProfileTable.subject] = subject
+                row[ProfileTable.email] = email
+                row[ProfileTable.firstName] = firstName
+                row[ProfileTable.lastName] = lastName
+            }
+        }
+    }
 
     override fun deleteBySubject(subject: String): Boolean = transaction(database) {
         ProfileTable.deleteWhere { ProfileTable.subject eq subject } == 1

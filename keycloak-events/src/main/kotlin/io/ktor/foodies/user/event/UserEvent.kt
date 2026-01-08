@@ -15,7 +15,13 @@ sealed interface UserEvent {
     ) : UserEvent
 
     @Serializable
-    data class Delete(
+    data class UpdateProfile(
         override val subject: String,
+        val email: String,
+        val firstName: String,
+        val lastName: String
     ) : UserEvent
+
+    @Serializable
+    data class Delete(override val subject: String) : UserEvent
 }

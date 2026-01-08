@@ -79,6 +79,51 @@ val profileRepositorySpec by testSuite {
         )
     }
 
+    test("upsert inserts a new profile") {
+        repository().upsert(
+            subject = "profile-upsert-insert",
+            email = "upsert-insert@example.com",
+            firstName = "UpsertInsert",
+            lastName = "Test",
+        )
+
+        val profile = repository().findBySubject("profile-insert")
+        assertEquals("profile-upsert-insert", profile?.subject)
+        assertEquals("upsert-insert@example.com", profile?.email)
+        assertEquals("UpsertInsert", profile?.firstName)
+        assertEquals("Test", profile?.lastName)
+    }
+
+    test("upsert updates an existing profile") {
+        val subject = "updatable-subject"
+        repository().insertOrIgnore(
+            subject = subject,
+            email = "old@example.com",
+            firstName = "Old",
+            lastName = "Name",
+        )
+
+        repository().upsert(
+            subject = subject,
+            email = "new@example.com",
+            firstName = "New",
+            lastName = "Name",
+        )
+
+        val profile = repository().findBySubject(subject)
+
+        assertEquals(
+            Profile(
+                id = requireNotNull(profile?.id),
+                subject = subject,
+                email = "new@example.com",
+                firstName = "New",
+                lastName = "Name",
+            ),
+            profile
+        )
+    }
+
     test("findBySubject returns null for missing profile") {
         val profile = repository().findBySubject("missing-subject")
         assertNull(profile)
