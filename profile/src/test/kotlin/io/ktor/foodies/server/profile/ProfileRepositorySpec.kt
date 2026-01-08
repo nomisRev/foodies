@@ -1,0 +1,91 @@
+package io.ktor.foodies.server.profile
+
+import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.server.customers.migratedPostgresDataSource
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+
+val profileRepositorySpec by testSuite {
+    val dataSource = migratedPostgresDataSource()
+    val repository = testFixture { ExposedProfileRepository(dataSource().database) }
+
+    test("insertOrIgnore inserts a new profile and returns its id") {
+        val id = repository().insertOrIgnore(
+            subject = "profile-insert",
+            email = "insert@example.com",
+            firstName = "Insert",
+            lastName = "Test",
+        )
+
+        val profile = repository().findBySubject("profile-insert")
+
+        assertEquals(
+            Profile(
+                id = id,
+                subject = "profile-insert",
+                email = "insert@example.com",
+                firstName = "Insert",
+                lastName = "Test",
+            ),
+            profile
+        )
+    }
+
+    test("insertOrIgnore ignores duplicate subjects and keeps the original profile") {
+        val firstId = repository().insertOrIgnore(
+            subject = "duplicate-subject",
+            email = "first@example.com",
+            firstName = "First",
+            lastName = "User",
+        )
+
+        val secondId = repository().insertOrIgnore(
+            subject = "duplicate-subject",
+            email = "second@example.com",
+            firstName = "Second",
+            lastName = "User",
+        )
+
+        assertEquals(firstId, secondId)
+
+        val profile = repository().findBySubject("duplicate-subject")
+
+        assertEquals(
+            Profile(
+                firstId,
+                subject = "duplicate-subject",
+                email = "first@example.com",
+                firstName = "First",
+                lastName = "User",
+            ),
+            profile
+        )
+    }
+
+    test("findBySubject returns null for missing profile") {
+        val profile = repository().findBySubject("missing-subject")
+        assertNull(profile)
+    }
+
+    test("deleteBySubject removes an existing profile") {
+        val subject = "deletable-subject"
+        repository().insertOrIgnore(
+            subject = subject,
+            email = "delete@example.com",
+            firstName = "Delete",
+            lastName = "Me",
+        )
+
+        val deleted = repository().deleteBySubject(subject)
+        val profile = repository().findBySubject(subject)
+
+        assertEquals(true, deleted)
+        assertNull(profile)
+    }
+
+    test("deleteBySubject returns false when profile is absent") {
+        val deleted = repository().deleteBySubject("unknown-subject")
+        assertEquals(false, deleted)
+    }
+}
