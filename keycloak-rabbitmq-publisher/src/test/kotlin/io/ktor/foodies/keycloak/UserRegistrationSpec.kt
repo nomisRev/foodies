@@ -88,7 +88,7 @@ val userRegistrationEvent by rabbitSuite {
             details = null
         }
 
-        val ex = assertFailsWith<IllegalStateException> { listener.onEvent(event)  }
+        val ex = assertFailsWith<IllegalStateException> { listener.onEvent(event) }
         assertEquals(
             "Missing required fields for registration event: userId=null-details-user email=null firstName=null, lastName=null",
             ex.message

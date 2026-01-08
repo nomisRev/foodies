@@ -15,7 +15,6 @@ val newUserConsumerSpec by testSuite {
     val dataSource = migratedPostgresDataSource()
     val rabbit = testFixture { rabbitContainer()().connectionFactory() }
     val repository = testFixture { ExposedProfileRepository(dataSource().database) }
-    val json = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
     test("creates profile when consuming new user event from RabbitMQ") {
         val queueName = "profile.registration.test"
@@ -26,7 +25,7 @@ val newUserConsumerSpec by testSuite {
             firstName = "Integration",
             lastName = "Test",
         )
-        val body = json.encodeToString(UserEvent.serializer(), payload)
+        val body = Json.encodeToString(UserEvent.serializer(), payload)
 
         rabbit().channel { channel ->
             channel.queueDeclare(queueName, true, false, false, null)
@@ -34,7 +33,7 @@ val newUserConsumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<UserEvent>(queueName, json)
+            val messagesFlow = channel.messages<UserEvent>(queueName, Json)
             val consumer = userEventConsumer(messagesFlow, repository())
             consumer.process().first()
         }
@@ -56,7 +55,7 @@ val newUserConsumerSpec by testSuite {
             firstName = "Integration",
             lastName = "Test",
         )
-        val body = json.encodeToString(UserEvent.serializer(), payload)
+        val body = Json.encodeToString(UserEvent.serializer(), payload)
 
         rabbit().channel { channel ->
             channel.queueDeclare(queueName, true, false, false, null)
@@ -64,7 +63,7 @@ val newUserConsumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<UserEvent>(queueName, json)
+            val messagesFlow = channel.messages<UserEvent>(queueName, Json)
             val consumer = userEventConsumer(messagesFlow, repository())
             consumer.process().first()
         }
