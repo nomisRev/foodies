@@ -1,6 +1,11 @@
 {
   "realm": "foodies-keycloak",
   "enabled": true,
+  "registrationAllowed": true,
+  "resetPasswordAllowed": true,
+  "eventsEnabled": true,
+  "eventsListeners": ["jboss-logging", "profile-webhook"],
+  "enabledEventTypes": ["REGISTER"],
   "clients": [
     {
       "clientId": "foodies",

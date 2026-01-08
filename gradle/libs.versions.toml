@@ -8,6 +8,8 @@ testcontainers = "1.21.4"
 flyway = "11.20.0"
 micrometer = "1.16.1"
 testballoon = "0.7.1-K2.3.0"
+keycloak = "25.0.0"
+rabbitmq = "5.21.0"
 
 [libraries]
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -18,6 +20,12 @@ postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" 
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }
 testcontainers-postgresql = { module = "org.testcontainers:postgresql", version.ref = "testcontainers" }
 testballoon = { module = "de.infix.testBalloon:testBalloon-framework-core", version.ref = "testballoon" }
+keycloak-core = { module = "org.keycloak:keycloak-core", version.ref = "keycloak" }
+keycloak-services = { module = "org.keycloak:keycloak-services", version.ref = "keycloak" }
+keycloak-server-spi = { module = "org.keycloak:keycloak-server-spi", version.ref = "keycloak" }
+keycloak-server-spi-private = { module = "org.keycloak:keycloak-server-spi-private", version.ref = "keycloak" }
+rabbitmq = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitmq" }
+testcontainers-rabbitmq = { module = "org.testcontainers:rabbitmq", version.ref = "testcontainers" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
