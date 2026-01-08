@@ -19,16 +19,20 @@ fun userEventConsumer(newUsers: Flow<Message<UserEvent>>, profileRepository: Pro
                     profileRepository.insertOrIgnore(event.subject, event.email, event.firstName, event.lastName)
                     logger.info("Processed registration message for subject ${event.subject}")
                 }
+                is UserEvent.Delete -> {
+                    profileRepository.deleteBySubject(event.subject)
+                    logger.info("Processed delete message for subject ${event.subject}")
+                }
             }
 
             message.ack()
         } catch (e: Exception) {
-            logger.error("Failed to process registration message", e)
+            logger.error("Failed to process user message", e)
             message.nack()
         }
     }.retry { e ->
         delay(1000) // TODO: Introduce proper resilience schedule
-        logger.error("Failed to process registration message, retrying", e)
+        logger.error("Failed to process user message, retrying", e)
         true // Retry and continue processing forever
     }
 }

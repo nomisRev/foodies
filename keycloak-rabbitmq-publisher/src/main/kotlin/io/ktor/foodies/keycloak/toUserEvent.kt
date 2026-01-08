@@ -10,6 +10,7 @@ private val logger = LoggerFactory.getLogger("UserEventTransformer")
 fun Event.toUserEvent(): UserEvent? =
     when (type) {
         EventType.REGISTER -> toNewUserEvent()
+        EventType.DELETE_ACCOUNT -> toDeleteEvent()
         else -> null
     }
 
@@ -21,5 +22,13 @@ private fun Event.toNewUserEvent(): UserEvent.Registration {
         throw IllegalStateException("Missing required fields for registration event: userId=$userId email=$email firstName=$firstName, lastName=$lastName")
     } else {
         UserEvent.Registration(subject = userId, email = email, firstName = firstName, lastName = lastName)
+    }
+}
+
+private fun Event.toDeleteEvent(): UserEvent.Delete {
+    return if (userId.isNullOrEmpty()) {
+        throw IllegalStateException("Missing required fields for delete event: userId=$userId")
+    } else {
+        UserEvent.Delete(subject = userId)
     }
 }

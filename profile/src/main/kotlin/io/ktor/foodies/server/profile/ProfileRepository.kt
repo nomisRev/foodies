@@ -6,6 +6,7 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertIgnore
 import org.jetbrains.exposed.v1.jdbc.insertIgnoreAndGetId
@@ -32,6 +33,7 @@ data class Profile(
 interface ProfileRepository {
     fun findBySubject(subject: String): Profile?
     fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Long
+    fun deleteBySubject(subject: String): Boolean
 }
 
 object ProfileTable : LongIdTable("profiles") {
@@ -58,6 +60,10 @@ class ExposedProfileRepository(private val database: Database) : ProfileReposito
                 row[ProfileTable.lastName] = lastName
             } get ProfileTable.id
         }.value
+
+    override fun deleteBySubject(subject: String): Boolean = transaction(database) {
+        ProfileTable.deleteWhere { ProfileTable.subject eq subject } == 1
+    }
 
     private fun ResultRow.toCustomer() = Profile(
         id = this[ProfileTable.id].value,

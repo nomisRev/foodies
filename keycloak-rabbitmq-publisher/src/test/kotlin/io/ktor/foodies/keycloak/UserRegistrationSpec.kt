@@ -39,6 +39,26 @@ val userRegistrationEvent by rabbitSuite {
         }
     }
 
+    testListener("publishes DeleteUserEvent to RabbitMQ when DELETE_ACCOUNT event is received") { queueName, listener ->
+        val event = Event().apply {
+            type = EventType.DELETE_ACCOUNT
+            userId = "delete-user-123"
+        }
+
+        listener.onEvent(event)
+
+        factory().channel { channel ->
+            val response = channel.basicGet(queueName, true)
+            assertNotNull(response, "Expected a message in the queue")
+            assertEquals(
+                UserEvent.Delete(
+                    subject = "delete-user-123",
+                ),
+                Json.decodeFromString<UserEvent>(response.body.decodeToString())
+            )
+        }
+    }
+
     testListener("publishes NewUserEvent with null optional fields when details are missing") { queueName, listener ->
         val event = Event().apply {
             type = EventType.REGISTER
@@ -107,6 +127,19 @@ val userRegistrationEvent by rabbitSuite {
         val ex = assertFailsWith<IllegalStateException> { listener.onEvent(event) }
         assertEquals(
             "Missing required fields for registration event: userId=null email=nulluser@example.com firstName=null, lastName=null",
+            ex.message
+        )
+    }
+
+    testListener("throws when DELETE_ACCOUNT event has null userId") { queueName, listener ->
+        val event = Event().apply {
+            type = EventType.DELETE_ACCOUNT
+            userId = null
+        }
+
+        val ex = assertFailsWith<IllegalStateException> { listener.onEvent(event) }
+        assertEquals(
+            "Missing required fields for delete event: userId=null",
             ex.message
         )
     }
