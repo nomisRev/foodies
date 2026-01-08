@@ -32,7 +32,7 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
+            val messagesFlow = channel.messages<TestPayload>(queueName)
             val message = messagesFlow.first()
 
             assertEquals("test-1", message.value.id)
@@ -59,7 +59,7 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
+            val messagesFlow = channel.messages<TestPayload>(queueName)
             val messages = messagesFlow.take(3).toList()
 
             assertEquals(3, messages.size)
@@ -81,7 +81,7 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
+            val messagesFlow = channel.messages<TestPayload>(queueName)
 
             val error = runCatching { messagesFlow.first() }.exceptionOrNull()
 
@@ -105,13 +105,13 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
+            val messagesFlow = channel.messages<TestPayload>(queueName)
             val message = messagesFlow.first()
             message.ack()
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
+            val messagesFlow = channel.messages<TestPayload>(queueName)
             val result = withTimeoutOrNull(2.seconds) {
                 messagesFlow.first()
             }
@@ -130,7 +130,7 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
+            val messagesFlow = channel.messages<TestPayload>(queueName)
             val message = messagesFlow.first()
 
             assertEquals("nack-test", message.value.id)
@@ -140,7 +140,7 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
+            val messagesFlow = channel.messages<TestPayload>(queueName)
             val result = withTimeoutOrNull(2.seconds) {
                 messagesFlow.first()
             }
@@ -159,13 +159,13 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
+            val messagesFlow = channel.messages<TestPayload>(queueName)
             val message = messagesFlow.first()
             message.nack() // requeue=false means message is discarded
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
+            val messagesFlow = channel.messages<TestPayload>(queueName)
             val result = withTimeoutOrNull(2.seconds) {
                 messagesFlow.first()
             }

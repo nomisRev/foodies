@@ -3,7 +3,6 @@ package io.ktor.foodies.server.consumers
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.server.customers.migratedPostgresDataSource
 import io.ktor.foodies.server.profile.ExposedProfileRepository
-import io.ktor.foodies.server.profile.Profile
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.rabbitContainer
 import io.ktor.foodies.user.event.UserEvent
@@ -35,7 +34,7 @@ val newUserConsumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<UserEvent>(queueName, Json)
+            val messagesFlow = channel.messages<UserEvent>(queueName)
             val consumer = userEventConsumer(messagesFlow, repository())
             consumer.process().first()
         }
@@ -65,7 +64,7 @@ val newUserConsumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<UserEvent>(queueName, Json)
+            val messagesFlow = channel.messages<UserEvent>(queueName)
             val consumer = userEventConsumer(messagesFlow, repository())
             consumer.process().first()
         }
@@ -99,7 +98,7 @@ val newUserConsumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<UserEvent>(queueName, Json)
+            val messagesFlow = channel.messages<UserEvent>(queueName)
             val consumer = userEventConsumer(messagesFlow, repository())
             consumer.process().first()
         }
@@ -122,7 +121,7 @@ val newUserConsumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<UserEvent>(queueName, Json)
+            val messagesFlow = channel.messages<UserEvent>(queueName)
             val consumer = userEventConsumer(messagesFlow, repository())
             consumer.process().first()
         }

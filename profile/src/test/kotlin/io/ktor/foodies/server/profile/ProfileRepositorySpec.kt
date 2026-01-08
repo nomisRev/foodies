@@ -22,7 +22,7 @@ val profileRepositorySpec by testSuite {
 
         assertEquals(
             Profile(
-                id = id,
+                id = requireNotNull(id),
                 subject = "profile-insert",
                 email = "insert@example.com",
                 firstName = "Insert",
@@ -32,8 +32,8 @@ val profileRepositorySpec by testSuite {
         )
     }
 
-    test("insertOrIgnore ignores duplicate subjects and keeps the original profile") {
-        val firstId = repository().insertOrIgnore(
+    test("insertOrIgnore returns null for duplicate subjects") {
+        repository().insertOrIgnore(
             subject = "duplicate-subject",
             email = "first@example.com",
             firstName = "First",
@@ -47,14 +47,30 @@ val profileRepositorySpec by testSuite {
             lastName = "User",
         )
 
-        assertEquals(firstId, secondId)
+        assertNull(secondId)
+    }
 
-        val profile = repository().findBySubject("duplicate-subject")
+    test("insertOrIgnore keeps the original profile data when ignoring duplicates") {
+        val firstId = repository().insertOrIgnore(
+            subject = "duplicate-subject-data",
+            email = "first@example.com",
+            firstName = "First",
+            lastName = "User",
+        )
+
+        repository().insertOrIgnore(
+            subject = "duplicate-subject-data",
+            email = "second@example.com",
+            firstName = "Second",
+            lastName = "User",
+        )
+
+        val profile = repository().findBySubject("duplicate-subject-data")
 
         assertEquals(
             Profile(
-                firstId,
-                subject = "duplicate-subject",
+                assertNotNull(firstId),
+                subject = "duplicate-subject-data",
                 email = "first@example.com",
                 firstName = "First",
                 lastName = "User",
