@@ -12,7 +12,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   rabbitmq:
-    image: rabbitmq:3.13-management
+    image: rabbitmq:4.2-management
     container_name: foodies-rabbitmq
     ports:
       - "5672:5672"
