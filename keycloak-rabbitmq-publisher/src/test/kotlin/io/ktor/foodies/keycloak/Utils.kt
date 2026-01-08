@@ -9,9 +9,6 @@ import de.infix.testBalloon.framework.shared.TestElementName
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.test.RabbitContainer
 import io.ktor.foodies.server.test.rabbitContainer
-import kotlinx.serialization.json.Json
-
-val json = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
 internal fun RabbitContainer.config(queueName: String) = RabbitConfig(
     host,
@@ -43,7 +40,7 @@ internal fun TestSuite.testListener(name: String, block: suspend (String, Profil
         val channel = connection.createChannel().apply {
             queueDeclare(queueName, true, false, false, null)
         }
-        val listener = ProfileWebhookEventListener(ctx.container().config(queueName), connection, channel)
+        val listener = ProfileWebhookEventListener(ctx.container().config(queueName), channel)
         try {
             block(queueName, listener)
         } finally {

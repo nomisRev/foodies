@@ -22,21 +22,6 @@ fun interface Consumer {
     fun process(): Flow<Unit>
 }
 
-private const val CONSUMER_CONNECTION_NAME = "profile-service"
-
-context(application: Application)
-fun ConnectionFactory.channel(queueName: String): Channel {
-    val connection = newConnection(CONSUMER_CONNECTION_NAME)
-    val channel = connection.createChannel().apply {
-        queueDeclare(queueName, true, false, false, null)
-    }
-    application.monitor.subscribe(ApplicationStopped) {
-        runCatching { channel.close() }.onFailure { logger.warn("Failed to close RabbitMQ channel", it) }
-        runCatching { connection.close() }.onFailure { logger.warn("Failed to close RabbitMQ connection", it) }
-    }
-    return channel
-}
-
 class Message<A>(val value: A, private val delivery: Delivery, private val channel: Channel) {
     fun ack() = channel.basicAck(delivery.envelope.deliveryTag, false)
     fun nack() = channel.basicNack(delivery.envelope.deliveryTag, false, false)

@@ -20,12 +20,11 @@ data class TestPayload(val id: String, val value: Int)
 
 val consumerSpec by testSuite {
     val rabbit = testFixture { rabbitContainer()().connectionFactory() }
-    val json = Json { encodeDefaults = true; ignoreUnknownKeys = true }
 
     test("messages - successfully deserializes and emits message") {
         val queueName = "consumer.test.success"
         val payload = TestPayload(id = "test-1", value = 42)
-        val body = json.encodeToString(TestPayload.serializer(), payload)
+        val body = Json.encodeToString(TestPayload.serializer(), payload)
 
         rabbit().channel { channel ->
             channel.queueDeclare(queueName, true, false, false, null)
@@ -33,7 +32,7 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, json)
+            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
             val message = messagesFlow.first()
 
             assertEquals("test-1", message.value.id)
@@ -53,14 +52,14 @@ val consumerSpec by testSuite {
         rabbit().channel { channel ->
             channel.queueDeclare(queueName, true, false, false, null)
             payloads.forEach { payload ->
-                val body = json.encodeToString(TestPayload.serializer(), payload)
+                val body = Json.encodeToString(TestPayload.serializer(), payload)
                 channel.basicPublish("", queueName, null, body.toByteArray())
             }
 
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, json)
+            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
             val messages = messagesFlow.take(3).toList()
 
             assertEquals(3, messages.size)
@@ -82,7 +81,7 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, json)
+            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
 
             val error = runCatching { messagesFlow.first() }.exceptionOrNull()
 
@@ -98,7 +97,7 @@ val consumerSpec by testSuite {
     test("Message::ack - acknowledges message to RabbitMQ") {
         val queueName = "consumer.test.ack"
         val payload = TestPayload(id = "ack-test", value = 100)
-        val body = json.encodeToString(TestPayload.serializer(), payload)
+        val body = Json.encodeToString(TestPayload.serializer(), payload)
 
         rabbit().channel { channel ->
             channel.queueDeclare(queueName, true, false, false, null)
@@ -106,13 +105,13 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, json)
+            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
             val message = messagesFlow.first()
             message.ack()
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, json)
+            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
             val result = withTimeoutOrNull(2.seconds) {
                 messagesFlow.first()
             }
@@ -123,7 +122,7 @@ val consumerSpec by testSuite {
     test("Message::nack - negative acknowledges message and removes it from queue") {
         val queueName = "consumer.test.nack"
         val payload = TestPayload(id = "nack-test", value = 200)
-        val body = json.encodeToString(TestPayload.serializer(), payload)
+        val body = Json.encodeToString(TestPayload.serializer(), payload)
 
         rabbit().channel { channel ->
             channel.queueDeclare(queueName, true, false, false, null)
@@ -131,7 +130,7 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, json)
+            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
             val message = messagesFlow.first()
 
             assertEquals("nack-test", message.value.id)
@@ -141,7 +140,7 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, json)
+            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
             val result = withTimeoutOrNull(2.seconds) {
                 messagesFlow.first()
             }
@@ -152,7 +151,7 @@ val consumerSpec by testSuite {
     test("Message::nack - message is discarded not requeued") {
         val queueName = "consumer.test.nack.discard"
         val payload = TestPayload(id = "discard-test", value = 300)
-        val body = json.encodeToString(TestPayload.serializer(), payload)
+        val body = Json.encodeToString(TestPayload.serializer(), payload)
 
         rabbit().channel { channel ->
             channel.queueDeclare(queueName, true, false, false, null)
@@ -160,13 +159,13 @@ val consumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, json)
+            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
             val message = messagesFlow.first()
             message.nack() // requeue=false means message is discarded
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<TestPayload>(queueName, json)
+            val messagesFlow = channel.messages<TestPayload>(queueName, Json)
             val result = withTimeoutOrNull(2.seconds) {
                 messagesFlow.first()
             }
