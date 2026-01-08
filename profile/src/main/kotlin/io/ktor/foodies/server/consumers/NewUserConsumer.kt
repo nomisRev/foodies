@@ -2,6 +2,7 @@ package io.ktor.foodies.server.consumers
 
 import io.ktor.foodies.server.profile.ProfileRepository
 import io.ktor.foodies.user.event.UserEvent
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.retry
@@ -26,6 +27,7 @@ fun userEventConsumer(newUsers: Flow<Message<UserEvent>>, profileRepository: Pro
             message.nack()
         }
     }.retry { e ->
+        delay(1000) // TODO: Introduce proper resilience schedule
         logger.error("Failed to process registration message, retrying", e)
         true // Retry and continue processing forever
     }
