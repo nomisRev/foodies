@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 
-class DataSource internal constructor(val hikari: HikariDataSource, val database: Database) {
+class DataSource(val hikari: HikariDataSource, val database: Database) {
     @Serializable
     data class Config(val url: String, val username: String, val password: String)
 }

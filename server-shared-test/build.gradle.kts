@@ -31,6 +31,8 @@ dependencies {
 
     api(ktorLibs.server.testHost)
     api(libs.testcontainers.postgresql)
+    api(libs.rabbitmq)
+    api(libs.testcontainers.rabbitmq)
     api(libs.testballoon)
 }
 

@@ -10,15 +10,18 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import kotlinx.coroutines.flow.launchIn
 
 fun main() {
-    val env = ApplicationConfig("application.yaml").property("config").getAs<Config>()
-    embeddedServer(Netty, host = env.host, port = env.port) {
-        app()
+    val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
+    embeddedServer(Netty, host = config.host, port = config.port) {
+        app(module(config))
     }.start(wait = true)
 }
 
-fun Application.app() {
+fun Application.app(module: Module) {
+    module.consumers.forEach { it.process().launchIn(this) }
+
     routing {
         healthz()
     }
