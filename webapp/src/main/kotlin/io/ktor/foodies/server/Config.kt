@@ -7,7 +7,6 @@ import kotlinx.serialization.Serializable
 data class Config(
     val host: String,
     val port: Int,
-    @SerialName("data_source") val dataSource: DataSource.Config,
     val security: Security
 ) {
     @Serializable
