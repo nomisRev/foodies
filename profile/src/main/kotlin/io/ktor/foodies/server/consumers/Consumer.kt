@@ -24,19 +24,12 @@ class Message<A>(val value: A, private val delivery: Delivery, private val chann
     fun nack() = channel.basicNack(delivery.envelope.deliveryTag, false, false)
 }
 
-inline fun <reified A> Channel.messages(
-    queueName: String,
-    json: Json = Json,
-): Flow<Message<A>> = messages(json, serializer(), queueName)
+inline fun <reified A> Channel.messages(queueName: String): Flow<Message<A>> = messages(serializer(), queueName)
 
-fun <A> Channel.messages(
-    json: Json,
-    serializer: KSerializer<A>,
-    queueName: String
-): Flow<Message<A>> = channelFlow {
+fun <A> Channel.messages(serializer: KSerializer<A>, queueName: String): Flow<Message<A>> = channelFlow {
     val deliverCallback = DeliverCallback { _, delivery ->
         runCatching {
-            json.decodeFromString(serializer, delivery.body.decodeToString())
+            Json.decodeFromString(serializer, delivery.body.decodeToString())
         }.fold(
             /**
              * We use trySendBlocking here because we want to 'backpressure' the DeliveryCallback.

@@ -14,14 +14,6 @@ import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
 @Serializable
-data class InsertProfile(
-    val subject: String,
-    val email: String,
-    val firstName: String,
-    val lastName: String,
-)
-
-@Serializable
 data class Profile(
     val id: Long,
     val subject: String,
@@ -32,7 +24,7 @@ data class Profile(
 
 interface ProfileRepository {
     fun findBySubject(subject: String): Profile?
-    fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Long
+    fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Long?
     fun deleteBySubject(subject: String): Boolean
 }
 
@@ -51,15 +43,15 @@ class ExposedProfileRepository(private val database: Database) : ProfileReposito
             .singleOrNull()
     }
 
-    override fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Long =
+    override fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Long? =
         transaction(database) {
-            ProfileTable.insertIgnore {row ->
+            ProfileTable.insertIgnoreAndGetId { row ->
                 row[ProfileTable.subject] = subject
                 row[ProfileTable.email] = email
                 row[ProfileTable.firstName] = firstName
                 row[ProfileTable.lastName] = lastName
-            } get ProfileTable.id
-        }.value
+            }
+        }?.value
 
     override fun deleteBySubject(subject: String): Boolean = transaction(database) {
         ProfileTable.deleteWhere { ProfileTable.subject eq subject } == 1
