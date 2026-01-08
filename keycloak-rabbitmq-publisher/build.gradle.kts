@@ -18,7 +18,8 @@ dependencies {
     compileOnly(libs.keycloak.server.spi)
     compileOnly(libs.keycloak.server.spi.private)
 
-    implementation(ktorLibs.serialization.kotlinx.json)
+    implementation(project(":keycloak-events"))
+    implementation(libs.serialization.json)
     implementation(libs.rabbitmq)
 
     testImplementation(libs.testballoon)

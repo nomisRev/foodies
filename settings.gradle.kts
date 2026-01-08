@@ -11,5 +11,6 @@ include(":server-shared")
 include(":server-shared-test")
 include(":profile")
 include(":keycloak-rabbitmq-publisher")
+include(":keycloak-events")
 
 rootProject.name = "foodies"

@@ -5,6 +5,7 @@ import io.ktor.foodies.server.customers.migratedPostgresDataSource
 import io.ktor.foodies.server.profile.ExposedProfileRepository
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.rabbitContainer
+import io.ktor.foodies.user.event.UserEvent
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import kotlin.test.assertEquals
@@ -19,13 +20,13 @@ val newUserConsumerSpec by testSuite {
     test("creates profile when consuming new user event from RabbitMQ") {
         val queueName = "profile.registration.test"
 
-        val payload = NewUserEvent(
+        val payload = UserEvent.Registration(
             subject = "user-integration-test",
             email = "integration@example.com",
             firstName = "Integration",
             lastName = "Test",
         )
-        val body = json.encodeToString(NewUserEvent.serializer(), payload)
+        val body = json.encodeToString(UserEvent.serializer(), payload)
 
         rabbit().channel { channel ->
             channel.queueDeclare(queueName, true, false, false, null)
@@ -33,8 +34,8 @@ val newUserConsumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<NewUserEvent>(queueName, json)
-            val consumer = newUserConsumer(messagesFlow, repository())
+            val messagesFlow = channel.messages<UserEvent>(queueName, json)
+            val consumer = userEventConsumer(messagesFlow, repository())
             consumer.process().first()
         }
 
@@ -49,13 +50,13 @@ val newUserConsumerSpec by testSuite {
     test("creates profile with null optional fields") {
         val queueName = "profile.registration.minimal"
 
-        val payload = NewUserEvent(
+        val payload = UserEvent.Registration(
             subject = "minimal-user",
             email = "integration@example.com",
             firstName = "Integration",
             lastName = "Test",
         )
-        val body = json.encodeToString(NewUserEvent.serializer(), payload)
+        val body = json.encodeToString(UserEvent.serializer(), payload)
 
         rabbit().channel { channel ->
             channel.queueDeclare(queueName, true, false, false, null)
@@ -63,8 +64,8 @@ val newUserConsumerSpec by testSuite {
         }
 
         rabbit().channel { channel ->
-            val messagesFlow = channel.messages<NewUserEvent>(queueName, json)
-            val consumer = newUserConsumer(messagesFlow, repository())
+            val messagesFlow = channel.messages<UserEvent>(queueName, json)
+            val consumer = userEventConsumer(messagesFlow, repository())
             consumer.process().first()
         }
 

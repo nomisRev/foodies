@@ -2,11 +2,11 @@ package io.ktor.foodies.server
 
 import com.rabbitmq.client.ConnectionFactory
 import io.ktor.foodies.server.consumers.Consumer
-import io.ktor.foodies.server.consumers.NewUserEvent
 import io.ktor.foodies.server.consumers.channel
 import io.ktor.foodies.server.consumers.messages
-import io.ktor.foodies.server.consumers.newUserConsumer
+import io.ktor.foodies.server.consumers.userEventConsumer
 import io.ktor.foodies.server.profile.ExposedProfileRepository
+import io.ktor.foodies.user.event.UserEvent
 import io.ktor.server.application.Application
 import org.flywaydb.core.Flyway
 
@@ -22,8 +22,8 @@ fun Application.module(config: Config): Module {
 
     val connectionFactory = rabbitConnectionFactory(config)
     val newUserConsumer =
-        newUserConsumer(
-            connectionFactory.channel(config.rabbit.queue).messages<NewUserEvent>(config.rabbit.queue),
+        userEventConsumer(
+            connectionFactory.channel(config.rabbit.queue).messages<UserEvent>(config.rabbit.queue),
             profileRepository
         )
 
