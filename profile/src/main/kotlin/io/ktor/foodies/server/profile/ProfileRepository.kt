@@ -31,10 +31,10 @@ data class Profile(
 
 interface ProfileRepository {
     fun findBySubject(subject: String): Profile?
-    fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Profile
+    fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Long
 }
 
-object ProfileTable : LongIdTable("customers") {
+object ProfileTable : LongIdTable("profiles") {
     val subject = varchar("subject", 255).uniqueIndex()
     val email = varchar("email", 255)
     val firstName = varchar("first_name", 255)
@@ -49,16 +49,15 @@ class ExposedProfileRepository(private val database: Database) : ProfileReposito
             .singleOrNull()
     }
 
-    override fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Profile =
+    override fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Long =
         transaction(database) {
-            val id = ProfileTable.insertIgnore {row ->
+            ProfileTable.insertIgnore {row ->
                 row[ProfileTable.subject] = subject
                 row[ProfileTable.email] = email
                 row[ProfileTable.firstName] = firstName
                 row[ProfileTable.lastName] = lastName
             } get ProfileTable.id
-            Profile(id.value, subject, email, firstName, lastName)
-        }
+        }.value
 
     private fun ResultRow.toCustomer() = Profile(
         id = this[ProfileTable.id].value,
