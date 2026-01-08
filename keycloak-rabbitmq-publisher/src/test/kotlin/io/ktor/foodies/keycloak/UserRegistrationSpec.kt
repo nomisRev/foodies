@@ -45,6 +45,34 @@ val userRegistrationEvent by rabbitSuite {
         }
     }
 
+    testListener("publishes UpdateProfileEvent to RabbitMQ when UPDATE_PROFILE event is received") { queueName, listener ->
+        val event = Event().apply {
+            type = EventType.UPDATE_PROFILE
+            userId = "update-user-123"
+            details = mapOf(
+                "email" to "update@example.com",
+                "first_name" to "Jane",
+                "last_name" to "Doe"
+            )
+        }
+
+        listener.onEvent(event)
+
+        factory().channel { channel ->
+            val response = channel.basicGet(queueName, true)
+            assertNotNull(response, "Expected a message in the queue")
+            assertEquals(
+                UserEvent.UpdateProfile(
+                    subject = "update-user-123",
+                    email = "update@example.com",
+                    firstName = "Jane",
+                    lastName = "Doe"
+                ),
+                Json.decodeFromString<UserEvent>(response.body.decodeToString())
+            )
+        }
+    }
+
     testListener("publishes DeleteUserEvent to RabbitMQ when DELETE_ACCOUNT event is received") { queueName, listener ->
         val event = Event().apply {
             type = EventType.DELETE_ACCOUNT
@@ -107,6 +135,20 @@ val userRegistrationEvent by rabbitSuite {
             val response = channel.basicGet(queueName, true)
             assertNull(response, "Expected no message in the queue for non-REGISTER event")
         }
+    }
+
+    testListener("throws when UPDATE_PROFILE event has missing fields") { queueName, listener ->
+        val event = Event().apply {
+            type = EventType.UPDATE_PROFILE
+            userId = "update-user-missing"
+            details = emptyMap()
+        }
+
+        val ex = assertFailsWith<IllegalStateException> { listener.onEvent(event) }
+        assertEquals(
+            "Missing required fields for profile update event: userId=update-user-missing email=null firstName=null, lastName=null",
+            ex.message
+        )
     }
 
     testListener("handles event with null details map") { queueName, listener ->

@@ -19,6 +19,11 @@ fun userEventConsumer(newUsers: Flow<Message<UserEvent>>, profileRepository: Pro
                     profileRepository.insertOrIgnore(event.subject, event.email, event.firstName, event.lastName)
                     logger.info("Processed registration message for subject ${event.subject}")
                 }
+                is UserEvent.UpdateProfile -> {
+                    profileRepository.upsert(event.subject, event.email, event.firstName, event.lastName)
+                    logger.info("Processed update message for subject ${event.subject}")
+                }
+
                 is UserEvent.Delete -> {
                     profileRepository.deleteBySubject(event.subject)
                     logger.info("Processed delete message for subject ${event.subject}")
