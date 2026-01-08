@@ -39,7 +39,11 @@ context(ctx: RabbitContext)
 internal fun TestSuite.testListener(name: String, block: suspend (String, ProfileWebhookEventListener) -> Unit) =
     test(name) {
         val queueName = name.split(" ").joinToString(separator = ".").lowercase()
-        val listener = ProfileWebhookEventListener(ctx.container().config(queueName))
+        val connection = ctx.factory().newConnection()
+        val channel = connection.createChannel().apply {
+            queueDeclare(queueName, true, false, false, null)
+        }
+        val listener = ProfileWebhookEventListener(ctx.container().config(queueName), connection, channel)
         try {
             block(queueName, listener)
         } finally {

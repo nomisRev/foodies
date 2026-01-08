@@ -1,11 +1,13 @@
 package io.ktor.foodies.keycloak
 
 import io.ktor.foodies.server.test.channel
+import io.ktor.foodies.user.event.UserEvent
 import org.keycloak.events.Event
 import org.keycloak.events.EventType
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 val userRegistrationEvent by rabbitSuite {
     testListener("publishes NewUserEvent to RabbitMQ when REGISTER event is received") { queueName, listener ->
@@ -26,7 +28,7 @@ val userRegistrationEvent by rabbitSuite {
             assertNotNull(response, "Expected a message in the queue")
 
             val body = String(response.body)
-            val receivedEvent = json.decodeFromString<NewUserEvent>(body)
+            val receivedEvent = json.decodeFromString<UserEvent.Registration>(body)
 
             assertEquals("test-user-123", receivedEvent.subject)
             assertEquals("test@example.com", receivedEvent.email)
@@ -42,20 +44,11 @@ val userRegistrationEvent by rabbitSuite {
             details = emptyMap()
         }
 
-        listener.onEvent(event)
-
-        factory().channel { channel ->
-            val response = channel.basicGet(queueName, true)
-            assertNotNull(response, "Expected a message in the queue")
-
-            val body = String(response.body)
-            val receivedEvent = json.decodeFromString<NewUserEvent>(body)
-
-            assertEquals("minimal-user-456", receivedEvent.subject)
-            assertNull(receivedEvent.email)
-            assertNull(receivedEvent.firstName)
-            assertNull(receivedEvent.lastName)
-        }
+        val ex = assertFailsWith<IllegalStateException> { listener.onEvent(event) }
+        assertEquals(
+            "Missing required fields for registration event: userId=minimal-user-456 email=null firstName=null, lastName=null",
+            ex.message
+        )
     }
 
     testListener("does not publish message when event is null") { queueName, listener ->
@@ -95,20 +88,11 @@ val userRegistrationEvent by rabbitSuite {
             details = null
         }
 
-        listener.onEvent(event)
-
-        factory().channel { channel ->
-            val response = channel.basicGet(queueName, true)
-            assertNotNull(response, "Expected a message in the queue")
-
-            val body = String(response.body)
-            val receivedEvent = json.decodeFromString<NewUserEvent>(body)
-
-            assertEquals("null-details-user", receivedEvent.subject)
-            assertNull(receivedEvent.email)
-            assertNull(receivedEvent.firstName)
-            assertNull(receivedEvent.lastName)
-        }
+        val ex = assertFailsWith<IllegalStateException> { listener.onEvent(event)  }
+        assertEquals(
+            "Missing required fields for registration event: userId=null-details-user email=null firstName=null, lastName=null",
+            ex.message
+        )
     }
 
     testListener("handles event with null userId") { queueName, listener ->
@@ -118,18 +102,11 @@ val userRegistrationEvent by rabbitSuite {
             details = mapOf("email" to "nulluser@example.com")
         }
 
-        listener.onEvent(event)
-
-        factory().channel { channel ->
-            val response = channel.basicGet(queueName, true)
-            assertNotNull(response, "Expected a message in the queue")
-
-            val body = String(response.body)
-            val receivedEvent = json.decodeFromString<NewUserEvent>(body)
-
-            assertEquals("", receivedEvent.subject)
-            assertEquals("nulluser@example.com", receivedEvent.email)
-        }
+        val ex = assertFailsWith<IllegalStateException> { listener.onEvent(event) }
+        assertEquals(
+            "Missing required fields for registration event: userId=null email=nulluser@example.com firstName=null, lastName=null",
+            ex.message
+        )
     }
 
     testListener("onEvent for AdminEvent does nothing") { queueName, listener ->
@@ -144,9 +121,7 @@ val userRegistrationEvent by rabbitSuite {
         }
     }
 
-    test("close method properly closes channel and connection") {
-        val listener = ProfileWebhookEventListener(container().config("profile.registration.close-test"))
-        listener.close()
+    testListener("close is idempotent") { _, listener ->
         listener.close()
     }
 }

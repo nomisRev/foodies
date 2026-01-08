@@ -16,6 +16,7 @@ kotlin {
 
 dependencies {
     implementation(project(":server-shared"))
+    implementation(project(":keycloak-events"))
     implementation(ktorLibs.client.apache5)
     implementation(ktorLibs.client.contentNegotiation)
 

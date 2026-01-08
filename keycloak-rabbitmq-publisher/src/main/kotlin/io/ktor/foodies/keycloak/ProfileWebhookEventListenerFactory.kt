@@ -1,5 +1,6 @@
 package io.ktor.foodies.keycloak
 
+import com.rabbitmq.client.ConnectionFactory
 import org.keycloak.Config
 import org.keycloak.events.EventListenerProvider
 import org.keycloak.events.EventListenerProviderFactory
@@ -17,11 +18,26 @@ class ProfileWebhookEventListenerFactory : EventListenerProviderFactory {
         queue = System.getenv("RABBITMQ_QUEUE") ?: DEFAULT_QUEUE_NAME,
     )
 
-    override fun create(session: KeycloakSession): EventListenerProvider =
-        ProfileWebhookEventListener(rabbitConfig)
-
     override fun init(config: Config.Scope) {}
     override fun postInit(factory: KeycloakSessionFactory) = Unit
-    override fun close() = Unit
     override fun getId(): String = "profile-webhook"
+    override fun close() = Unit
+
+    override fun create(session: KeycloakSession): EventListenerProvider {
+        // The factory and connection are closed when EventListenerProvider.close is called by Keycloak
+        val connectionFactory = ConnectionFactory().apply {
+            host = rabbitConfig.host
+            port = rabbitConfig.port
+            username = rabbitConfig.username
+            password = rabbitConfig.password
+        }
+        val connection = connectionFactory.newConnection("profile-webhook")
+        return ProfileWebhookEventListener(
+            rabbitConfig,
+            connection,
+            connection.createChannel().apply {
+                queueDeclare(rabbitConfig.queue, true, false, false, null)
+            }
+        )
+    }
 }
