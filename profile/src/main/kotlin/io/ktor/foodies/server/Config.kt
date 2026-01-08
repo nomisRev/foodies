@@ -8,8 +8,14 @@ data class Config(
     val host: String,
     val port: Int,
     @SerialName("data_source") val dataSource: DataSource.Config,
-    val security: Security
+    val rabbit: Rabbit,
 ) {
     @Serializable
-    data class Security(val issuer: String, val clientId: String, val clientSecret: String)
+    data class Rabbit(
+        val host: String,
+        val port: Int,
+        val username: String,
+        val password: String,
+        val queue: String,
+    )
 }

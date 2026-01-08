@@ -1,7 +1,13 @@
 config:
   host: "$HOST:0.0.0.0"
-  port: "$PORT:8080"
+  port: "$PORT:8081"
   data_source:
     url: "$DB_URL:jdbc:postgresql://localhost:5432/foodies-profile-database"
     username: "$DB_USERNAME:foodies_admin"
     password: "$DB_PASSWORD:foodies_password"
+  rabbit:
+    host: "$RABBITMQ_HOST:localhost"
+    port: "$RABBITMQ_PORT:5672"
+    username: "$RABBITMQ_USERNAME:guest"
+    password: "$RABBITMQ_PASSWORD:guest"
+    queue: "$RABBITMQ_QUEUE:profile.registration"
