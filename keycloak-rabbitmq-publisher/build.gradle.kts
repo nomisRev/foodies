@@ -33,6 +33,9 @@ dependencies {
 tasks.shadowJar {
     archiveClassifier.set("")
     mergeServiceFiles()
+    dependencies {
+        exclude(dependency("org.slf4j:slf4j-api"))
+    }
 }
 
 tasks.withType<Test>().configureEach {

@@ -3,9 +3,6 @@ package io.ktor.foodies.keycloak
 import io.ktor.foodies.user.event.UserEvent
 import org.keycloak.events.Event
 import org.keycloak.events.EventType
-import org.slf4j.LoggerFactory
-
-private val logger = LoggerFactory.getLogger("UserEventTransformer")
 
 fun Event.toUserEvent(): UserEvent? =
     when (type) {

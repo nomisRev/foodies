@@ -1,17 +1,17 @@
 package io.ktor.foodies.keycloak
 
 import com.rabbitmq.client.ConnectionFactory
+import org.jboss.logging.Logger
 import org.keycloak.Config
 import org.keycloak.events.EventListenerProvider
 import org.keycloak.events.EventListenerProviderFactory
 import org.keycloak.models.KeycloakSession
 import org.keycloak.models.KeycloakSessionFactory
-import org.slf4j.LoggerFactory
 
 private const val DEFAULT_QUEUE_NAME = "profile.registration"
 
 class ProfileWebhookEventListenerFactory : EventListenerProviderFactory {
-    private val logger = LoggerFactory.getLogger(ProfileWebhookEventListenerFactory::class.java)
+    private val logger = Logger.getLogger(ProfileWebhookEventListenerFactory::class.java)
 
     private val rabbitConfig: RabbitConfig = RabbitConfig(
         host = System.getenv("RABBITMQ_HOST") ?: "localhost",
