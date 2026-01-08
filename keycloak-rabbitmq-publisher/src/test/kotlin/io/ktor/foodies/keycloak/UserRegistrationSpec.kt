@@ -10,6 +10,12 @@ import kotlin.test.assertNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
+/**
+ * We are making some assumptions here about 'Event',
+ * and it would be better to do a proper integration test with a real Keycloak instance.
+ * This is non-trivial and is postponed for a proper intergration test of the entire system.
+ * Contributions welcome!
+ */
 val userRegistrationEvent by rabbitSuite {
     testListener("publishes NewUserEvent to RabbitMQ when REGISTER event is received") { queueName, listener ->
         val event = Event().apply {
