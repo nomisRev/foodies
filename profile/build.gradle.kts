@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.testballoon)
 }
 
-application { mainClass = "io.ktor.app.AppKt" }
+application { mainClass = "io.ktor.foodies.server.AppKt" }
 
 kotlin {
     jvmToolchain(21)
@@ -29,6 +29,7 @@ dependencies {
     implementation(ktorLibs.server.htmx)
 
     implementation(ktorLibs.serialization.kotlinx.json)
+    implementation(libs.rabbitmq)
 
     implementation(libs.logback)
 
@@ -38,6 +39,8 @@ dependencies {
     implementation(libs.flyway.postgresql)
 
     testImplementation(project(":server-shared-test"))
+    testImplementation(libs.testcontainers.rabbitmq)
+    testImplementation(libs.testcontainers.postgresql)
 }
 
 tasks.withType<Test>().configureEach {

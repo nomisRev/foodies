@@ -10,5 +10,6 @@ include(":webapp")
 include(":server-shared")
 include(":server-shared-test")
 include(":profile")
+include(":keycloak-rabbitmq-publisher")
 
 rootProject.name = "foodies"
