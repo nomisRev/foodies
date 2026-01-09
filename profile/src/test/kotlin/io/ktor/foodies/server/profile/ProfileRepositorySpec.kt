@@ -87,7 +87,7 @@ val profileRepositorySpec by testSuite {
             lastName = "Test",
         )
 
-        val profile = repository().findBySubject("profile-insert")
+        val profile = repository().findBySubject("profile-upsert-insert")
         assertEquals("profile-upsert-insert", profile?.subject)
         assertEquals("upsert-insert@example.com", profile?.email)
         assertEquals("UpsertInsert", profile?.firstName)

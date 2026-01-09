@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.testballoon)
 }
 
-application { mainClass = "io.ktor.foodies.server.AppKt" }
+application { mainClass = "io.ktor.foodies.menu.AppKt" }
 
 kotlin {
     jvmToolchain(21)
@@ -16,24 +16,28 @@ kotlin {
 
 dependencies {
     implementation(project(":server-shared"))
-    implementation(project(":keycloak-events"))
 
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.server.statusPages)
+    implementation(ktorLibs.server.contentNegotiation)
+    implementation(ktorLibs.serialization.kotlinx.json)
+
     implementation(libs.logback)
 
     implementation(libs.serialization.json)
 
-    implementation(libs.rabbitmq)
-
     implementation(libs.postgresql)
     implementation(libs.hikari)
     implementation(libs.exposed.jdbc)
+    implementation(libs.exposed.datetime)
     implementation(libs.flyway.postgresql)
 
     testImplementation(project(":server-shared-test"))
-    testImplementation(libs.testcontainers.rabbitmq)
     testImplementation(libs.testcontainers.postgresql)
+    testImplementation(ktorLibs.server.testHost)
+    testImplementation(ktorLibs.client.contentNegotiation)
+    testImplementation(ktorLibs.serialization.kotlinx.json)
 }
 
 tasks.withType<Test>().configureEach {

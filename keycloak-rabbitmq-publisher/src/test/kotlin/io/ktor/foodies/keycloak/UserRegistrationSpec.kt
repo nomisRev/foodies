@@ -1,6 +1,7 @@
 package io.ktor.foodies.keycloak
 
 import io.ktor.foodies.server.test.channel
+import io.ktor.foodies.server.test.ctxSuite
 import io.ktor.foodies.user.event.UserEvent
 import kotlinx.serialization.json.Json
 import org.keycloak.events.Event
@@ -16,7 +17,7 @@ import kotlin.test.assertFailsWith
  * This is non-trivial and is postponed for a proper intergration test of the entire system.
  * Contributions welcome!
  */
-val userRegistrationEvent by rabbitSuite {
+val userRegistrationEvent by ctxSuite(context = { rabbitContext() }) {
     testListener("publishes NewUserEvent to RabbitMQ when REGISTER event is received") { queueName, listener ->
         val event = Event().apply {
             type = EventType.REGISTER

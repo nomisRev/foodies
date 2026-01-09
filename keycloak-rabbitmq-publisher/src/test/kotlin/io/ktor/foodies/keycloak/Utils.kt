@@ -1,11 +1,7 @@
 package io.ktor.foodies.keycloak
 
 import com.rabbitmq.client.ConnectionFactory
-import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.TestSuite
-import de.infix.testBalloon.framework.core.testSuite
-import de.infix.testBalloon.framework.shared.TestDisplayName
-import de.infix.testBalloon.framework.shared.TestElementName
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.test.RabbitContainer
 import io.ktor.foodies.server.test.rabbitContainer
@@ -23,9 +19,10 @@ class RabbitContext(
     val factory: TestSuite.Fixture<ConnectionFactory>
 )
 
-context(ctx: RabbitContext)
-val container: TestSuite.Fixture<RabbitContainer>
-    get() = ctx.container
+fun TestSuite.rabbitContext(): RabbitContext {
+    val container = rabbitContainer()
+    return RabbitContext(container, testFixture { container().connectionFactory() })
+}
 
 context(ctx: RabbitContext)
 val factory: TestSuite.Fixture<ConnectionFactory>
@@ -47,15 +44,3 @@ internal fun TestSuite.testListener(name: String, block: suspend (String, Profil
             listener.close()
         }
     }
-
-@TestRegistering
-fun rabbitSuite(
-    @TestElementName name: String = "",
-    @TestDisplayName displayName: String = name,
-    testConfig: TestConfig = TestConfig,
-    content: context(RabbitContext) TestSuite.() -> Unit
-): Lazy<TestSuite> = testSuite(name, displayName, testConfig) {
-    val container: TestSuite.Fixture<RabbitContainer> = rabbitContainer()
-    val factory: TestSuite.Fixture<ConnectionFactory> = testFixture { container().connectionFactory() }
-    content(RabbitContext(container, factory), this)
-}
