@@ -1,0 +1,7 @@
+config:
+  host: "$HOST:0.0.0.0"
+  port: "$PORT:8082"
+  data_source:
+    url: "$DB_URL:jdbc:postgresql://localhost:5433/foodies-menu-database"
+    username: "$DB_USERNAME:foodies_admin"
+    password: "$DB_PASSWORD:foodies_password"

@@ -16,6 +16,7 @@ serialization="1.10.0-RC"
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
 exposed-jdbc = { module = "org.jetbrains.exposed:exposed-jdbc", version.ref = "exposed" }
+exposed-datetime = { module = "org.jetbrains.exposed:exposed-kotlin-datetime", version.ref = "exposed" }
 hikari = { module = "com.zaxxer:HikariCP", version.ref = "hikari" }
 postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
 flyway-postgresql = { module = "org.flywaydb:flyway-database-postgresql", version.ref = "flyway" }

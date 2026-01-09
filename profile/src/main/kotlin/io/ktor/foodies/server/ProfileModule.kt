@@ -11,9 +11,9 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import org.flywaydb.core.Flyway
 
-class Module(val consumers: List<Consumer>)
+class ProfileModule(val consumers: List<Consumer>)
 
-fun Application.module(config: Config): Module {
+fun Application.module(config: Config): ProfileModule {
     val dataSource = dataSource(config.dataSource)
     Flyway.configure()
         .dataSource(dataSource.hikari)
@@ -28,7 +28,7 @@ fun Application.module(config: Config): Module {
             profileRepository
         )
 
-    return Module(listOf(newUserConsumer))
+    return ProfileModule(listOf(newUserConsumer))
 }
 
 private fun rabbitConnectionFactory(config: Config): ConnectionFactory = ConnectionFactory().apply {

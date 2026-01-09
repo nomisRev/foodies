@@ -10,6 +10,7 @@ include(":webapp")
 include(":server-shared")
 include(":server-shared-test")
 include(":profile")
+include(":menu")
 include(":keycloak-rabbitmq-publisher")
 include(":keycloak-events")
 
