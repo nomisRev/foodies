@@ -2,12 +2,9 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
     alias(libs.plugins.kotlin.jvm)
-    alias(ktorLibs.plugins.ktor)
     alias(libs.plugins.serialization)
     alias(libs.plugins.testballoon)
 }
-
-application { mainClass = "io.ktor.app.AppKt" }
 
 kotlin {
     jvmToolchain(21)
