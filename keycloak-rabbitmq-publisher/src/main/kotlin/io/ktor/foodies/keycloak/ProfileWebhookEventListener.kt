@@ -1,6 +1,6 @@
 package io.ktor.foodies.keycloak
 
-import com.rabbitmq.client.Channel
+import com.rabbitmq.client.Connection
 import io.ktor.foodies.user.event.UserEvent
 import kotlinx.serialization.json.Json
 import org.jboss.logging.Logger
@@ -10,9 +10,14 @@ import org.keycloak.events.admin.AdminEvent
 
 internal class ProfileWebhookEventListener(
     private val rabbitConfig: RabbitConfig,
-    private val channel: Channel,
+    private val connection: Lazy<Connection>,
 ) : EventListenerProvider {
     private val logger = Logger.getLogger(ProfileWebhookEventListener::class.java)
+    private val channel by lazy {
+        connection.value.createChannel().apply {
+            queueDeclare(rabbitConfig.queue, true, false, false, null)
+        }
+    }
 
     override fun onEvent(event: AdminEvent?, includeRepresentation: Boolean) = Unit
 
@@ -29,6 +34,11 @@ internal class ProfileWebhookEventListener(
     }
 
     override fun close() {
-        runCatching { if (channel.isOpen) channel.close() }.onFailure { logger.warn("Failed to close RabbitMQ channel", it) }
+        runCatching { if (channel.isOpen) channel.close() }.onFailure {
+            logger.warn(
+                "Failed to close RabbitMQ channel",
+                it
+            )
+        }
     }
 }

@@ -21,26 +21,24 @@ class ProfileWebhookEventListenerFactory : EventListenerProviderFactory {
         queue = System.getenv("RABBITMQ_QUEUE") ?: DEFAULT_QUEUE_NAME,
     )
 
-    private val connection = ConnectionFactory().apply {
+    private val connectionFactory = ConnectionFactory().apply {
         host = rabbitConfig.host
         port = rabbitConfig.port
         username = rabbitConfig.username
         password = rabbitConfig.password
-    }.newConnection("profile-webhook")
+    }
+    private val connection = lazy { connectionFactory.newConnection("profile-webhook") }
 
     override fun init(config: Config.Scope) {}
     override fun postInit(factory: KeycloakSessionFactory) = Unit
     override fun getId(): String = "profile-webhook"
 
     override fun create(session: KeycloakSession): EventListenerProvider =
-        ProfileWebhookEventListener(
-            rabbitConfig,
-            connection.createChannel().apply {
-                queueDeclare(rabbitConfig.queue, true, false, false, null)
-            }
-        )
+        ProfileWebhookEventListener(rabbitConfig, connection)
 
     override fun close() {
-        runCatching { connection.close() }.onFailure { logger.warn("Failed to close RabbitMQ connection", it) }
+        runCatching {
+            if (connection.isInitialized()) connection.value.close()
+        }.onFailure { logger.warn("Failed to close RabbitMQ connection", it) }
     }
 }
