@@ -34,10 +34,7 @@ internal fun TestSuite.testListener(name: String, block: suspend (String, Profil
     test(name) {
         val queueName = name.split(" ").joinToString(separator = ".").lowercase()
         val connection = ctx.factory().newConnection()
-        val channel = connection.createChannel().apply {
-            queueDeclare(queueName, true, false, false, null)
-        }
-        val listener = ProfileWebhookEventListener(ctx.container().config(queueName), channel)
+        val listener = ProfileWebhookEventListener(ctx.container().config(queueName), lazy { connection })
         try {
             block(queueName, listener)
         } finally {
