@@ -14,6 +14,13 @@ kotlin {
     compilerOptions { freeCompilerArgs.add("-Xcontext-parameters") }
 }
 
+ktor {
+    docker {
+        localImageName = "foodies-menu"
+        imageTag = project.version.toString()
+    }
+}
+
 dependencies {
     implementation(project(":server-shared"))
 

@@ -14,6 +14,13 @@ kotlin {
     compilerOptions { freeCompilerArgs.add("-Xcontext-parameters") }
 }
 
+ktor {
+    docker {
+        localImageName = "foodies-webapp"
+        imageTag = project.version.toString()
+    }
+}
+
 dependencies {
     implementation(project(":server-shared"))
     implementation(ktorLibs.client.apache5)
