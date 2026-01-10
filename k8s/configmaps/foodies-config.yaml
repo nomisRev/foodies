@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: foodies-config
+  namespace: foodies
+data:
+  FOODIES_HOST: foodies.local
+  PROFILE_DB_NAME: foodies-profile-database
+  MENU_DB_NAME: foodies-menu-database
+  RABBITMQ_QUEUE: profile.registration
+  KEYCLOAK_HTTP_PORT: "8000"

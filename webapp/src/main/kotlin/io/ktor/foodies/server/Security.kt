@@ -6,16 +6,15 @@ import io.ktor.client.call.body
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
-import io.ktor.http.HttpHeaders.Authorization
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.URLBuilder
 import io.ktor.http.auth.HttpAuthHeader
-import io.ktor.http.auth.parseAuthorizationHeader
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.install
+import io.ktor.server.application.log
 import io.ktor.server.auth.AuthenticationConfig
 import io.ktor.server.auth.OAuthAccessTokenResponse
 import io.ktor.server.auth.OAuthServerSettings
@@ -67,6 +66,7 @@ data class AuthSubject(val subject: String)
 
 suspend fun Application.security(config: Config.Security) {
     install(Sessions) {
+        // TODO redis for distributed session, or sticky load balancing
         cookie<UserSession>("USER_SESSION", SessionStorageMemory()) {
             cookie.secure = !this@security.developmentMode
             cookie.httpOnly = true
@@ -80,6 +80,7 @@ suspend fun Application.security(config: Config.Security) {
     monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
     val openIdConfig = httpClient.discover(config.issuer)
+    log.info("Loading $openIdConfig")
 
     authentication {
         oauth(openIdConfig, config, httpClient)
@@ -123,10 +124,7 @@ private fun AuthenticationConfig.jwt(openIdConfig: OpenIdConfiguration, config: 
                 .build(),
             config.issuer
         )
-        authHeader { call ->
-            call.request.headers[Authorization]?.let { parseAuthorizationHeader(it) }
-                ?: call.sessions.get<UserSession>()?.idToken?.let { HttpAuthHeader.Single("Bearer", it) }
-        }
+        authHeader { call -> call.sessions.get<UserSession>()?.idToken?.let { HttpAuthHeader.Single("Bearer", it) } }
         validate { credential ->
             val subject = requireNotNull(credential.subject) { "JwtCredential is missing subject claim" }
             AuthSubject(subject)
@@ -140,7 +138,14 @@ private fun AuthenticationConfig.oauth(
     httpClient: HttpClient
 ) {
     oauth("oauth") {
-        urlProvider = { "${request.origin.scheme}://${request.host()}:${request.port()}/oauth/callback" }
+        urlProvider = {
+            val portSuffix = when {
+                request.origin.scheme == "http" && request.port() == 80 -> ""
+                request.origin.scheme == "https" && request.port() == 443 -> ""
+                else -> ":${request.port()}"
+            }
+            "${request.origin.scheme}://${request.host()}$portSuffix/oauth/callback"
+        }
         providerLookup = {
             OAuthServerSettings.OAuth2ServerSettings(
                 name = "foodies-oauth",
