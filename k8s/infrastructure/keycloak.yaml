@@ -28,22 +28,6 @@ spec:
         app: keycloak
     spec:
       initContainers:
-        - name: install-provider
-          image: busybox:1.37
-          command:
-            - /bin/sh
-            - -c
-            - >-
-              if [ -f /provider/profile-webhook.jar ]; then
-                cp /provider/profile-webhook.jar /providers/;
-              else
-                echo "keycloak provider jar not supplied; skipping";
-              fi
-          volumeMounts:
-            - name: keycloak-provider-jar
-              mountPath: /provider
-            - name: keycloak-providers
-              mountPath: /providers
         - name: process-realm-template
           image: busybox:1.37
           command:
@@ -66,7 +50,7 @@ spec:
               mountPath: /realm-import
       containers:
         - name: keycloak
-          image: quay.io/keycloak/keycloak:26.5.0
+          image: foodies-keycloak:local
           args: ["start-dev", "--import-realm"]
           env:
             - name: KC_HOSTNAME
@@ -127,17 +111,9 @@ spec:
           volumeMounts:
             - name: realm-import
               mountPath: /opt/keycloak/data/import
-            - name: keycloak-providers
-              mountPath: /opt/keycloak/providers
       volumes:
         - name: realm-template
           configMap:
             name: keycloak-realm
         - name: realm-import
           emptyDir: {}
-        - name: keycloak-providers
-          emptyDir: {}
-        - name: keycloak-provider-jar
-          configMap:
-            name: keycloak-provider-jar
-            optional: true
