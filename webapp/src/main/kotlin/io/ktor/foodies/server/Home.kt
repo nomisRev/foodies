@@ -26,7 +26,7 @@ const val DefaultMenuPageSize = 12
 const val MenuIntersectTrigger = "intersect once rootMargin: 800px"
 
 fun Route.home() = get("/") {
-    val isLoggedIn = call.sessions.get<UserSession>() != null
+    val isLoggedIn = call.sessions.get<OpenIdConnectPrincipal.UserInfo>() != null
 
     call.respondHtml(HttpStatusCode.OK) {
         lang = "en"

@@ -57,8 +57,6 @@ private suspend fun HttpClient.discover(issuer: String): OpenIdConfiguration =
 @Serializable
 data class UserSession(val idToken: String)
 
-data class AuthSubject(val subject: String)
-
 suspend fun Application.security(config: Config.Security, httpClient: HttpClient) {
     install(Sessions) {
         // TODO redis for distributed session, or sticky load balancing
@@ -115,10 +113,7 @@ private fun AuthenticationConfig.jwt(openIdConfig: OpenIdConfiguration, config: 
             config.issuer
         )
         authHeader { call -> call.sessions.get<UserSession>()?.idToken?.let { HttpAuthHeader.Single("Bearer", it) } }
-        validate { credential ->
-            val subject = requireNotNull(credential.subject) { "JwtCredential is missing subject claim" }
-            AuthSubject(subject)
-        }
+        validate { credential -> credential.payload.extractUserInfo() }
     }
 }
 
