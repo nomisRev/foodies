@@ -8,6 +8,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.util.getOrFail
 import io.ktor.utils.io.ExperimentalKtorApi
+import java.math.RoundingMode
 import kotlinx.html.TagConsumer
 import kotlinx.html.article
 import kotlinx.html.div
@@ -57,8 +58,8 @@ private fun TagConsumer<Appendable>.menuCard(item: MenuItem) {
             p { +item.description }
 
             div(classes = "footer") {
-                val formattedPrice = String.format("%.2f", item.price)
-                span(classes = "price") { +$"$$formattedPrice" }
+                val formattedPrice = item.price.setScale(2, RoundingMode.HALF_UP).toPlainString()
+                span(classes = "price") { +"$${formattedPrice}" }
                 span(classes = "tag") { +"Popular" }
             }
         }

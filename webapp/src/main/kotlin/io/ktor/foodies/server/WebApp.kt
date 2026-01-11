@@ -1,9 +1,14 @@
 package io.ktor.foodies.server
 
-import io.ktor.foodies.server.menu.InMemoryMenuService
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.apache5.Apache5
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.foodies.server.menu.HttpMenuService
 import io.ktor.foodies.server.menu.menuRoutes
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.getAs
 import io.ktor.server.engine.embeddedServer
@@ -17,13 +22,18 @@ import io.ktor.server.routing.routing
 fun main() {
     val env = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = env.host, port = env.port) {
-        security(env.security)
-        app()
+        val httpClient = HttpClient(Apache5) {
+            install(ContentNegotiation) { json() }
+        }
+        monitor.subscribe(ApplicationStopped) { httpClient.close() }
+
+        security(env.security, httpClient)
+        app(env, httpClient)
     }.start(wait = true)
 }
 
-fun Application.app() {
-    val menuService = InMemoryMenuService()
+fun Application.app(config: Config, httpClient: HttpClient) {
+    val menuService = HttpMenuService(config.menu.baseUrl, httpClient)
 
     routing {
         staticResources("/static", "static")

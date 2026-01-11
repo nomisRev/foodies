@@ -4,6 +4,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import io.ktor.server.sessions.get
+import io.ktor.server.sessions.sessions
 import kotlinx.html.a
 import kotlinx.html.body
 import kotlinx.html.div
@@ -24,8 +26,7 @@ const val DefaultMenuPageSize = 12
 const val MenuIntersectTrigger = "intersect once rootMargin: 800px"
 
 fun Route.home() = get("/") {
-//    val isLoggedIn = call.sessions.get<UserSession>() != null
-    val isLoggedIn = false
+    val isLoggedIn = call.sessions.get<UserSession>() != null
 
     call.respondHtml(HttpStatusCode.OK) {
         lang = "en"

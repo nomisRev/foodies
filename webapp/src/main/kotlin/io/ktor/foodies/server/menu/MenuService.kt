@@ -1,39 +1,48 @@
 package io.ktor.foodies.server.menu
 
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.foodies.server.SerializableBigDecimal
 import kotlinx.serialization.Serializable
 
-// TODO: split to domain and data
 @Serializable
 data class MenuItem(
     val id: Long,
     val name: String,
     val description: String,
     val imageUrl: String,
-    val price: Double
+    val price: SerializableBigDecimal
 )
 
 interface MenuService {
     suspend fun menuItems(offset: Int, limit: Int): List<MenuItem>
 }
 
-class InMemoryMenuService : MenuService {
-    private val totalItems = 200
+class HttpMenuService(baseUrl: String, private val httpClient: HttpClient) : MenuService {
+    private val menuBaseUrl = baseUrl.trimEnd('/')
 
-    override suspend fun menuItems(offset: Int, limit: Int): List<MenuItem> {
-        val safeOffset = offset.coerceAtLeast(0)
-        if (safeOffset >= totalItems) return emptyList()
-
-        val safeLimit = limit.coerceIn(1, 50)
-        val endExclusive = (safeOffset + safeLimit).coerceAtMost(totalItems)
-
-        return (safeOffset until endExclusive).map { generate(it.toLong()) }
-    }
-
-    private fun generate(id: Long) = MenuItem(
-        id = id,
-        name = "Seasonal special #$id",
-        description = "Freshly crafted dish number $id with locally sourced ingredients.",
-        imageUrl = "https://img.freepik.com/free-photo/top-view-table-full-food_23-2149209253.jpg?semt=ais_hybrid&w=740&q=80",
-        price = 8.99 + (id % 15) * 0.75
-    )
+    override suspend fun menuItems(offset: Int, limit: Int): List<MenuItem> =
+        httpClient.get("$menuBaseUrl/menu") {
+            parameter("offset", offset)
+            parameter("limit", limit)
+        }.body<List<MenuItemResponse>>().map { it.toDomain() }
 }
+
+@Serializable
+private data class MenuItemResponse(
+    val id: Long,
+    val name: String,
+    val description: String,
+    val imageUrl: String,
+    val price: SerializableBigDecimal
+)
+
+private fun MenuItemResponse.toDomain(): MenuItem = MenuItem(
+    id = id,
+    name = name,
+    description = description,
+    imageUrl = imageUrl,
+    price = price
+)
