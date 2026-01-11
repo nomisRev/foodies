@@ -3,16 +3,12 @@ package io.ktor.foodies.server
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.apache5.Apache5
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.URLBuilder
 import io.ktor.http.auth.HttpAuthHeader
-import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.install
 import io.ktor.server.application.log
 import io.ktor.server.auth.AuthenticationConfig
@@ -29,7 +25,6 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import io.ktor.server.sessions.SessionStorageMemory
 import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
 import io.ktor.server.sessions.get
@@ -64,20 +59,15 @@ data class UserSession(val idToken: String)
 
 data class AuthSubject(val subject: String)
 
-suspend fun Application.security(config: Config.Security) {
+suspend fun Application.security(config: Config.Security, httpClient: HttpClient) {
     install(Sessions) {
         // TODO redis for distributed session, or sticky load balancing
-        cookie<UserSession>("USER_SESSION", SessionStorageMemory()) {
+        cookie<UserSession>("USER_SESSION") {
             cookie.secure = !this@security.developmentMode
             cookie.httpOnly = true
             cookie.extensions["SameSite"] = "lax"
         }
     }
-
-    val httpClient = HttpClient(Apache5) {
-        install(ContentNegotiation) { json() }
-    }
-    monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
     val openIdConfig = httpClient.discover(config.issuer)
     log.info("Loading $openIdConfig")

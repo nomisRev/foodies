@@ -5,3 +5,5 @@ config:
     issuer: "$AUTH_ISSUER:http://localhost:8000/realms/foodies-keycloak"
     clientId: "$AUTH_CLIENT_ID:foodies"
     clientSecret: "$AUTH_CLIENT_SECRET:foodies_client_secret"
+  menu:
+    baseUrl: "$MENU_BASE_URL:http://localhost:8082"

@@ -48,3 +48,5 @@ spec:
                 secretKeyRef:
                   name: webapp-auth
                   key: AUTH_CLIENT_SECRET
+            - name: MENU_BASE_URL
+              value: http://menu:8082

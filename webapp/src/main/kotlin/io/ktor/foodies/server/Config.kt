@@ -7,8 +7,12 @@ import kotlinx.serialization.Serializable
 data class Config(
     val host: String,
     val port: Int,
-    val security: Security
+    val security: Security,
+    val menu: Menu
 ) {
     @Serializable
     data class Security(val issuer: String, val clientId: String, val clientSecret: String)
+
+    @Serializable
+    data class Menu(val baseUrl: String)
 }
