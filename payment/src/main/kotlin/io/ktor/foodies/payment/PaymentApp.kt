@@ -23,16 +23,16 @@ fun main() {
 
 fun Application.app(module: PaymentModule) {
     install(ContentNegotiation) { json() }
+    install(Cohort) {
+        verboseHealthCheckResponse = true
+        healthcheck("/healthz/startup", HealthCheckRegistry(Dispatchers.Default))
+        healthcheck("/healthz/liveness", HealthCheckRegistry(Dispatchers.Default) {
+            register(ThreadDeadlockHealthCheck(), Duration.ZERO, 1.minutes)
+        })
+        healthcheck("/healthz/readiness", module.readinessCheck)
+    }
 
     routing {
-        install(Cohort) {
-            verboseHealthCheckResponse = true
-            healthcheck("/healthz/startup", HealthCheckRegistry(Dispatchers.Default))
-            healthcheck("/healthz/liveness", HealthCheckRegistry(Dispatchers.Default) {
-                register(ThreadDeadlockHealthCheck(), Duration.ZERO, 1.minutes)
-            })
-            healthcheck("/healthz/readiness", module.readinessCheck)
-        }
         paymentRoutes(module.paymentService)
     }
 }
