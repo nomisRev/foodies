@@ -52,6 +52,13 @@ object OrderItems : LongIdTable("order_items") {
     val discount = decimal("discount", 19, 4)
 }
 
+object OrderHistory : LongIdTable("order_history") {
+    val orderId = reference("order_id", Orders, onDelete = ReferenceOption.CASCADE)
+    val status = enumerationByName("status", 50, OrderStatus::class)
+    val description = text("description").nullable()
+    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
+}
+
 object ProcessedRequests : Table("processed_requests") {
     val requestId = uuid("request_id")
     val commandType = varchar("command_type", 100)

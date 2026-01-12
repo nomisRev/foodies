@@ -17,8 +17,18 @@ data class Order(
     val paymentMethod: PaymentMethod?,          // Set after payment verification
     val totalPrice: SerializableBigDecimal,
     val description: String?,                   // Status description (e.g., rejection reason)
+    val history: List<OrderHistoryEntry> = emptyList(),
     val createdAt: Instant,
     val updatedAt: Instant,
+)
+
+@Serializable
+data class OrderHistoryEntry(
+    val id: Long,
+    val orderId: Long,
+    val status: OrderStatus,
+    val description: String?,
+    val createdAt: Instant,
 )
 
 @Serializable
