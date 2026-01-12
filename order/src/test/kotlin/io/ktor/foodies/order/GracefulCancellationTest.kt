@@ -23,6 +23,7 @@ val gracefulCancellationSpec by testSuite {
                     CreateOrderItem(1L, "Burger", "url", BigDecimal("10.00"), 2)
                 ),
                 totalPrice = BigDecimal("20.00"),
+                currency = "USD",
                 paymentDetails = PaymentDetails(CardType.Visa, "1234567812345678", "John", "123", 12, 2030)
             )
         )

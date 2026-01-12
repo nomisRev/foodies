@@ -31,6 +31,7 @@ object Orders : LongIdTable("orders") {
     val buyerName = varchar("buyer_name", 255)
     val status = enumerationByName("status", 50, OrderStatus::class)
     val totalPrice = decimal("total_price", 19, 4)
+    val currency = varchar("currency", 3).default("USD")
     val description = text("description").nullable()
     val street = varchar("street", 255)
     val city = varchar("city", 255)

@@ -129,6 +129,7 @@ class InMemoryOrderRepository : OrderRepository {
                 order.paymentDetails.expirationYear
             ),
             totalPrice = order.totalPrice,
+            currency = order.currency,
             description = "Order submitted",
             history = listOf(
                 OrderHistoryEntry(
@@ -163,6 +164,7 @@ class InMemoryOrderEventPublisher : OrderEventPublisher {
     val createdEvents = mutableListOf<OrderCreatedEvent>()
     val cancelledEvents = mutableListOf<OrderCancelledEvent>()
     val statusChangedEvents = mutableListOf<OrderStatusChangedEvent>()
+    val stockConfirmedEvents = mutableListOf<OrderStockConfirmedEvent>()
     val awaitingValidationEvents = mutableListOf<OrderAwaitingValidationEvent>()
     val stockReturnedEvents = mutableListOf<StockReturnedEvent>()
 
@@ -176,6 +178,10 @@ class InMemoryOrderEventPublisher : OrderEventPublisher {
 
     override suspend fun publish(event: OrderStatusChangedEvent) {
         statusChangedEvents.add(event)
+    }
+
+    override suspend fun publish(event: OrderStockConfirmedEvent) {
+        stockConfirmedEvents.add(event)
     }
 
     override suspend fun publish(event: OrderAwaitingValidationEvent) {

@@ -86,6 +86,7 @@ class DefaultOrderService(
                 )
             },
             totalPrice = basket.items.sumOf { it.unitPrice * it.quantity.toBigDecimal() },
+            currency = request.currency,
             paymentDetails = request.paymentDetails
         )
 
@@ -96,6 +97,7 @@ class DefaultOrderService(
             buyerId = order.buyerId,
             items = order.items.map { OrderItemSnapshot(it.menuItemId, it.quantity, it.unitPrice) },
             totalPrice = order.totalPrice,
+            currency = order.currency,
             createdAt = order.createdAt
         )
         eventPublisher.publish(event)
@@ -169,6 +171,8 @@ class DefaultOrderService(
             buyerId = updatedOrder.buyerId,
             oldStatus = oldStatus,
             newStatus = OrderStatus.Cancelled,
+            totalPrice = updatedOrder.totalPrice,
+            currency = updatedOrder.currency,
             description = reason,
             changedAt = now
         )
@@ -199,6 +203,8 @@ class DefaultOrderService(
             buyerId = updatedOrder.buyerId,
             oldStatus = oldStatus,
             newStatus = OrderStatus.AwaitingValidation,
+            totalPrice = updatedOrder.totalPrice,
+            currency = updatedOrder.currency,
             description = "Order moved to AwaitingValidation after grace period",
             changedAt = now
         )
@@ -228,6 +234,8 @@ class DefaultOrderService(
             buyerId = updatedOrder.buyerId,
             oldStatus = oldStatus,
             newStatus = OrderStatus.Shipped,
+            totalPrice = updatedOrder.totalPrice,
+            currency = updatedOrder.currency,
             description = "Order shipped",
             changedAt = now
         )
@@ -250,10 +258,25 @@ class DefaultOrderService(
             buyerId = updatedOrder.buyerId,
             oldStatus = oldStatus,
             newStatus = OrderStatus.StockConfirmed,
+            totalPrice = updatedOrder.totalPrice,
+            currency = updatedOrder.currency,
             description = "Stock confirmed by menu service",
             changedAt = now
         )
         eventPublisher.publish(event)
+
+        // Publish OrderStockConfirmedEvent for Payment service
+        val stockConfirmedEvent = OrderStockConfirmedEvent(
+            eventId = UUID.randomUUID().toString(),
+            orderId = updatedOrder.id,
+            buyerId = updatedOrder.buyerId,
+            totalAmount = updatedOrder.totalPrice,
+            currency = updatedOrder.currency,
+            paymentMethod = updatedOrder.paymentMethod?.toPaymentMethodInfo() ?: throw IllegalStateException("Payment method missing for order ${updatedOrder.id}"),
+            occurredAt = now
+        )
+        eventPublisher.publish(stockConfirmedEvent)
+
         return updatedOrder
     }
 
@@ -297,6 +320,8 @@ class DefaultOrderService(
                 buyerId = updatedOrder.buyerId,
                 oldStatus = oldStatus,
                 newStatus = OrderStatus.Cancelled,
+                totalPrice = updatedOrder.totalPrice,
+                currency = updatedOrder.currency,
                 description = reason,
                 changedAt = now
             ))
@@ -323,9 +348,23 @@ class DefaultOrderService(
                 buyerId = updatedOrder.buyerId,
                 oldStatus = oldStatus,
                 newStatus = OrderStatus.StockConfirmed,
+                totalPrice = updatedOrder.totalPrice,
+                currency = updatedOrder.currency,
                 description = description,
                 changedAt = now
             ))
+
+            // Publish OrderStockConfirmedEvent for Payment service
+            val stockConfirmedEvent = OrderStockConfirmedEvent(
+                eventId = UUID.randomUUID().toString(),
+                orderId = updatedOrder.id,
+                buyerId = updatedOrder.buyerId,
+                totalAmount = updatedOrder.totalPrice,
+                currency = updatedOrder.currency,
+                paymentMethod = updatedOrder.paymentMethod?.toPaymentMethodInfo() ?: throw IllegalStateException("Payment method missing for order ${updatedOrder.id}"),
+                occurredAt = now
+            )
+            eventPublisher.publish(stockConfirmedEvent)
 
             return updatedOrder
         }
@@ -346,6 +385,8 @@ class DefaultOrderService(
             buyerId = updatedOrder.buyerId,
             oldStatus = oldStatus,
             newStatus = OrderStatus.Paid,
+            totalPrice = updatedOrder.totalPrice,
+            currency = updatedOrder.currency,
             description = "Payment succeeded",
             changedAt = now
         )
@@ -384,6 +425,8 @@ class DefaultOrderService(
             buyerId = updatedOrder.buyerId,
             oldStatus = oldStatus,
             newStatus = OrderStatus.Cancelled,
+            totalPrice = updatedOrder.totalPrice,
+            currency = updatedOrder.currency,
             description = reason,
             changedAt = now
         )
@@ -404,6 +447,23 @@ class DefaultOrderService(
             state = state.validate({ it.isNotBlank() }) { "state is required" },
             country = country.validate({ it.isNotBlank() }) { "country is required" },
             zipCode = zipCode.validate({ it.isNotBlank() }) { "zipCode is required" }
+        )
+    }
+
+    private fun PaymentMethod.toPaymentMethodInfo(): PaymentMethodInfo {
+        val type = PaymentMethodType.CREDIT_CARD // Default for now
+        val brand = when (this.cardType) {
+            CardType.Visa -> CardBrand.VISA
+            CardType.MasterCard -> CardBrand.MASTERCARD
+            CardType.Amex -> CardBrand.AMEX
+        }
+        return PaymentMethodInfo(
+            type = type,
+            cardLastFour = this.cardNumber,
+            cardBrand = brand,
+            cardHolderName = this.cardHolderName,
+            expirationMonth = this.expirationMonth,
+            expirationYear = this.expirationYear
         )
     }
 }
