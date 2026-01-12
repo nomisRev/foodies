@@ -102,7 +102,6 @@ fun TestSuite.testPaymentService(
         )
 
         application {
-            install(ContentNegotiation) { json() }
             app(module)
         }
 
