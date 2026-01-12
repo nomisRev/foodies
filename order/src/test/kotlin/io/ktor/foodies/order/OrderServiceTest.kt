@@ -134,6 +134,7 @@ class OrderServiceTest {
         val cancelledEvents = mutableListOf<OrderCancelledEvent>()
         val statusChangedEvents = mutableListOf<OrderStatusChangedEvent>()
         val awaitingValidationEvents = mutableListOf<OrderAwaitingValidationEvent>()
+        val stockReturnedEvents = mutableListOf<StockReturnedEvent>()
         override suspend fun publish(event: OrderCreatedEvent) {
             createdEvents.add(event)
         }
@@ -145,6 +146,9 @@ class OrderServiceTest {
         }
         override suspend fun publish(event: OrderAwaitingValidationEvent) {
             awaitingValidationEvents.add(event)
+        }
+        override suspend fun publish(event: StockReturnedEvent) {
+            stockReturnedEvents.add(event)
         }
     }
 
