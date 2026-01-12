@@ -18,6 +18,7 @@ data class MenuItem(
 
 interface MenuService {
     suspend fun menuItems(offset: Int, limit: Int): List<MenuItem>
+    suspend fun getMenuItem(id: Long): MenuItem?
 }
 
 class HttpMenuService(baseUrl: String, private val httpClient: HttpClient) : MenuService {
@@ -28,6 +29,12 @@ class HttpMenuService(baseUrl: String, private val httpClient: HttpClient) : Men
             parameter("offset", offset)
             parameter("limit", limit)
         }.body<List<MenuItemResponse>>().map { it.toDomain() }
+
+    override suspend fun getMenuItem(id: Long): MenuItem? =
+        httpClient.get("$menuBaseUrl/menu/$id").run {
+            if (status.value == 404) null
+            else body<MenuItemResponse>().toDomain()
+        }
 }
 
 @Serializable
