@@ -1,89 +1,14 @@
 package io.ktor.foodies.order
 
-import io.ktor.foodies.order.client.CustomerBasket
-import io.ktor.foodies.order.client.BasketClient
-import io.ktor.foodies.order.client.BasketItem
+import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.order.domain.*
-import io.ktor.foodies.order.repository.IdempotencyRepository
-import io.ktor.foodies.order.repository.OrderRepository
-import io.ktor.foodies.order.repository.ProcessedRequest
-import io.ktor.foodies.order.service.DefaultOrderService
-import io.ktor.foodies.order.service.IdempotencyService
-import io.ktor.foodies.order.service.OrderEventPublisher
 import java.math.BigDecimal
-import java.util.UUID
-import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.time.Instant
 
-class GetOrderDetailsTest {
-
-    private val fakeIdempotencyRepository = object : IdempotencyRepository {
-        override fun findByRequestId(requestId: UUID): ProcessedRequest? = null
-        override fun save(request: ProcessedRequest) {}
-    }
-    private val idempotencyService = IdempotencyService(fakeIdempotencyRepository)
-
-    private val fakeOrderRepository = object : OrderRepository {
-        val orders = mutableListOf<Order>()
-        override fun findById(id: Long): Order? = orders.find { it.id == id }
-        override fun findByRequestId(requestId: String): Order? = orders.find { it.requestId == requestId }
-        override fun findByBuyerId(
-            buyerId: String,
-            offset: Long,
-            limit: Int,
-            status: OrderStatus?
-        ): PaginatedOrders {
-            return PaginatedOrders(emptyList(), 0, offset, limit)
-        }
-        override fun findAll(
-            offset: Long,
-            limit: Int,
-            status: OrderStatus?,
-            buyerId: String?
-        ): PaginatedOrders {
-            return PaginatedOrders(emptyList(), 0, offset, limit)
-        }
-        override fun create(order: CreateOrder): Order {
-            val newOrder = Order(
-                id = (orders.size + 1).toLong(),
-                requestId = order.requestId,
-                buyerId = order.buyerId,
-                buyerEmail = order.buyerEmail,
-                buyerName = order.buyerName,
-                status = OrderStatus.Submitted,
-                deliveryAddress = order.deliveryAddress,
-                items = emptyList(),
-                paymentMethod = null,
-                totalPrice = order.totalPrice,
-                description = "Order submitted",
-                createdAt = Instant.fromEpochMilliseconds(0),
-                updatedAt = Instant.fromEpochMilliseconds(0)
-            )
-            orders.add(newOrder)
-            return newOrder
-        }
-        override fun update(order: Order): Order {
-            return order
-        }
-    }
-
-    private val fakeBasketClient = object : BasketClient {
-        override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? = null
-    }
-
-    private val fakeEventPublisher = object : OrderEventPublisher {
-        override suspend fun publish(event: OrderCreatedEvent) {}
-        override suspend fun publish(event: OrderCancelledEvent) {}
-        override suspend fun publish(event: OrderStatusChangedEvent) {}
-        override suspend fun publish(event: OrderAwaitingValidationEvent) {}
-        override suspend fun publish(event: StockReturnedEvent) {}
-    }
-
-    private val orderService = DefaultOrderService(fakeOrderRepository, fakeBasketClient, fakeEventPublisher, idempotencyService)
-
-    @Test
-    fun `should get order details`() = kotlinx.coroutines.test.runTest {
+val getOrderDetailsSpec by testSuite {
+    test("should get order details") {
+        val ctx = createTestContext()
         val existingOrder = Order(
             id = 123,
             requestId = "req-123",
@@ -96,12 +21,13 @@ class GetOrderDetailsTest {
             paymentMethod = null,
             totalPrice = BigDecimal("10.00"),
             description = null,
+            history = emptyList(),
             createdAt = Instant.fromEpochMilliseconds(0),
             updatedAt = Instant.fromEpochMilliseconds(0)
         )
-        fakeOrderRepository.orders.add(existingOrder)
+        ctx.orderRepository.orders.add(existingOrder)
 
-        val result = orderService.getOrder(123, "user-1")
+        val result = ctx.service.getOrder(123, "user-1")
 
         assert(result is GetOrderResult.Success)
         val order = (result as GetOrderResult.Success).order
@@ -109,14 +35,14 @@ class GetOrderDetailsTest {
         assertEquals("user-1", order.buyerId)
     }
 
-    @Test
-    fun `should return NotFound when order does not exist`() = kotlinx.coroutines.test.runTest {
-        val result = orderService.getOrder(999, "user-1")
+    test("should return NotFound when order does not exist") {
+        val ctx = createTestContext()
+        val result = ctx.service.getOrder(999, "user-1")
         assert(result is GetOrderResult.NotFound)
     }
 
-    @Test
-    fun `should return Forbidden when order belongs to different user`() = kotlinx.coroutines.test.runTest {
+    test("should return Forbidden when order belongs to different user") {
+        val ctx = createTestContext()
         val existingOrder = Order(
             id = 456,
             requestId = "req-456",
@@ -129,12 +55,13 @@ class GetOrderDetailsTest {
             paymentMethod = null,
             totalPrice = BigDecimal("10.00"),
             description = null,
+            history = emptyList(),
             createdAt = Instant.fromEpochMilliseconds(0),
             updatedAt = Instant.fromEpochMilliseconds(0)
         )
-        fakeOrderRepository.orders.add(existingOrder)
+        ctx.orderRepository.orders.add(existingOrder)
 
-        val result = orderService.getOrder(456, "user-1")
+        val result = ctx.service.getOrder(456, "user-1")
         assert(result is GetOrderResult.Forbidden)
     }
 }
