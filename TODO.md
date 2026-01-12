@@ -20,5 +20,10 @@
 ## Phase 2: Service Layer and Events
 
 ### Task 2.1: Implement Payment Service
-- [ ] Create `PaymentService` interface and implementation in `payment/src/main/kotlin/io/ktor/foodies/payment/Service.kt`
-- [ ] Implement idempotency logic and gateway integration
+- [x] Create `PaymentService` interface and implementation in `payment/src/main/kotlin/io/ktor/foodies/payment/Service.kt`
+- [x] Implement idempotency logic and gateway integration
+
+### Task 2.2: Implement Events & RabbitMQ Integration
+- [ ] Create `payment/src/main/kotlin/io/ktor/foodies/payment/events/Events.kt` with event definitions
+- [ ] Implement `EventPublisher` and `RabbitMQEventPublisher`
+- [ ] Implement `OrderStockConfirmedEventHandler`
