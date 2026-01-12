@@ -8,10 +8,12 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/basket" />
             <option value="$PROJECT_DIR$/keycloak-events" />
             <option value="$PROJECT_DIR$/keycloak-rabbitmq-publisher" />
             <option value="$PROJECT_DIR$/menu" />
             <option value="$PROJECT_DIR$/profile" />
+            <option value="$PROJECT_DIR$/rabbitmq-ext" />
             <option value="$PROJECT_DIR$/server-shared" />
             <option value="$PROJECT_DIR$/server-shared-test" />
             <option value="$PROJECT_DIR$/webapp" />
