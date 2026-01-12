@@ -1,0 +1,3 @@
+- Always use Gradle's Version Catalog, never hardcode dependencies in build.gradle.kts
+- The application uses `foodies.local` as the hostname, configured in `/etc/hosts` pointing to localhost
+- Do not use exceptions for control flow but use proper types and domain modelling.
