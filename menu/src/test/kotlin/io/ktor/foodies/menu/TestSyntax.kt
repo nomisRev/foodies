@@ -5,6 +5,7 @@ import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.foodies.server.DataSource
+import io.ktor.foodies.server.test.PostgreSQLContainer
 import io.ktor.foodies.server.test.dataSource
 import io.ktor.foodies.server.test.postgresContainer
 import io.ktor.foodies.server.test.testApplication
@@ -21,17 +22,18 @@ fun TestSuite.migratedMenuDataSource(): TestSuite.Fixture<DataSource> =
     }
 
 data class ServiceContext(
-    val dataSource: TestSuite.Fixture<DataSource>,
+    val postgreSQLContainer: TestSuite.Fixture<PostgreSQLContainer>,
     val menuService: TestSuite.Fixture<MenuService>
 )
 
 fun TestSuite.serviceContext(): ServiceContext {
+    val container = postgresContainer()
     val ds = migratedMenuDataSource()
     val service = testFixture<MenuService> {
         val repository = ExposedMenuRepository(ds().database)
         MenuServiceImpl(repository)
     }
-    return ServiceContext(ds, service)
+    return ServiceContext(container, service)
 }
 
 @TestRegistering
@@ -41,11 +43,17 @@ fun TestSuite.testMenuService(
     block: suspend context(TestExecutionScope) ApplicationTestBuilder.() -> Unit
 ) {
     testApplication(name) {
-        application { app(MenuModule(ctx.menuService())) }
+        application {
+            app(
+                module(
+                    Config(
+                        host = "0.0.0.0",
+                        port = 8080,
+                        dataSource = ctx.postgreSQLContainer().config()
+                    )
+                )
+            )
+        }
         block()
     }
-}
-
-fun ApplicationTestBuilder.jsonClient() = createClient {
-    install(ContentNegotiation) { json() }
 }
