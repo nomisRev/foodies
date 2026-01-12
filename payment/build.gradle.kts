@@ -44,6 +44,7 @@ dependencies {
 
     // Shared modules
     implementation(project(":server-shared"))
+    implementation(project(":rabbitmq-ext"))
     implementation(project(":keycloak-events"))
 
     // Logging

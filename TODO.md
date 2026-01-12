@@ -25,9 +25,13 @@
 
 ### Task 2.2: Implement Events & RabbitMQ Integration
 - [x] Create `payment/src/main/kotlin/io/ktor/foodies/payment/events/Events.kt` with event definitions
-- [ ] Implement `EventPublisher` and `RabbitMQEventPublisher`
-- [ ] Implement `OrderStockConfirmedEventHandler`
-- [ ] Implement `RabbitMQEventConsumer`
+- [x] Implement `EventPublisher` and `RabbitMQEventPublisher`
+- [x] Implement `OrderStockConfirmedEventHandler`
+- [x] Implement `RabbitMQEventConsumer`
+
+### Task 2.3: Integration: Wiring everything together
+- [ ] Implement `PaymentModule` in `payment/src/main/kotlin/io/ktor/foodies/payment/PaymentModule.kt`
+- [ ] Update `App.kt` to use `PaymentModule`
 
 ## Phase 3: API and Application Wiring
 
