@@ -14,13 +14,11 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
-import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 data class BasketModule(
     val basketService: BasketService,
-    val consumers: List<Consumer>,
-    val redisCommands: RedisCoroutinesCommands<String, String>
+    val consumers: List<Consumer>
 )
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
@@ -62,7 +60,6 @@ fun Application.module(config: Config): BasketModule {
 
     return BasketModule(
         basketService = basketService,
-        consumers = listOf(orderCreatedConsumer),
-        redisCommands = redisCommands
+        consumers = listOf(orderCreatedConsumer)
     )
 }
