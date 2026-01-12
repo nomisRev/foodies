@@ -3,7 +3,7 @@ package io.ktor.foodies.menu
 import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.aroundEachTest
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.server.ValidationError
+import io.ktor.foodies.server.ValidationException
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -48,7 +48,7 @@ val menuServiceSpec by testSuite {
         }
 
         test("create validates payload and update/delete respect existence") {
-            assertFailsWith<ValidationError> {
+            val validationError = assertFailsWith<ValidationException> {
                 service().create(
                     CreateMenuItemRequest(
                         name = " ",
@@ -58,6 +58,10 @@ val menuServiceSpec by testSuite {
                     )
                 )
             }
+            // Kova collects all validation errors
+            assertTrue(validationError.reasons.size >= 4, "Expected at least 4 validation errors")
+            assertTrue(validationError.reasons.any { it.contains("blank") || it.contains("not be empty") })
+            assertTrue(validationError.reasons.any { it.contains("greater") || it.contains("must be more than") })
 
             val created = service().create(
                 CreateMenuItemRequest(

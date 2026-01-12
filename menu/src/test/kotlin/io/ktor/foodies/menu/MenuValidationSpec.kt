@@ -1,7 +1,7 @@
 package io.ktor.foodies.menu
 
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.server.ValidationError
+import io.ktor.foodies.server.ValidationException
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -28,7 +28,7 @@ val menuValidationSpec by testSuite {
     }
 
     test("CreateMenuItemRequest.validate fails for blank fields or non-positive price") {
-        val error = assertFailsWith<ValidationError> {
+        val error = assertFailsWith<ValidationException> {
             CreateMenuItemRequest(
                 name = " ",
                 description = "",
@@ -44,7 +44,7 @@ val menuValidationSpec by testSuite {
     }
 
     test("UpdateMenuItemRequest.validate rejects blank or non-positive updates") {
-        val error = assertFailsWith<ValidationError> {
+        val error = assertFailsWith<ValidationException> {
             UpdateMenuItemRequest(
                 description = " ",
                 price = BigDecimal("-1.00"),
