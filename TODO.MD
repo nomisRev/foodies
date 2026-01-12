@@ -15,4 +15,6 @@
 - [x] Implement `StockConfirmedEvent` and `StockRejectedEvent` handlers as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
 - [x] Implement `OrderAwaitingValidationEvent` emission as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
 - [x] Implement `PaymentSucceededEvent` handling as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
-- [ ] Implement payment details validation (CVV, expiry, card number length) in `OrderService`
+- [x] Implement payment details validation (CVV, expiry, card number length) in `OrderService`
+- [x] Implement full idempotency pattern using `processed_requests` table as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [ ] Implement Order History audit trail for all order state changes as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)

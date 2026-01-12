@@ -4,16 +4,30 @@ import io.ktor.foodies.order.client.CustomerBasket
 import io.ktor.foodies.order.client.BasketClient
 import io.ktor.foodies.order.client.BasketItem
 import io.ktor.foodies.order.domain.*
+import io.ktor.foodies.order.repository.IdempotencyRepository
 import io.ktor.foodies.order.repository.OrderRepository
+import io.ktor.foodies.order.repository.ProcessedRequest
 import io.ktor.foodies.order.service.DefaultOrderService
+import io.ktor.foodies.order.service.IdempotencyService
 import io.ktor.foodies.order.service.OrderEventPublisher
 import io.ktor.foodies.server.SerializableBigDecimal
 import java.math.BigDecimal
+import java.util.UUID
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.time.Instant
 
 class OrderServiceTest {
+
+    private val fakeIdempotencyRepository = object : IdempotencyRepository {
+        val requests = mutableMapOf<UUID, ProcessedRequest>()
+        override fun findByRequestId(requestId: UUID): ProcessedRequest? = requests[requestId]
+        override fun save(request: ProcessedRequest) {
+            requests[request.requestId] = request
+        }
+    }
+
+    private val idempotencyService = IdempotencyService(fakeIdempotencyRepository)
 
     private val fakeOrderRepository = object : OrderRepository {
         val orders = mutableListOf<Order>()
@@ -125,7 +139,7 @@ class OrderServiceTest {
         }
     }
 
-    private val orderService = DefaultOrderService(fakeOrderRepository, fakeBasketClient, fakeEventPublisher)
+    private val orderService = DefaultOrderService(fakeOrderRepository, fakeBasketClient, fakeEventPublisher, idempotencyService)
 
     @Test
     fun `should create order and publish event`() = kotlinx.coroutines.test.runTest {
@@ -141,11 +155,11 @@ class OrderServiceTest {
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
                 expirationMonth = 12,
-                expirationYear = 2025
+                expirationYear = 2030
             )
         )
 
-        val order = orderService.createOrder("req-1", "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = orderService.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
 
         assertEquals(1, order.id)
         assertEquals("buyer-1", order.buyerId)
@@ -168,12 +182,13 @@ class OrderServiceTest {
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
                 expirationMonth = 12,
-                expirationYear = 2025
+                expirationYear = 2030
             )
         )
 
-        val order1 = orderService.createOrder("req-1", "buyer-1", "buyer@test.com", "John", request, "token")
-        val order2 = orderService.createOrder("req-1", "buyer-1", "buyer@test.com", "John", request, "token")
+        val requestId = UUID.randomUUID()
+        val order1 = orderService.createOrder(requestId, "buyer-1", "buyer@test.com", "John", request, "token")
+        val order2 = orderService.createOrder(requestId, "buyer-1", "buyer@test.com", "John", request, "token")
 
         assertEquals(order1.id, order2.id)
         assertEquals(1, fakeOrderRepository.orders.size)
@@ -194,12 +209,12 @@ class OrderServiceTest {
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
                 expirationMonth = 12,
-                expirationYear = 2025
+                expirationYear = 2030
             )
         )
 
-        orderService.createOrder("req-1", "buyer-1", "buyer@test.com", "John", request, "token")
-        orderService.createOrder("req-2", "buyer-1", "buyer@test.com", "John", request, "token")
+        orderService.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        orderService.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
 
         val paginated = orderService.getOrders("buyer-1", 0, 10)
 
@@ -221,13 +236,13 @@ class OrderServiceTest {
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
                 expirationMonth = 12,
-                expirationYear = 2025
+                expirationYear = 2030
             )
         )
 
-        val order = orderService.createOrder("req-1", "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = orderService.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
         
-        val cancelledOrder = orderService.cancelOrder(order.id, "buyer-1", "Changed my mind")
+        val cancelledOrder = orderService.cancelOrder(UUID.randomUUID(), order.id, "buyer-1", "Changed my mind")
         
         assertEquals(OrderStatus.Cancelled, cancelledOrder.status)
         assertEquals("Changed my mind", cancelledOrder.description)
@@ -254,17 +269,17 @@ class OrderServiceTest {
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
                 expirationMonth = 12,
-                expirationYear = 2025
+                expirationYear = 2030
             )
         )
 
-        val order = orderService.createOrder("req-1", "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = orderService.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
         
         // Manually set status to Paid
         val paidOrder = order.copy(status = OrderStatus.Paid)
         fakeOrderRepository.update(paidOrder)
         
-        val shippedOrder = orderService.shipOrder(order.id)
+        val shippedOrder = orderService.shipOrder(UUID.randomUUID(), order.id)
         
         assertEquals(OrderStatus.Shipped, shippedOrder.status)
         assertEquals(1, fakeEventPublisher.statusChangedEvents.size)
@@ -286,14 +301,14 @@ class OrderServiceTest {
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
                 expirationMonth = 12,
-                expirationYear = 2025
+                expirationYear = 2030
             )
         )
 
-        val order = orderService.createOrder("req-1", "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = orderService.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
         
         org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
-            orderService.shipOrder(order.id)
+            orderService.shipOrder(UUID.randomUUID(), order.id)
         }
     }
 
@@ -311,11 +326,11 @@ class OrderServiceTest {
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
                 expirationMonth = 12,
-                expirationYear = 2025
+                expirationYear = 2030
             )
         )
 
-        val order = orderService.createOrder("req-1", "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = orderService.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
 
         val updatedOrder = orderService.transitionToAwaitingValidation(order.id)
 

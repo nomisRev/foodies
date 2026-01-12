@@ -1,18 +1,28 @@
 package io.ktor.foodies.order.events.handlers
 
 import io.ktor.foodies.order.domain.*
+import io.ktor.foodies.order.repository.IdempotencyRepository
 import io.ktor.foodies.order.repository.OrderRepository
+import io.ktor.foodies.order.repository.ProcessedRequest
 import io.ktor.foodies.order.service.DefaultOrderService
+import io.ktor.foodies.order.service.IdempotencyService
 import io.ktor.foodies.order.service.OrderEventPublisher
 import io.ktor.foodies.order.client.BasketClient
 import io.ktor.foodies.order.client.CustomerBasket
 import java.math.BigDecimal
+import java.util.UUID
 import kotlin.test.assertEquals
 import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 
 class StockEventHandlerTest {
+
+    private val fakeIdempotencyRepository = object : IdempotencyRepository {
+        override fun findByRequestId(requestId: UUID): ProcessedRequest? = null
+        override fun save(request: ProcessedRequest) {}
+    }
+    private val idempotencyService = IdempotencyService(fakeIdempotencyRepository)
 
     private val fakeOrderRepository = object : OrderRepository {
         val orders = mutableListOf<Order>()
@@ -40,7 +50,7 @@ class StockEventHandlerTest {
         override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? = null
     }
 
-    private val orderService = DefaultOrderService(fakeOrderRepository, fakeBasketClient, fakeEventPublisher)
+    private val orderService = DefaultOrderService(fakeOrderRepository, fakeBasketClient, fakeEventPublisher, idempotencyService)
     private val confirmedHandler = StockConfirmedEventHandler(orderService)
     private val rejectedHandler = StockRejectedEventHandler(orderService)
 

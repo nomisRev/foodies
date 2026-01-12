@@ -4,10 +4,14 @@ import io.ktor.foodies.order.client.CustomerBasket
 import io.ktor.foodies.order.client.BasketClient
 import io.ktor.foodies.order.client.BasketItem
 import io.ktor.foodies.order.domain.*
+import io.ktor.foodies.order.repository.IdempotencyRepository
 import io.ktor.foodies.order.repository.OrderRepository
+import io.ktor.foodies.order.repository.ProcessedRequest
 import io.ktor.foodies.order.service.DefaultOrderService
+import io.ktor.foodies.order.service.IdempotencyService
 import io.ktor.foodies.order.service.OrderEventPublisher
 import java.math.BigDecimal
+import java.util.UUID
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -15,6 +19,12 @@ import kotlin.test.assertNotNull
 import kotlin.time.Instant
 
 class GetOrderDetailsTest {
+
+    private val fakeIdempotencyRepository = object : IdempotencyRepository {
+        override fun findByRequestId(requestId: UUID): ProcessedRequest? = null
+        override fun save(request: ProcessedRequest) {}
+    }
+    private val idempotencyService = IdempotencyService(fakeIdempotencyRepository)
 
     private val fakeOrderRepository = object : OrderRepository {
         val orders = mutableListOf<Order>()
@@ -71,7 +81,7 @@ class GetOrderDetailsTest {
         override suspend fun publish(event: OrderAwaitingValidationEvent) {}
     }
 
-    private val orderService = DefaultOrderService(fakeOrderRepository, fakeBasketClient, fakeEventPublisher)
+    private val orderService = DefaultOrderService(fakeOrderRepository, fakeBasketClient, fakeEventPublisher, idempotencyService)
 
     @Test
     fun `should get order details`() = kotlinx.coroutines.test.runTest {
