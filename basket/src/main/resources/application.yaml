@@ -1,0 +1,18 @@
+config:
+  host: "$HOST:0.0.0.0"
+  port: "$PORT:8083"
+  auth:
+    issuer: "$AUTH_ISSUER:http://localhost:9090/realms/foodies-keycloak"
+    audience: "$AUTH_AUDIENCE:account"
+  redis:
+    host: "$REDIS_HOST:localhost"
+    port: "$REDIS_PORT:6379"
+    password: "$REDIS_PASSWORD:"
+  menu:
+    base_url: "$MENU_SERVICE_URL:http://localhost:8082"
+  rabbit:
+    host: "$RABBITMQ_HOST:localhost"
+    port: "$RABBITMQ_PORT:5672"
+    username: "$RABBITMQ_USERNAME:guest"
+    password: "$RABBITMQ_PASSWORD:guest"
+    queue: "$RABBITMQ_QUEUE:basket.order-created"
