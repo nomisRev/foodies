@@ -40,8 +40,14 @@
 
 ### Task 3.2: Unit Testing
 - [x] Implement `PaymentServiceTest` to verify payment logic from specification
-- [ ] Implement `SimulatedGatewayTest` to verify gateway behavior from specification
+- [x] Implement `SimulatedGatewayTest` to verify gateway behavior from specification
 
 ### Task 3.3: Integration Testing
 - [ ] Implement `PaymentRepositoryTest` using Testcontainers
 - [ ] Implement `OrderStockConfirmedHandlerTest`
+
+## Phase 4: Observability
+
+### Task 4.1: Monitoring and Metrics
+- [ ] Implement Prometheus metrics for payment processing
+- [ ] Implement structured logging for payment lifecycle
