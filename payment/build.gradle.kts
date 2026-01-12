@@ -4,6 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(ktorLibs.plugins.ktor)
     alias(libs.plugins.serialization)
+    alias(libs.plugins.testballoon)
 }
 
 application {
@@ -37,7 +38,6 @@ dependencies {
     implementation(libs.postgresql)
     implementation(libs.hikari)
     implementation(libs.flyway.postgresql)
-    implementation("org.flywaydb:flyway-core:${libs.versions.flyway.get()}")
 
     // RabbitMQ
     implementation(libs.rabbitmq)
@@ -53,9 +53,6 @@ dependencies {
     // Health Checks
     implementation(libs.cohort.ktor)
     implementation(libs.cohort.hikari)
-
-    // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinx.coroutines.get()}")
 
     // Testing
     testImplementation(project(":server-shared-test"))
