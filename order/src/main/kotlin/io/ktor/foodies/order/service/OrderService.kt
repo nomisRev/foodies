@@ -133,6 +133,10 @@ class DefaultOrderService(
         val order = getOrder(id, buyerId)
         if (order.status == OrderStatus.Cancelled) return@executeIdempotent order
 
+        if (order.status !in listOf(OrderStatus.Submitted, OrderStatus.AwaitingValidation, OrderStatus.StockConfirmed)) {
+            throw IllegalArgumentException("Cannot cancel order in ${order.status} status")
+        }
+
         val oldStatus = order.status
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
         val cancelledOrder = order.copy(
