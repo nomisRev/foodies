@@ -1,5 +1,6 @@
 package io.ktor.foodies.order
 
+import io.ktor.foodies.order.domain.OrderStatus
 import io.ktor.foodies.order.service.OrderService
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -20,7 +21,8 @@ fun Route.adminRoutes(orderService: OrderService) = authenticate {
             call.requireAdmin {
                 val offset = call.parameters["offset"]?.toLongOrNull() ?: 0L
                 val limit = call.parameters["limit"]?.toIntOrNull() ?: 20
-                val status = call.parameters["status"]?.let { runCatching { io.ktor.foodies.order.domain.OrderStatus.valueOf(it) }.getOrNull() }
+                val status =
+                    call.parameters["status"]?.let { runCatching { OrderStatus.valueOf(it) }.getOrNull() }
                 val buyerId = call.parameters["buyerId"]
 
                 val orders = orderService.getAllOrders(offset, limit.coerceAtMost(100), status, buyerId)
@@ -37,12 +39,14 @@ fun Route.adminRoutes(orderService: OrderService) = authenticate {
                     ?: throw IllegalArgumentException("Order ID is required")
 
                 val order = orderService.shipOrder(requestId, id)
+                    ?: return@requireAdmin call.respond(HttpStatusCode.NotFound, "Order not found")
                 call.respond(order)
             }
         }
     }
 }
 
+// TODO: Introduce Authentication + Role-based Authorization Plugin
 private suspend fun ApplicationCall.requireAdmin(block: suspend () -> Unit) {
     val principal = principal<JWTPrincipal>()!!
     val realmAccess = principal.payload.getClaim("realm_access").asMap()

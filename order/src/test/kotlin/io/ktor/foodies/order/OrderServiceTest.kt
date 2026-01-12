@@ -15,6 +15,7 @@ import java.math.BigDecimal
 import java.util.UUID
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.time.Instant
 
 class OrderServiceTest {
@@ -293,7 +294,8 @@ class OrderServiceTest {
         fakeOrderRepository.update(paidOrder)
         
         val shippedOrder = orderService.shipOrder(UUID.randomUUID(), order.id)
-        
+
+        assertNotNull(shippedOrder)
         assertEquals(OrderStatus.Shipped, shippedOrder.status)
         assertEquals(1, fakeEventPublisher.statusChangedEvents.size)
         assertEquals(OrderStatus.Paid, fakeEventPublisher.statusChangedEvents[0].oldStatus)
@@ -405,6 +407,7 @@ class OrderServiceTest {
 
         val updatedOrder = orderService.transitionToAwaitingValidation(order.id)
 
+        assertNotNull(updatedOrder)
         assertEquals(OrderStatus.AwaitingValidation, updatedOrder.status)
         assertEquals(1, fakeEventPublisher.awaitingValidationEvents.size)
         assertEquals(order.id, fakeEventPublisher.awaitingValidationEvents[0].orderId)

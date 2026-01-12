@@ -14,7 +14,7 @@ class LoggingNotificationService : NotificationService {
     override suspend fun notifyStatusChange(order: Order, oldStatus: OrderStatus) {
         val message = "Notification: Order ${order.id} for ${order.buyerName} changed from $oldStatus to ${order.status}. Description: ${order.description ?: "None"}"
         logger.info(message)
-        // In a real application, this would send an email or a push notification
+        // TODO send an email or a push notification
         println("Sending Email to ${order.buyerEmail}: $message")
     }
 }
