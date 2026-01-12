@@ -25,7 +25,7 @@ This document contains a list of isolated issues identified by comparing the ORD
 **Priority:** Medium
 **Spec Reference:** PAYMENT_SPEC.md line 15, ORDER_SPEC.md line 15
 
-### 4. Missing Admin Route Authentication
+### 4. [DONE] Missing Admin Route Authentication
 **File:** `order/src/main/kotlin/io/ktor/foodies/order/AdminRoutes.kt`
 **Issue:** Admin routes should verify the user has the 'admin' role, but this check is not visible in the routing setup.
 **Expected:** Admin routes must check for admin role from JWT claims before allowing access.
@@ -171,8 +171,8 @@ This document contains a list of isolated issues identified by comparing the ORD
 
 ## Summary
 
-**High Priority Issues:** 1
+**High Priority Issues:** 0
 **Medium Priority Issues:** 5
 **Low Priority Issues:** 9
 
-**Critical Path:** Issues #4 must be resolved for full security compliance. The payment flow is now functional as Order service correctly publishes `OrderStockConfirmedEvent`.
+**Critical Path:** All high priority security issues have been resolved. The payment flow is now functional as Order service correctly publishes `OrderStockConfirmedEvent`.

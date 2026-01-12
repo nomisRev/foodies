@@ -16,9 +16,9 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 
 fun Route.adminRoutes(orderService: OrderService) = authenticate {
-    route("/admin/orders") {
-        get {
-            call.requireAdmin {
+    withRole("admin") {
+        route("/admin/orders") {
+            get {
                 val offset = call.parameters["offset"]?.toLongOrNull() ?: 0L
                 val limit = call.parameters["limit"]?.toIntOrNull() ?: 20
                 val status =
@@ -28,10 +28,8 @@ fun Route.adminRoutes(orderService: OrderService) = authenticate {
                 val orders = orderService.getAllOrders(offset, limit.coerceAtMost(100), status, buyerId)
                 call.respond(orders)
             }
-        }
 
-        put("/{id}/ship") {
-            call.requireAdmin {
+            put("/{id}/ship") {
                 val requestIdString = call.request.header("X-Request-Id")
                     ?: throw IllegalArgumentException("X-Request-Id header is required")
                 val requestId = java.util.UUID.fromString(requestIdString)
@@ -39,22 +37,9 @@ fun Route.adminRoutes(orderService: OrderService) = authenticate {
                     ?: throw IllegalArgumentException("Order ID is required")
 
                 val order = orderService.shipOrder(requestId, id)
-                    ?: return@requireAdmin call.respond(HttpStatusCode.NotFound, "Order not found")
+                    ?: return@put call.respond(HttpStatusCode.NotFound, "Order not found")
                 call.respond(order)
             }
         }
-    }
-}
-
-// TODO: Introduce Authentication + Role-based Authorization Plugin
-private suspend fun ApplicationCall.requireAdmin(block: suspend () -> Unit) {
-    val principal = principal<JWTPrincipal>()!!
-    val realmAccess = principal.payload.getClaim("realm_access").asMap()
-    val roles = realmAccess["roles"] as? List<String> ?: emptyList()
-
-    if (!roles.contains("admin")) {
-        respond(HttpStatusCode.Forbidden, "Admin role required")
-    } else {
-        block()
     }
 }
