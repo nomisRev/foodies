@@ -37,6 +37,10 @@ dependencies {
     implementation(libs.exposed.jdbc)
     implementation(libs.flyway.postgresql)
 
+    implementation("com.sksamuel.cohort:cohort-rabbit:2.8.2")
+    api("com.sksamuel.cohort:cohort-ktor:2.8.2")
+    api("com.sksamuel.cohort:cohort-hikari:2.8.2")
+
     testImplementation(project(":server-shared-test"))
     testImplementation(libs.testcontainers.rabbitmq)
     testImplementation(libs.testcontainers.postgresql)
