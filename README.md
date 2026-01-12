@@ -236,13 +236,6 @@ kubectl apply -f k8s/ingress.yaml
 - [Basket](basket/README.md)
 - [Profile](profile/README.MD)
 
-### Service Specifications (Planned)
-
-- [Order Service](order/SPECIFICATION.md)
-- [Payment Service](payment/SPECIFICATION.md)
-- [Admin Service](admin/SPECIFICATION.md)
-- [Basket Service](basket/SPECIFICATION.md)
-
 ## Architecture Patterns
 
 ### Manual Dependency Injection
