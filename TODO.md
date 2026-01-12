@@ -11,5 +11,8 @@
 - [x] Create `payment/src/main/kotlin/io/ktor/foodies/payment/Config.kt` and `payment/src/main/resources/application.yaml`
 
 ### Task 1.3: Database Schema and Repository
-- [ ] Create database migration `payment/src/main/resources/db/migration/V1__create_payment_table.sql`
-- [ ] Create `payment/src/main/kotlin/io/ktor/foodies/payment/Repository.kt` with `PaymentRepository` interface and implementation
+- [x] Create database migration `payment/src/main/resources/db/migration/V1__create_payment_table.sql`
+- [x] Create `payment/src/main/kotlin/io/ktor/foodies/payment/Repository.kt` with `PaymentRepository` interface and implementation
+
+### Task 1.4: External Payment Gateway
+- [ ] Implement `PaymentGateway` interface and `SimulatedPaymentGateway`
