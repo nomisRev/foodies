@@ -51,12 +51,6 @@ fun Application.app(config: Config, dataSource: DataSource) {
         exception<ValidationException> { call, cause ->
             call.respond(HttpStatusCode.BadRequest, cause.reasons.joinToString("\n"))
         }
-        exception<OrderNotFoundException> { call, cause ->
-            call.respond(HttpStatusCode.NotFound, cause.message ?: "Order not found")
-        }
-        exception<OrderForbiddenException> { call, cause ->
-            call.respond(HttpStatusCode.Forbidden, cause.message ?: "Forbidden")
-        }
         exception<IllegalArgumentException> { call, cause ->
             call.respond(HttpStatusCode.BadRequest, cause.message ?: "Invalid request")
         }

@@ -6,6 +6,7 @@ import io.ktor.foodies.order.domain.CardTypeResponse
 import io.ktor.foodies.order.domain.CreateOrderRequest
 import io.ktor.foodies.order.domain.OrderStatus
 import io.ktor.foodies.order.service.OrderService
+import io.ktor.foodies.server.getValue
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
@@ -18,6 +19,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import io.ktor.util.collections.getValue
 
 private fun JWTPrincipal.buyerId(): String = payload.subject
     ?: throw IllegalStateException("JWT subject claim is missing")
@@ -50,11 +52,13 @@ fun Route.orderRoutes(orderService: OrderService) = authenticate {
         get("/{id}") {
             val principal = call.principal<JWTPrincipal>()!!
             val buyerId = principal.buyerId()
-            val id = call.parameters["id"]?.toLongOrNull()
-                ?: throw IllegalArgumentException("Order ID is required")
+            val id: Long by call.parameters
 
-            val order = orderService.getOrder(id, buyerId)
-            call.respond(order)
+            when (val result = orderService.getOrder(id, buyerId)) {
+                is io.ktor.foodies.order.domain.GetOrderResult.Success -> call.respond(result.order)
+                is io.ktor.foodies.order.domain.GetOrderResult.NotFound -> call.respond(HttpStatusCode.NotFound, "Order not found")
+                is io.ktor.foodies.order.domain.GetOrderResult.Forbidden -> call.respond(HttpStatusCode.Forbidden, "Access denied to order")
+            }
         }
 
         post {
@@ -79,8 +83,7 @@ fun Route.orderRoutes(orderService: OrderService) = authenticate {
             val requestId = java.util.UUID.fromString(requestIdString)
             val principal = call.principal<JWTPrincipal>()!!
             val buyerId = principal.buyerId()
-            val id = call.parameters["id"]?.toLongOrNull()
-                ?: throw IllegalArgumentException("Order ID is required")
+            val id: Long by call.parameters
             val reason = call.receive<CancelOrderRequest>().reason
 
             val order = orderService.cancelOrder(requestId, id, buyerId, reason)

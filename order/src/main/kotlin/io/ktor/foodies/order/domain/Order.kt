@@ -105,3 +105,9 @@ data class PaginatedOrders(
     val offset: Long,
     val limit: Int,
 )
+
+sealed interface GetOrderResult {
+    data class Success(val order: Order) : GetOrderResult
+    data object NotFound : GetOrderResult
+    data object Forbidden : GetOrderResult
+}

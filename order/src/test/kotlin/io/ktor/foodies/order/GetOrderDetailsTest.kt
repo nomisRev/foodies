@@ -13,9 +13,7 @@ import io.ktor.foodies.order.service.OrderEventPublisher
 import java.math.BigDecimal
 import java.util.UUID
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.time.Instant
 
 class GetOrderDetailsTest {
@@ -79,6 +77,7 @@ class GetOrderDetailsTest {
         override suspend fun publish(event: OrderCancelledEvent) {}
         override suspend fun publish(event: OrderStatusChangedEvent) {}
         override suspend fun publish(event: OrderAwaitingValidationEvent) {}
+        override suspend fun publish(event: StockReturnedEvent) {}
     }
 
     private val orderService = DefaultOrderService(fakeOrderRepository, fakeBasketClient, fakeEventPublisher, idempotencyService)
@@ -102,23 +101,22 @@ class GetOrderDetailsTest {
         )
         fakeOrderRepository.orders.add(existingOrder)
 
-        // This will fail to compile initially because getOrder is not in OrderService
-        val order = orderService.getOrder(123, "user-1")
+        val result = orderService.getOrder(123, "user-1")
 
-        assertNotNull(order)
+        assert(result is GetOrderResult.Success)
+        val order = (result as GetOrderResult.Success).order
         assertEquals(123, order.id)
         assertEquals("user-1", order.buyerId)
     }
 
     @Test
-    fun `should throw OrderNotFoundException when order does not exist`() = kotlinx.coroutines.test.runTest {
-        assertThrows<OrderNotFoundException> {
-            orderService.getOrder(999, "user-1")
-        }
+    fun `should return NotFound when order does not exist`() = kotlinx.coroutines.test.runTest {
+        val result = orderService.getOrder(999, "user-1")
+        assert(result is GetOrderResult.NotFound)
     }
 
     @Test
-    fun `should throw OrderForbiddenException when order belongs to different user`() = kotlinx.coroutines.test.runTest {
+    fun `should return Forbidden when order belongs to different user`() = kotlinx.coroutines.test.runTest {
         val existingOrder = Order(
             id = 456,
             requestId = "req-456",
@@ -136,8 +134,7 @@ class GetOrderDetailsTest {
         )
         fakeOrderRepository.orders.add(existingOrder)
 
-        assertThrows<OrderForbiddenException> {
-            orderService.getOrder(456, "user-1")
-        }
+        val result = orderService.getOrder(456, "user-1")
+        assert(result is GetOrderResult.Forbidden)
     }
 }
