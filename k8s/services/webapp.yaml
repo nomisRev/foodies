@@ -78,3 +78,5 @@ spec:
                   key: AUTH_CLIENT_SECRET
             - name: MENU_BASE_URL
               value: http://menu:8082
+            - name: BASKET_BASE_URL
+              value: http://basket:8083
