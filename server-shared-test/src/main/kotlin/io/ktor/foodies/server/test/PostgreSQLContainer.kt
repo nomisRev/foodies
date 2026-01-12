@@ -8,7 +8,9 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 import org.testcontainers.containers.PostgreSQLContainer as PostgreSQLTestContainer
 
-class PostgreSQLContainer internal constructor() : PostgreSQLTestContainer<Nothing>("postgres:16-alpine")
+class PostgreSQLContainer internal constructor() : PostgreSQLTestContainer<Nothing>("postgres:16-alpine") {
+    fun config(): DataSource.Config = DataSource.Config(jdbcUrl, username, password)
+}
 
 fun TestSuite.postgresContainer(): TestSuite.Fixture<PostgreSQLContainer> =
     testFixture { PostgreSQLContainer().apply { start() } } closeWith { stop() }
