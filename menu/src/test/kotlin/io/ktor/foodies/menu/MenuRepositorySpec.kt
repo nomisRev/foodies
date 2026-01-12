@@ -118,5 +118,40 @@ val menuRepositorySpec by testSuite {
             assertNull(missing)
             assertEquals(false, secondDelete)
         }
+
+        test("search finds items by name or description (case insensitive)") {
+            val pizza = repository().create(
+                CreateMenuItem(
+                    name = "Margherita Pizza",
+                    description = "Classic tomato and mozzarella",
+                    imageUrl = "https://example.com/margherita.jpg",
+                    price = BigDecimal("9.50"),
+                )
+            )
+            val pasta = repository().create(
+                CreateMenuItem(
+                    name = "Carbonara Pasta",
+                    description = "Creamy sauce with bacon",
+                    imageUrl = "https://example.com/carbonara.jpg",
+                    price = BigDecimal("12.00"),
+                )
+            )
+
+            // Search by name
+            assertEquals(listOf(pizza), repository().search("Pizza"))
+            assertEquals(listOf(pasta), repository().search("pasta")) // case insensitive
+
+            // Search by description
+            assertEquals(listOf(pizza), repository().search("tomato"))
+            assertEquals(listOf(pasta), repository().search("CREAMY"))
+
+            // Search matches both
+            val all = repository().search("a")
+            assertTrue(all.contains(pizza))
+            assertTrue(all.contains(pasta))
+
+            // No matches
+            assertTrue(repository().search("Burger").isEmpty())
+        }
     }
 }

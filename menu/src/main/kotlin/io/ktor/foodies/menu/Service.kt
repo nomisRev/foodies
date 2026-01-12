@@ -6,6 +6,7 @@ interface MenuService {
     fun create(request: CreateMenuItemRequest): MenuItem
     fun update(id: Long, request: UpdateMenuItemRequest): MenuItem?
     fun delete(id: Long): Boolean
+    fun search(query: String): List<MenuItem>
 }
 
 class MenuServiceImpl(private val repository: MenuRepository) : MenuService {
@@ -24,6 +25,8 @@ class MenuServiceImpl(private val repository: MenuRepository) : MenuService {
         repository.update(id, request.validate())
 
     override fun delete(id: Long): Boolean = repository.delete(id)
+
+    override fun search(query: String): List<MenuItem> = repository.search(query)
 
     private companion object {
         const val DEFAULT_OFFSET = 0

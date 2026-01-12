@@ -4,6 +4,9 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.or
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -19,6 +22,7 @@ interface MenuRepository {
     fun create(request: CreateMenuItem): MenuItem
     fun update(id: Long, request: UpdateMenuItem): MenuItem?
     fun delete(id: Long): Boolean
+    fun search(query: String): List<MenuItem>
 }
 
 object MenuItemsTable : LongIdTable("menu_items") {
@@ -97,6 +101,13 @@ class ExposedMenuRepository(private val database: Database) : MenuRepository {
 
     override fun delete(id: Long): Boolean = transaction(database) {
         MenuItemsTable.deleteWhere { MenuItemsTable.id eq id } == 1
+    }
+    
+    override fun search(query: String): List<MenuItem> = transaction(database) {
+        val q = "%${query.lowercase()}%"
+        MenuItemsTable.selectAll()
+            .where { (MenuItemsTable.name.lowerCase() like q) or (MenuItemsTable.description.lowerCase() like q) }
+            .map { it.toMenuItem() }
     }
 
     private fun ResultRow.toMenuItem(): MenuItem = MenuItem(

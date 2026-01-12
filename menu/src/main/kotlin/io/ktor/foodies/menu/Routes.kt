@@ -25,6 +25,12 @@ fun Route.menuRoutes(menuService: MenuService) = route("/menu") {
         if (menuItem == null) call.respond(HttpStatusCode.NotFound) else call.respond(menuItem.toResponse())
     }
 
+    get("/search") {
+        val query = call.request.queryParameters["q"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+        val menuItems = menuService.search(query).map { it.toResponse() }
+        call.respond(menuItems)
+    }
+
     post {
         val request = call.receive<CreateMenuItemRequest>()
         val created = menuService.create(request)

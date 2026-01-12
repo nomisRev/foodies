@@ -1,2 +1,3 @@
 - [x] Menu item detail page
-- [ ] Menu search
+- [x] Menu search
+- [ ] Menu categories and filtering

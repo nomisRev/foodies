@@ -38,11 +38,25 @@ fun Application.menuRoutes(menuService: MenuService) {
     routing {
         hx {
             get("/menu") {
-                val offset = call.request.queryParameters.getOrFail<Int>("offset")
-                val limit = call.request.queryParameters.getOrFail<Int>("limit")
-                val items = menuService.menuItems(offset, limit)
+                val search = call.request.queryParameters["search"]
                 val isLoggedIn = call.sessions.get<UserSession>() != null
-                call.respondHtmxFragment { buildMenuFragment(items, offset, limit, isLoggedIn) }
+
+                if (search != null) {
+                    val items = menuService.searchMenuItems(search)
+                    call.respondHtmxFragment {
+                        items.forEach { menuCard(it, isLoggedIn) }
+                        if (items.isEmpty()) {
+                            div(classes = "no-results") { +"No results found for \"$search\"" }
+                        }
+                        feedComplete()
+                        feedStatus("")
+                    }
+                } else {
+                    val offset = call.request.queryParameters.getOrFail<Int>("offset")
+                    val limit = call.request.queryParameters.getOrFail<Int>("limit")
+                    val items = menuService.menuItems(offset, limit)
+                    call.respondHtmxFragment { buildMenuFragment(items, offset, limit, isLoggedIn) }
+                }
             }
         }
 

@@ -26,6 +26,18 @@ suspend fun ApplicationCall.respondHtmlWithLayout(
         body {
             header {
                 a(href = "/", classes = "logo") { +"Foodies" }
+                div(classes = "search-container") {
+                    input(type = InputType.search, classes = "search-input") {
+                        name = "search"
+                        placeholder = "Search menu..."
+                        attributes["hx-get"] = "/menu"
+                        attributes["hx-trigger"] = "keyup changed delay:300ms"
+                        attributes["hx-target"] = "#menu-feed"
+                        attributes["hx-swap"] = "innerHTML"
+                        attributes["hx-indicator"] = "#search-spinner"
+                    }
+                    div(classes = "spinner htmx-indicator") { id = "search-spinner" }
+                }
                 div(classes = "actions") {
                     cartBadgeLink()
                     if (isLoggedIn) {
