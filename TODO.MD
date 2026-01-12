@@ -154,7 +154,7 @@ This document contains a list of isolated issues identified by comparing the ORD
 
 ## Testing Gaps
 
-### 21. Missing Integration Test for Order-Payment Event Flow
+### 21. [DONE] Missing Integration Test for Order-Payment Event Flow
 **Issue:** No end-to-end test verifying that stock confirmation triggers payment processing.
 **Expected:** Create integration test that:
   1. Creates an order
@@ -173,7 +173,7 @@ This document contains a list of isolated issues identified by comparing the ORD
 ## Summary
 
 **High Priority Issues:** 0
-**Medium Priority Issues:** 1
+**Medium Priority Issues:** 0
 **Low Priority Issues:** 0
 
-**Critical Path:** All high priority security issues have been resolved. The payment flow is now functional as Order service correctly publishes `OrderStockConfirmedEvent`. Port conflicts between Order and Payment services have been resolved by moving Payment to 8085 and ensuring Order uses 8084.
+**Critical Path:** All issues identified in the specs vs implementation comparison have been resolved. The payment flow is now fully verified with integration tests, ensuring that stock confirmation triggers payment processing and that both success and failure (with stock return) paths work as expected.
