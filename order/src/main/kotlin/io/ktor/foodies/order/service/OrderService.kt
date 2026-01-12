@@ -7,11 +7,12 @@ import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.order.repository.OrderRepository
 import io.ktor.foodies.server.validate
 import java.math.BigDecimal
+import java.util.UUID
 import kotlin.time.Instant
 
 interface OrderService {
     suspend fun createOrder(
-        requestId: String,
+        requestId: UUID,
         buyerId: String,
         buyerEmail: String,
         buyerName: String,
@@ -34,9 +35,9 @@ interface OrderService {
     ): PaginatedOrders
 
     suspend fun getOrder(id: Long, buyerId: String): Order
-    suspend fun cancelOrder(id: Long, buyerId: String, reason: String): Order
+    suspend fun cancelOrder(requestId: UUID, id: Long, buyerId: String, reason: String): Order
     suspend fun transitionToAwaitingValidation(id: Long): Order
-    suspend fun shipOrder(id: Long): Order
+    suspend fun shipOrder(requestId: UUID, id: Long): Order
     suspend fun setStockConfirmed(id: Long): Order
     suspend fun cancelOrderDueToStockRejection(id: Long, reason: String): Order
     suspend fun setPaid(id: Long): Order
@@ -47,6 +48,7 @@ class DefaultOrderService(
     private val orderRepository: OrderRepository,
     private val basketClient: BasketClient,
     private val eventPublisher: OrderEventPublisher,
+    private val idempotencyService: IdempotencyService,
 ) : OrderService {
     private var gracePeriodService: GracePeriodService? = null
 
@@ -54,16 +56,16 @@ class DefaultOrderService(
         this.gracePeriodService = service
     }
     override suspend fun createOrder(
-        requestId: String,
+        requestId: UUID,
         buyerId: String,
         buyerEmail: String,
         buyerName: String,
         request: CreateOrderRequest,
         token: String
-    ): Order {
-        val existingOrder = orderRepository.findByRequestId(requestId)
+    ): Order = idempotencyService.executeIdempotent(requestId, "CreateOrder") {
+        val existingOrder = orderRepository.findByRequestId(requestId.toString())
         if (existingOrder != null) {
-            return existingOrder
+            return@executeIdempotent existingOrder
         }
 
         val address = request.validate()
@@ -71,7 +73,7 @@ class DefaultOrderService(
         if (basket.items.isEmpty()) throw IllegalArgumentException("Basket is empty")
 
         val createOrder = CreateOrder(
-            requestId = requestId,
+            requestId = requestId.toString(),
             buyerId = buyerId,
             buyerEmail = buyerEmail,
             buyerName = buyerName,
@@ -102,7 +104,7 @@ class DefaultOrderService(
 
         gracePeriodService?.scheduleGracePeriodExpiration(order.id)
 
-        return order
+        order
     }
 
     override suspend fun getOrders(
@@ -127,9 +129,9 @@ class DefaultOrderService(
         return order
     }
 
-    override suspend fun cancelOrder(id: Long, buyerId: String, reason: String): Order {
+    override suspend fun cancelOrder(requestId: UUID, id: Long, buyerId: String, reason: String): Order = idempotencyService.executeIdempotent(requestId, "CancelOrder") {
         val order = getOrder(id, buyerId)
-        if (order.status == OrderStatus.Cancelled) return order
+        if (order.status == OrderStatus.Cancelled) return@executeIdempotent order
 
         val oldStatus = order.status
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
@@ -158,7 +160,7 @@ class DefaultOrderService(
         )
         eventPublisher.publish(statusChangedEvent)
 
-        return updatedOrder
+        updatedOrder
     }
 
     override suspend fun transitionToAwaitingValidation(id: Long): Order {
@@ -191,8 +193,9 @@ class DefaultOrderService(
         return updatedOrder
     }
 
-    override suspend fun shipOrder(id: Long): Order {
+    override suspend fun shipOrder(requestId: UUID, id: Long): Order = idempotencyService.executeIdempotent(requestId, "ShipOrder") {
         val order = orderRepository.findById(id) ?: throw OrderNotFoundException(id)
+        if (order.status == OrderStatus.Shipped) return@executeIdempotent order
         if (order.status != OrderStatus.Paid) {
             throw IllegalArgumentException("Order must be Paid to be shipped. Current status: ${order.status}")
         }
@@ -215,7 +218,7 @@ class DefaultOrderService(
             changedAt = now
         )
         eventPublisher.publish(event)
-        return updatedOrder
+        updatedOrder
     }
     
     override suspend fun setStockConfirmed(id: Long): Order {
@@ -325,6 +328,11 @@ class DefaultOrderService(
     }
 
     private fun CreateOrderRequest.validate(): Address = validate {
+        paymentDetails.cardNumber.validate({ it.length in 13..19 }) { "Card number must be 13-19 digits" }
+        paymentDetails.cardSecurityNumber.validate({ it.length in 3..4 }) { "CVV must be 3-4 digits" }
+        paymentDetails.cardHolderName.validate({ it.isNotBlank() }) { "Card holder name is required" }
+        paymentDetails.validate({ it.isNotExpired() }) { "Card is expired" }
+
         Address(
             street = street.validate({ it.isNotBlank() }) { "street is required" },
             city = city.validate({ it.isNotBlank() }) { "city is required" },
