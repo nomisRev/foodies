@@ -18,7 +18,7 @@ This document contains a list of isolated issues identified by comparing the ORD
 **Priority:** High
 **Spec Reference:** ORDER_SPEC.md lines 100, 152-169
 
-### 3. Incorrect Port Configuration for Payment Service
+### 3. [DONE] Incorrect Port Configuration for Payment Service
 **File:** `specs/PAYMENT_SPEC.md` line 15
 **Issue:** PAYMENT_SPEC.md states port 8084, but this conflicts with ORDER service which also uses 8084 (ORDER_SPEC.md line 15).
 **Expected:** Payment service should use a different port (e.g., 8085).
@@ -46,7 +46,7 @@ This document contains a list of isolated issues identified by comparing the ORD
 **Priority:** Low
 **Spec Reference:** ORDER_SPEC.md lines 432-455
 
-### 7. Order Port Configuration Mismatch
+### 7. [DONE] Order Port Configuration Mismatch
 **File:** `order/src/main/kotlin/io/ktor/foodies/order/Config.kt`
 **Issue:** Default port in Config.kt is 8080, but spec says 8084.
 **Expected:** Default port should match spec (8084).
@@ -121,7 +121,7 @@ This document contains a list of isolated issues identified by comparing the ORD
 **Expected:** Consider if any direct HTTP communication is needed between services (currently only event-driven).
 **Priority:** Low
 
-### 17. Payment Service Port Not Configurable via Default
+### 17. [DONE] Payment Service Port Not Configurable via Default
 **File:** `specs/PAYMENT_SPEC.md`
 **Issue:** Payment spec shows port 8084 which conflicts with Order service.
 **Expected:** Update spec to use port 8085 or another available port.
@@ -172,7 +172,7 @@ This document contains a list of isolated issues identified by comparing the ORD
 ## Summary
 
 **High Priority Issues:** 0
-**Medium Priority Issues:** 5
-**Low Priority Issues:** 9
+**Medium Priority Issues:** 3
+**Low Priority Issues:** 6
 
-**Critical Path:** All high priority security issues have been resolved. The payment flow is now functional as Order service correctly publishes `OrderStockConfirmedEvent`.
+**Critical Path:** All high priority security issues have been resolved. The payment flow is now functional as Order service correctly publishes `OrderStockConfirmedEvent`. Port conflicts between Order and Payment services have been resolved by moving Payment to 8085 and ensuring Order uses 8084.
