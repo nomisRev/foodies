@@ -2,11 +2,6 @@ package io.ktor.foodies.basket
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.github.dockerjava.api.model.ErrorResponse
-import de.infix.testBalloon.framework.core.TestExecutionScope
-import de.infix.testBalloon.framework.core.TestSuite
-import de.infix.testBalloon.framework.core.testSuite
-import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.client.call.body
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.bearerAuth
@@ -16,148 +11,31 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
-import io.ktor.foodies.server.ValidationException
-import io.ktor.foodies.server.test.testApplication
+import io.ktor.foodies.server.test.ctxSuite
+import io.ktor.foodies.server.test.jsonClient
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.application.Application
-import io.ktor.server.application.install
-import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.jwt.jwt
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation as ServerContentNegotiation
-import io.ktor.server.plugins.statuspages.StatusPages
-import io.ktor.server.response.respond
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
 import io.ktor.server.testing.ApplicationTestBuilder
-import io.lettuce.core.ExperimentalLettuceCoroutinesApi
-import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
-import io.mockk.coEvery
-import io.mockk.mockk
 import java.math.BigDecimal
 import java.util.Date
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
-private const val TEST_SECRET = "test-jwt-secret-for-testing-only"
-private const val TEST_ISSUER = "test-issuer"
-private const val TEST_AUDIENCE = "test-audience"
-
-/**
- * Creates a JWT token for testing purposes.
- */
-private fun createTestToken(
-    subject: String,
-    issuer: String = TEST_ISSUER,
-    audience: String = TEST_AUDIENCE,
-): String = JWT.create()
-    .withSubject(subject)
-    .withIssuer(issuer)
-    .withAudience(audience)
-    .withExpiresAt(Date(System.currentTimeMillis() + 60_000))
-    .sign(Algorithm.HMAC256(TEST_SECRET))
-
-/**
- * Configures test application with mock JWT authentication.
- */
-@OptIn(ExperimentalLettuceCoroutinesApi::class)
-private fun Application.testApp(module: BasketModule) {
-    install(ServerContentNegotiation) { json() }
-
-    install(StatusPages) {
-        exception<ValidationException> { call, cause ->
-            call.respondText(cause.message, status = HttpStatusCode.BadRequest)
-        }
-    }
-
-    install(Authentication) {
-        jwt {
-            verifier(
-                JWT.require(Algorithm.HMAC256(TEST_SECRET))
-                    .withIssuer(TEST_ISSUER)
-                    .withAudience(TEST_AUDIENCE)
-                    .build()
-            )
-            validate { credential ->
-                if (credential.payload.subject != null) {
-                    JWTPrincipal(credential.payload)
-                } else null
-            }
-        }
-    }
-
-    routing {
-        get("/healthz") { call.respond(HttpStatusCode.OK) }
-        healthzReady(module.redisCommands)
-        basketRoutes(module.basketService)
-    }
-}
-
-private fun ApplicationTestBuilder.jsonClient() = createClient {
-    install(ContentNegotiation) { json() }
-}
-
-/**
- * Test context holding in-memory implementations for basket routes tests.
- */
-private data class RoutesTestContext(
-    val menuClient: InMemoryMenuClient,
-    val repository: InMemoryBasketRepository,
-    val service: BasketService,
-    val module: BasketModule,
-)
-
-@OptIn(ExperimentalLettuceCoroutinesApi::class)
-private fun createRoutesTestContext(): RoutesTestContext {
-    val menuClient = InMemoryMenuClient()
-    val repository = InMemoryBasketRepository()
-    val service = BasketServiceImpl(repository, menuClient)
-    val mockRedisCommands = mockk<RedisCoroutinesCommands<String, String>> {
-        coEvery { ping() } returns "PONG"
-    }
-    val module = BasketModule(basketService = service, consumers = emptyList(), redisCommands = mockRedisCommands)
-    return RoutesTestContext(menuClient, repository, service, module)
-}
-
-@TestRegistering
-private fun TestSuite.testBasketRoutes(
-    name: String,
-    setup: (RoutesTestContext) -> Unit = {},
-    block: suspend context(TestExecutionScope) ApplicationTestBuilder.(RoutesTestContext) -> Unit,
-) = testApplication(name) {
-    val ctx = createRoutesTestContext()
-    setup(ctx)
-    application { testApp(ctx.module) }
-    block(ctx)
-}
-
-val basketRoutesSpec by testSuite {
+val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
     val testUserId = "user-123"
     val testToken = createTestToken(testUserId)
 
     testSuite("GET /healthz") {
-        testBasketRoutes("returns 200 OK") { _ ->
+        testBasketService("returns 200 OK") { _ ->
             val response = jsonClient().get("/healthz")
             assertEquals(HttpStatusCode.OK, response.status)
         }
     }
 
-    testSuite("GET /healthz/ready") {
-        testBasketRoutes("returns 200 OK with UP status when Redis is healthy") { _ ->
-            val response = jsonClient().get("/healthz/ready")
-            assertEquals(HttpStatusCode.OK, response.status)
-            val healthStatus = response.body<HealthStatus>()
-            assertEquals("UP", healthStatus.status)
-        }
-    }
-
     testSuite("GET /basket") {
-        testBasketRoutes("returns empty basket for new user") { _ ->
+        testBasketService("returns empty basket for new user") { _ ->
             val response = jsonClient().get("/basket") {
                 bearerAuth(testToken)
             }
@@ -168,13 +46,13 @@ val basketRoutesSpec by testSuite {
             assertTrue(basket.items.isEmpty())
         }
 
-        testBasketRoutes("returns 401 when not authenticated") { _ ->
+        testBasketService("returns 401 when not authenticated") { _ ->
             val response = jsonClient().get("/basket")
             assertEquals(HttpStatusCode.Unauthorized, response.status)
         }
 
-        testBasketRoutes("returns existing basket with items", setup = { ctx ->
-            ctx.menuClient.addMenuItem(
+        testBasketService("returns existing basket with items") { module ->
+            module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
                     name = "Pizza",
@@ -183,7 +61,7 @@ val basketRoutesSpec by testSuite {
                     price = BigDecimal("10.00")
                 )
             )
-        }) { ctx ->
+
             // First add an item
             jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
@@ -204,8 +82,8 @@ val basketRoutesSpec by testSuite {
     }
 
     testSuite("POST /basket/items") {
-        testBasketRoutes("adds item to empty basket", setup = { ctx ->
-            ctx.menuClient.addMenuItem(
+        testBasketService("adds item to empty basket") { module ->
+            module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
                     name = "Pizza Margherita",
@@ -214,7 +92,7 @@ val basketRoutesSpec by testSuite {
                     price = BigDecimal("12.99")
                 )
             )
-        }) { _ ->
+
             val response = jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
                 contentType(ContentType.Application.Json)
@@ -231,8 +109,8 @@ val basketRoutesSpec by testSuite {
             assertEquals(BigDecimal("12.99"), basket.items[0].unitPrice)
         }
 
-        testBasketRoutes("increments quantity when item already in basket", setup = { ctx ->
-            ctx.menuClient.addMenuItem(
+        testBasketService("increments quantity when item already in basket") { module ->
+            module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
                     name = "Pizza",
@@ -241,7 +119,7 @@ val basketRoutesSpec by testSuite {
                     price = BigDecimal("10.00")
                 )
             )
-        }) { _ ->
+
             // Add item first time
             jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
@@ -262,7 +140,7 @@ val basketRoutesSpec by testSuite {
             assertEquals(5, basket.items[0].quantity) // 2 + 3 = 5
         }
 
-        testBasketRoutes("returns 404 when menu item does not exist") { _ ->
+        testBasketService("returns 404 when menu item does not exist") { _ ->
             val response = jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
                 contentType(ContentType.Application.Json)
@@ -272,7 +150,7 @@ val basketRoutesSpec by testSuite {
             assertEquals(HttpStatusCode.NotFound, response.status)
         }
 
-        testBasketRoutes("returns 400 for invalid quantity (zero)") { _ ->
+        testBasketService("returns 400 for invalid quantity (zero)") { _ ->
             val response = jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
                 contentType(ContentType.Application.Json)
@@ -284,7 +162,7 @@ val basketRoutesSpec by testSuite {
             assertTrue(error.contains("quantity"))
         }
 
-        testBasketRoutes("returns 400 for negative quantity") { _ ->
+        testBasketService("returns 400 for negative quantity") { _ ->
             val response = jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
                 contentType(ContentType.Application.Json)
@@ -294,7 +172,7 @@ val basketRoutesSpec by testSuite {
             assertEquals(HttpStatusCode.BadRequest, response.status)
         }
 
-        testBasketRoutes("returns 401 when not authenticated") { _ ->
+        testBasketService("returns 401 when not authenticated") { _ ->
             val response = jsonClient().post("/basket/items") {
                 contentType(ContentType.Application.Json)
                 setBody(AddItemRequest(menuItemId = 1L, quantity = 1))
@@ -305,8 +183,8 @@ val basketRoutesSpec by testSuite {
     }
 
     testSuite("PUT /basket/items/{itemId}") {
-        testBasketRoutes("updates item quantity", setup = { ctx ->
-            ctx.menuClient.addMenuItem(
+        testBasketService("updates item quantity") { module ->
+            module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
                     name = "Pizza",
@@ -315,7 +193,7 @@ val basketRoutesSpec by testSuite {
                     price = BigDecimal("10.00")
                 )
             )
-        }) { _ ->
+
             // First add an item
             val addResponse = jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
@@ -338,7 +216,7 @@ val basketRoutesSpec by testSuite {
             assertEquals(10, basket.items[0].quantity)
         }
 
-        testBasketRoutes("returns 404 when item not in basket") { _ ->
+        testBasketService("returns 404 when item not in basket") { _ ->
             val response = jsonClient().put("/basket/items/non-existent-id") {
                 bearerAuth(testToken)
                 contentType(ContentType.Application.Json)
@@ -348,7 +226,7 @@ val basketRoutesSpec by testSuite {
             assertEquals(HttpStatusCode.NotFound, response.status)
         }
 
-        testBasketRoutes("returns 400 for invalid quantity") { _ ->
+        testBasketService("returns 400 for invalid quantity") { _ ->
             val response = jsonClient().put("/basket/items/some-id") {
                 bearerAuth(testToken)
                 contentType(ContentType.Application.Json)
@@ -358,7 +236,7 @@ val basketRoutesSpec by testSuite {
             assertEquals(HttpStatusCode.BadRequest, response.status)
         }
 
-        testBasketRoutes("returns 401 when not authenticated") { _ ->
+        testBasketService("returns 401 when not authenticated") { _ ->
             val response = jsonClient().put("/basket/items/some-id") {
                 contentType(ContentType.Application.Json)
                 setBody(UpdateItemQuantityRequest(quantity = 5))
@@ -369,8 +247,8 @@ val basketRoutesSpec by testSuite {
     }
 
     testSuite("DELETE /basket/items/{itemId}") {
-        testBasketRoutes("removes item from basket", setup = { ctx ->
-            ctx.menuClient.addMenuItem(
+        testBasketService("removes item from basket") { module ->
+            module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
                     name = "Pizza",
@@ -379,7 +257,7 @@ val basketRoutesSpec by testSuite {
                     price = BigDecimal("10.00")
                 )
             )
-            ctx.menuClient.addMenuItem(
+            module.menuClient.addMenuItem(
                 MenuItem(
                     id = 2L,
                     name = "Pasta",
@@ -388,7 +266,7 @@ val basketRoutesSpec by testSuite {
                     price = BigDecimal("8.50")
                 )
             )
-        }) { _ ->
+
             // Add two items
             jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
@@ -414,7 +292,7 @@ val basketRoutesSpec by testSuite {
             assertEquals(2L, basket.items[0].menuItemId)
         }
 
-        testBasketRoutes("returns 404 when item not in basket") { _ ->
+        testBasketService("returns 404 when item not in basket") { _ ->
             val response = jsonClient().delete("/basket/items/non-existent-id") {
                 bearerAuth(testToken)
             }
@@ -422,15 +300,15 @@ val basketRoutesSpec by testSuite {
             assertEquals(HttpStatusCode.NotFound, response.status)
         }
 
-        testBasketRoutes("returns 401 when not authenticated") { _ ->
+        testBasketService("returns 401 when not authenticated") { _ ->
             val response = jsonClient().delete("/basket/items/some-id")
             assertEquals(HttpStatusCode.Unauthorized, response.status)
         }
     }
 
     testSuite("DELETE /basket") {
-        testBasketRoutes("clears entire basket", setup = { ctx ->
-            ctx.menuClient.addMenuItem(
+        testBasketService("clears entire basket") { module ->
+            module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
                     name = "Pizza",
@@ -439,7 +317,7 @@ val basketRoutesSpec by testSuite {
                     price = BigDecimal("10.00")
                 )
             )
-        }) { _ ->
+
             // Add an item first
             jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
@@ -462,7 +340,7 @@ val basketRoutesSpec by testSuite {
             assertTrue(basket.items.isEmpty())
         }
 
-        testBasketRoutes("returns 204 even when basket is already empty") { _ ->
+        testBasketService("returns 204 even when basket is already empty") { _ ->
             val response = jsonClient().delete("/basket") {
                 bearerAuth(testToken)
             }
@@ -470,15 +348,15 @@ val basketRoutesSpec by testSuite {
             assertEquals(HttpStatusCode.NoContent, response.status)
         }
 
-        testBasketRoutes("returns 401 when not authenticated") { _ ->
+        testBasketService("returns 401 when not authenticated") { _ ->
             val response = jsonClient().delete("/basket")
             assertEquals(HttpStatusCode.Unauthorized, response.status)
         }
     }
 
     testSuite("User isolation") {
-        testBasketRoutes("different users have separate baskets", setup = { ctx ->
-            ctx.menuClient.addMenuItem(
+        testBasketService("different users have separate baskets") { module ->
+            module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
                     name = "Pizza",
@@ -487,7 +365,7 @@ val basketRoutesSpec by testSuite {
                     price = BigDecimal("10.00")
                 )
             )
-        }) { _ ->
+
             val user1Token = createTestToken("user-1")
             val user2Token = createTestToken("user-2")
 

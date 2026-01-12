@@ -56,7 +56,6 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:1.21.4")
     testImplementation("com.redis:testcontainers-redis:2.2.4")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
-    testImplementation("io.mockk:mockk:1.13.16")
 }
 
 tasks.withType<Test>().configureEach {
