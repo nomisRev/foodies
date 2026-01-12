@@ -1,10 +1,10 @@
 package io.ktor.foodies.server
 
 import com.sksamuel.cohort.Cohort
-import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.healthcheck.http.EndpointHealthCheck
 import com.sksamuel.cohort.threads.ThreadDeadlockHealthCheck
 import io.ktor.client.request.get
+import com.sksamuel.cohort.HealthCheckRegistry
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -25,6 +25,7 @@ import io.ktor.server.routing.routing
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 fun main() {
     val env = ApplicationConfig("application.yaml").property("config").getAs<Config>()

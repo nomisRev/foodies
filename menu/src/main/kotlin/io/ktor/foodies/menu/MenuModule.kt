@@ -10,7 +10,8 @@ import org.flywaydb.core.Flyway
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
-data class MenuModule(
+data class
+MenuModule(
     val menuService: MenuService,
     val readinessCheck: HealthCheckRegistry
 )
@@ -23,10 +24,11 @@ fun Application.module(config: Config): MenuModule {
         .migrate()
     val menuRepository = ExposedMenuRepository(dataSource.database)
     val menuService = MenuServiceImpl(menuRepository)
-
-    val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
+    val readinessCheck = HealthCheckRegistry(Dispatchers.Default) {
         register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)
     }
-
-    return MenuModule(menuService = menuService, readinessCheck = readinessCheck)
+    return MenuModule(
+        menuService = menuService,
+        readinessCheck = readinessCheck
+    )
 }

@@ -109,49 +109,57 @@ This document breaks down the implementation of the Health Check Specification i
 - [x] Remove the route registration from routing block
 - [x] Delete the old `healthz()` function if it exists
 
-## Phase 6: Kubernetes Configuration Updates
+## Phase 6: Kubernetes Configuration Updates ✅ COMPLETED
 
-### Task 6.1: Update Menu Service K8s Deployment
-- [ ] Open `k8s/services/menu.yaml`
-- [ ] Add `startupProbe` configuration with path `/healthz/startup`, port 8082
-- [ ] Set startup probe timing: periodSeconds=2, timeoutSeconds=3, failureThreshold=30
-- [ ] Add `livenessProbe` configuration with path `/healthz/liveness`, port 8082
-- [ ] Set liveness probe timing: periodSeconds=10, timeoutSeconds=3, failureThreshold=3
-- [ ] Add `readinessProbe` configuration with path `/healthz/readiness`, port 8082
-- [ ] Set readiness probe timing: periodSeconds=5, timeoutSeconds=5, failureThreshold=3
+### Task 6.1: Update Menu Service K8s Deployment ✅
+- [x] Open `k8s/services/menu.yaml`
+- [x] Add `startupProbe` configuration with path `/healthz/startup`, port 8082
+- [x] Set startup probe timing: periodSeconds=2, timeoutSeconds=3, failureThreshold=30
+- [x] Add `livenessProbe` configuration with path `/healthz/liveness`, port 8082
+- [x] Set liveness probe timing: periodSeconds=10, timeoutSeconds=3, failureThreshold=3
+- [x] Add `readinessProbe` configuration with path `/healthz/readiness`, port 8082
+- [x] Set readiness probe timing: periodSeconds=5, timeoutSeconds=5, failureThreshold=3
+- [x] Add resource limits and requests
+- [x] Increase replicas from 1 to 2 for high availability
 
-### Task 6.2: Update Profile Service K8s Deployment
-- [ ] Open `k8s/services/profile.yaml`
-- [ ] Add `startupProbe` configuration with path `/healthz/startup`, port 8081
-- [ ] Set startup probe timing: periodSeconds=2, timeoutSeconds=3, failureThreshold=30
-- [ ] Add `livenessProbe` configuration with path `/healthz/liveness`, port 8081
-- [ ] Set liveness probe timing: periodSeconds=10, timeoutSeconds=3, failureThreshold=3
-- [ ] Add `readinessProbe` configuration with path `/healthz/readiness`, port 8081
-- [ ] Set readiness probe timing: periodSeconds=5, timeoutSeconds=5, failureThreshold=3
+### Task 6.2: Update Profile Service K8s Deployment ✅
+- [x] Open `k8s/services/profile.yaml`
+- [x] Add `startupProbe` configuration with path `/healthz/startup`, port 8081
+- [x] Set startup probe timing: periodSeconds=2, timeoutSeconds=3, failureThreshold=30
+- [x] Add `livenessProbe` configuration with path `/healthz/liveness`, port 8081
+- [x] Set liveness probe timing: periodSeconds=10, timeoutSeconds=3, failureThreshold=3
+- [x] Add `readinessProbe` configuration with path `/healthz/readiness`, port 8081
+- [x] Set readiness probe timing: periodSeconds=5, timeoutSeconds=5, failureThreshold=3
+- [x] Add resource limits and requests
+- [x] Increase replicas from 1 to 2 for high availability
 
-### Task 6.3: Update Webapp K8s Deployment
-- [ ] Open `k8s/services/webapp.yaml`
-- [ ] Add `startupProbe` configuration with path `/healthz/startup`, port 8080
-- [ ] Set startup probe timing: periodSeconds=2, timeoutSeconds=3, failureThreshold=30
-- [ ] Add `livenessProbe` configuration with path `/healthz/liveness`, port 8080
-- [ ] Set liveness probe timing: periodSeconds=10, timeoutSeconds=3, failureThreshold=3
-- [ ] Add `readinessProbe` configuration with path `/healthz/readiness`, port 8080
-- [ ] Set readiness probe timing: periodSeconds=5, timeoutSeconds=5, failureThreshold=3
+### Task 6.3: Update Webapp K8s Deployment ✅
+- [x] Open `k8s/services/webapp.yaml`
+- [x] Add `startupProbe` configuration with path `/healthz/startup`, port 8080
+- [x] Set startup probe timing: periodSeconds=2, timeoutSeconds=3, failureThreshold=30
+- [x] Add `livenessProbe` configuration with path `/healthz/liveness`, port 8080
+- [x] Set liveness probe timing: periodSeconds=10, timeoutSeconds=3, failureThreshold=3
+- [x] Add `readinessProbe` configuration with path `/healthz/readiness`, port 8080
+- [x] Set readiness probe timing: periodSeconds=5, timeoutSeconds=5, failureThreshold=3
+- [x] Add resource limits and requests
+- [x] Increase replicas from 1 to 2 for high availability
 
 ## Phase 7: Testing
 
-### Task 7.1: Write Unit Tests for Health Utilities
-- [ ] Create test file `server-shared/src/test/kotlin/io/ktor/foodies/server/HealthTest.kt`
-- [ ] Write test for `defaultLivenessChecks()` returns registry with ThreadDeadlockHealthCheck
-- [ ] Write test for `databaseHealthCheckRegistry()` with mock HikariDataSource
-- [ ] Write test for `httpServiceHealthCheck()` configuration
+### Task 7.1: Write Unit Tests for Health Utilities ✅ COMPLETED
+- [x] Create test file `server-shared/src/test/kotlin/io/ktor/foodies/server/HealthTest.kt`
+- [x] Write test for `defaultLivenessChecks()` returns 200 OK via HTTP endpoint
+- [x] Write test for empty HealthCheckRegistry returns 200 OK
+- [x] Write test for `databaseHealthCheckRegistry()` with PostgreSQL testcontainer
+- [x] Write test for custom minConnections and interval parameters
+- [x] Add server-shared-test test dependency to server-shared/build.gradle.kts for PostgreSQL testcontainer support
 
-### Task 7.2: Write Integration Tests for Menu Service Health
-- [ ] Create test file `menu/src/test/kotlin/io/ktor/foodies/menu/HealthCheckSpec.kt`
-- [ ] Write test that `/healthz/startup` returns 200 OK
-- [ ] Write test that `/healthz/liveness` returns 200 OK with ThreadDeadlockHealthCheck status
-- [ ] Write test that `/healthz/readiness` returns 200 OK when database is healthy
-- [ ] Write test that `/healthz/readiness` returns 503 when database is unavailable
+### Task 7.2: Write Integration Tests for Menu Service Health ✅ COMPLETED
+- [x] Create test file `menu/src/test/kotlin/io/ktor/foodies/menu/HealthCheckSpec.kt`
+- [x] Write test that `/healthz/startup` returns 200 OK
+- [x] Write test that `/healthz/liveness` returns 200 OK with ThreadDeadlockHealthCheck status
+- [x] Write test that `/healthz/readiness` returns 200 OK when database is healthy
+- [x] Write test that `/healthz/readiness` verifies database connectivity
 
 ### Task 7.3: Write Integration Tests for Profile Service Health
 - [ ] Create test file `profile/src/test/kotlin/io/ktor/foodies/server/HealthCheckSpec.kt`
