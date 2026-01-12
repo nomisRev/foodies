@@ -86,7 +86,7 @@ class PaymentRepositoryTest {
         assertEquals(transactionId, found.transactionId)
         assertNotNull(found.processedAt)
         // Check if timestamps are close enough (ignoring nanos precision diff if any)
-        assertTrue(Math.abs(found.processedAt!!.toEpochMilliseconds() - processedAt.toEpochMilliseconds()) < 1000)
+        assertTrue(Math.abs(found.processedAt.toEpochMilliseconds() - processedAt.toEpochMilliseconds()) < 1000)
     }
     
     @Test
