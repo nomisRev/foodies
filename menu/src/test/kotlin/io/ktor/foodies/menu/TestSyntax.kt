@@ -3,13 +3,11 @@ package io.ktor.foodies.menu
 import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.foodies.server.DataSource
 import io.ktor.foodies.server.test.PostgreSQLContainer
 import io.ktor.foodies.server.test.dataSource
 import io.ktor.foodies.server.test.postgresContainer
 import io.ktor.foodies.server.test.testApplication
-import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.testing.ApplicationTestBuilder
 import org.flywaydb.core.Flyway
 
@@ -22,18 +20,19 @@ fun TestSuite.migratedMenuDataSource(): TestSuite.Fixture<DataSource> =
     }
 
 data class ServiceContext(
-    val postgreSQLContainer: TestSuite.Fixture<PostgreSQLContainer>,
+    val container: TestSuite.Fixture<PostgreSQLContainer>,
+    val dataSource: TestSuite.Fixture<DataSource>,
     val menuService: TestSuite.Fixture<MenuService>
 )
 
 fun TestSuite.serviceContext(): ServiceContext {
     val container = postgresContainer()
-    val ds = migratedMenuDataSource()
+    val ds = testFixture { container().dataSource()() }
     val service = testFixture<MenuService> {
         val repository = ExposedMenuRepository(ds().database)
         MenuServiceImpl(repository)
     }
-    return ServiceContext(container, service)
+    return ServiceContext(container, ds, service)
 }
 
 @TestRegistering
@@ -49,7 +48,7 @@ fun TestSuite.testMenuService(
                     Config(
                         host = "0.0.0.0",
                         port = 8080,
-                        dataSource = ctx.postgreSQLContainer().config()
+                        ctx.container().config(),
                     )
                 )
             )
