@@ -39,7 +39,8 @@
 - [x] Create `payment/src/main/kotlin/io/ktor/foodies/payment/Routes.kt` with admin routes
 
 ### Task 3.2: Unit Testing
-- [ ] Implement `PaymentServiceTest` to verify payment logic from specification
+- [x] Implement `PaymentServiceTest` to verify payment logic from specification
+- [ ] Implement `SimulatedGatewayTest` to verify gateway behavior from specification
 
 ### Task 3.3: Integration Testing
 - [ ] Implement `PaymentRepositoryTest` using Testcontainers
