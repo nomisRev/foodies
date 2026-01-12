@@ -14,4 +14,5 @@
 - [x] Implement `GET /healthz/ready` (Readiness check) as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
 - [x] Implement `StockConfirmedEvent` and `StockRejectedEvent` handlers as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
 - [x] Implement `OrderAwaitingValidationEvent` emission as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
-- [ ] Implement `PaymentSucceededEvent` handling as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [x] Implement `PaymentSucceededEvent` handling as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [ ] Implement payment details validation (CVV, expiry, card number length) in `OrderService`

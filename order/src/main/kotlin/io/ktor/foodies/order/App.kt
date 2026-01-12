@@ -5,6 +5,8 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 import io.ktor.foodies.order.client.HttpBasketClient
 import io.ktor.foodies.order.events.OrderEventConsumer
+import io.ktor.foodies.order.events.handlers.PaymentFailedEventHandler
+import io.ktor.foodies.order.events.handlers.PaymentSucceededEventHandler
 import io.ktor.foodies.order.events.handlers.StockConfirmedEventHandler
 import io.ktor.foodies.order.events.handlers.StockRejectedEventHandler
 import io.ktor.foodies.order.repository.ExposedOrderRepository
@@ -108,6 +110,8 @@ fun Application.app(config: Config, dataSource: DataSource) {
         config.rabbit.exchange,
         StockConfirmedEventHandler(orderService),
         StockRejectedEventHandler(orderService),
+        PaymentSucceededEventHandler(orderService),
+        PaymentFailedEventHandler(orderService),
         this
     ).start()
 
