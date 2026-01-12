@@ -63,10 +63,9 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
 
         // Verify success result
         assertTrue(result is PaymentResult.Success)
-        val success = result as PaymentResult.Success
-        assertNotNull(success.paymentId)
-        assertNotNull(success.transactionId)
-        assertNotNull(success.processedAt)
+        assertNotNull(result.paymentId)
+        assertNotNull(result.transactionId)
+        assertNotNull(result.processedAt)
 
         // Verify payment is stored in database
         val stored = module.paymentRepository.findByOrderId(request.orderId)
@@ -93,16 +92,14 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
         // First payment
         val firstResult = module.paymentService.processPayment(request)
         assertTrue(firstResult is PaymentResult.Success)
-        val firstSuccess = firstResult as PaymentResult.Success
 
         // Second payment with same order ID
         val secondResult = module.paymentService.processPayment(request)
         assertTrue(secondResult is PaymentResult.AlreadyProcessed)
-        val alreadyProcessed = secondResult as PaymentResult.AlreadyProcessed
 
         // Verify same payment is returned
-        assertEquals(firstSuccess.paymentId, alreadyProcessed.paymentRecord.id)
-        assertEquals(PaymentStatus.SUCCEEDED, alreadyProcessed.paymentRecord.status)
+        assertEquals(firstResult.paymentId, secondResult.paymentRecord.id)
+        assertEquals(PaymentStatus.SUCCEEDED, secondResult.paymentRecord.status)
     }
 
     testPaymentService("retrieve payment by order ID via HTTP endpoint") { module ->
@@ -268,12 +265,11 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
 
         val result = module.paymentService.processPayment(request)
         assertTrue(result is PaymentResult.Success)
-        val paymentId = (result as PaymentResult.Success).paymentId
 
         // Retrieve by payment ID
-        val retrieved = module.paymentService.getPaymentById(paymentId)
+        val retrieved = module.paymentService.getPaymentById(result.paymentId)
         assertNotNull(retrieved)
-        assertEquals(paymentId, retrieved.id)
+        assertEquals(result.paymentId, retrieved.id)
         assertEquals(request.orderId, retrieved.orderId)
         assertEquals(request.buyerId, retrieved.buyerId)
     }

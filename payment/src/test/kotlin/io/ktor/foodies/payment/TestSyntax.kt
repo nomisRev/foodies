@@ -6,6 +6,8 @@ import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import com.sksamuel.cohort.HealthCheckRegistry
+import io.ktor.foodies.payment.events.OrderStockConfirmedEventHandler
+import io.ktor.foodies.payment.events.RabbitMQEventConsumer
 import io.ktor.foodies.payment.events.RabbitMQEventPublisher
 import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway
 import io.ktor.foodies.server.test.PostgreSQLContainer
@@ -88,10 +90,13 @@ fun TestSuite.testPaymentService(
             publishExchange = "test.payment.events"
         )
         val eventPublisher = RabbitMQEventPublisher(rabbitConfig)
-
+        val consumer = RabbitMQEventConsumer(
+            rabbitConfig,
+            OrderStockConfirmedEventHandler(paymentService, eventPublisher)
+        )
         val module = PaymentModule(
             paymentService = paymentService,
-            eventConsumer = null as Any, // Not needed for contract tests
+            eventConsumer = consumer,
             eventPublisher = eventPublisher,
             readinessCheck = HealthCheckRegistry(Dispatchers.IO)
         )
