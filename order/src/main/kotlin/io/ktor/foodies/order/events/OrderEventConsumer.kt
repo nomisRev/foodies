@@ -1,14 +1,8 @@
 package io.ktor.foodies.order.events
 
 import com.rabbitmq.client.Channel
-import io.ktor.foodies.order.domain.PaymentFailedEvent
-import io.ktor.foodies.order.domain.PaymentSucceededEvent
-import io.ktor.foodies.order.domain.StockConfirmedEvent
-import io.ktor.foodies.order.domain.StockRejectedEvent
-import io.ktor.foodies.order.events.handlers.PaymentFailedEventHandler
-import io.ktor.foodies.order.events.handlers.PaymentSucceededEventHandler
-import io.ktor.foodies.order.events.handlers.StockConfirmedEventHandler
-import io.ktor.foodies.order.events.handlers.StockRejectedEventHandler
+import io.ktor.foodies.order.domain.*
+import io.ktor.foodies.order.events.handlers.*
 import io.ktor.foodies.rabbitmq.messages
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.launchIn
@@ -22,6 +16,7 @@ class OrderEventConsumer(
     private val stockRejectedHandler: StockRejectedEventHandler,
     private val paymentSucceededHandler: PaymentSucceededEventHandler,
     private val paymentFailedHandler: PaymentFailedEventHandler,
+    private val orderStatusChangedHandler: OrderStatusChangedEventHandler,
     private val scope: CoroutineScope
 ) {
     private val logger = LoggerFactory.getLogger(OrderEventConsumer::class.java)
@@ -31,6 +26,7 @@ class OrderEventConsumer(
         setupStockRejectedConsumer()
         setupPaymentSucceededConsumer()
         setupPaymentFailedConsumer()
+        setupOrderStatusChangedConsumer()
     }
 
     private fun setupStockConfirmedConsumer() {
@@ -107,6 +103,26 @@ class OrderEventConsumer(
                     message.ack()
                 }.onFailure { e ->
                     logger.error("Error processing PaymentFailedEvent", e)
+                    message.nack()
+                }
+            }
+            .launchIn(scope)
+    }
+
+    private fun setupOrderStatusChangedConsumer() {
+        val queueName = "order.notifications"
+        val routingKey = "order.status-changed"
+
+        channel.queueDeclare(queueName, true, false, false, null)
+        channel.queueBind(queueName, exchange, routingKey)
+
+        channel.messages<OrderStatusChangedEvent>(queueName)
+            .onEach { message ->
+                runCatching {
+                    orderStatusChangedHandler.handle(message.value)
+                    message.ack()
+                }.onFailure { e ->
+                    logger.error("Error processing OrderStatusChangedEvent", e)
                     message.nack()
                 }
             }
