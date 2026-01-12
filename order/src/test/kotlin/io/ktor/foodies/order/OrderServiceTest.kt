@@ -322,6 +322,64 @@ class OrderServiceTest {
     }
 
     @Test
+    fun `should throw error if cancelling paid order`() = kotlinx.coroutines.test.runTest {
+        val request = CreateOrderRequest(
+            street = "Street",
+            city = "City",
+            state = "State",
+            country = "Country",
+            zipCode = "12345",
+            paymentDetails = PaymentDetails(
+                cardType = CardType.Visa,
+                cardNumber = "1234567812345678",
+                cardHolderName = "John Doe",
+                cardSecurityNumber = "123",
+                expirationMonth = 12,
+                expirationYear = 2030
+            )
+        )
+
+        val order = orderService.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+
+        // Manually set status to Paid
+        val paidOrder = order.copy(status = OrderStatus.Paid)
+        fakeOrderRepository.update(paidOrder)
+
+        org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
+            orderService.cancelOrder(UUID.randomUUID(), order.id, "buyer-1", "Reason")
+        }
+    }
+
+    @Test
+    fun `should throw error if cancelling shipped order`() = kotlinx.coroutines.test.runTest {
+        val request = CreateOrderRequest(
+            street = "Street",
+            city = "City",
+            state = "State",
+            country = "Country",
+            zipCode = "12345",
+            paymentDetails = PaymentDetails(
+                cardType = CardType.Visa,
+                cardNumber = "1234567812345678",
+                cardHolderName = "John Doe",
+                cardSecurityNumber = "123",
+                expirationMonth = 12,
+                expirationYear = 2030
+            )
+        )
+
+        val order = orderService.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+
+        // Manually set status to Shipped
+        val shippedOrder = order.copy(status = OrderStatus.Shipped)
+        fakeOrderRepository.update(shippedOrder)
+
+        org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
+            orderService.cancelOrder(UUID.randomUUID(), order.id, "buyer-1", "Reason")
+        }
+    }
+
+    @Test
     fun `should transition to awaiting validation and publish events`() = kotlinx.coroutines.test.runTest {
         val request = CreateOrderRequest(
             street = "Street",
