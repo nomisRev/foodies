@@ -3,6 +3,8 @@ package io.ktor.foodies.server
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.foodies.server.basket.HttpBasketService
+import io.ktor.foodies.server.cart.cartRoutes
 import io.ktor.foodies.server.menu.HttpMenuService
 import io.ktor.foodies.server.menu.menuRoutes
 import io.ktor.serialization.kotlinx.json.json
@@ -34,11 +36,14 @@ fun main() {
 
 fun Application.app(config: Config, httpClient: HttpClient) {
     val menuService = HttpMenuService(config.menu.baseUrl, httpClient)
+    val basketService = HttpBasketService(config.basket.baseUrl, httpClient)
+
+    menuRoutes(menuService)
+    cartRoutes(basketService)
 
     routing {
         staticResources("/static", "static")
         home()
-        menuRoutes(menuService)
         healthz()
     }
 }
