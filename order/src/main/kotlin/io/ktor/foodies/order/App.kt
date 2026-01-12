@@ -5,16 +5,10 @@ import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 import io.ktor.foodies.order.client.HttpBasketClient
 import io.ktor.foodies.order.events.OrderEventConsumer
-import io.ktor.foodies.order.events.handlers.PaymentFailedEventHandler
-import io.ktor.foodies.order.events.handlers.PaymentSucceededEventHandler
-import io.ktor.foodies.order.events.handlers.StockConfirmedEventHandler
-import io.ktor.foodies.order.events.handlers.StockRejectedEventHandler
+import io.ktor.foodies.order.events.handlers.*
 import io.ktor.foodies.order.repository.ExposedIdempotencyRepository
 import io.ktor.foodies.order.repository.ExposedOrderRepository
-import io.ktor.foodies.order.service.DefaultOrderService
-import io.ktor.foodies.order.service.GracePeriodService
-import io.ktor.foodies.order.service.IdempotencyService
-import io.ktor.foodies.order.service.RabbitOrderEventPublisher
+import io.ktor.foodies.order.service.*
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.rabbitmq.RabbitConfig as ExtRabbitConfig
 import io.ktor.foodies.server.DataSource
@@ -109,6 +103,8 @@ fun Application.app(config: Config, dataSource: DataSource) {
     val gracePeriodService = GracePeriodService(config.order, orderService, this)
     orderService.setGracePeriodService(gracePeriodService)
 
+    val notificationService = LoggingNotificationService()
+
     OrderEventConsumer(
         rabbitChannel,
         config.rabbit.exchange,
@@ -116,6 +112,7 @@ fun Application.app(config: Config, dataSource: DataSource) {
         StockRejectedEventHandler(orderService),
         PaymentSucceededEventHandler(orderService),
         PaymentFailedEventHandler(orderService),
+        OrderStatusChangedEventHandler(orderRepository, notificationService),
         this
     ).start()
 
