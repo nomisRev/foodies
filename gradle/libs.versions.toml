@@ -11,6 +11,11 @@ testballoon = "0.7.1-K2.3.0"
 keycloak = "26.5.0"
 rabbitmq = "5.28.0"
 serialization="1.10.0-RC"
+shadow = "9.3.1"
+cohort = "2.8.2"
+lettuce = "6.5.5.RELEASE"
+redis-testcontainers = "2.2.4"
+kotlinx-coroutines = "1.10.2"
 
 [libraries]
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -30,9 +35,18 @@ rabbitmq = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitmq" }
 testcontainers-rabbitmq = { module = "org.testcontainers:rabbitmq", version.ref = "testcontainers" }
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
+cohort-ktor = { module = "com.sksamuel.cohort:cohort-ktor", version.ref = "cohort" }
+cohort-hikari = { module = "com.sksamuel.cohort:cohort-hikari", version.ref = "cohort" }
+cohort-rabbit = { module = "com.sksamuel.cohort:cohort-rabbit", version.ref = "cohort" }
+cohort-lettuce = { module = "com.sksamuel.cohort:cohort-lettuce", version.ref = "cohort" }
+lettuce = { module = "io.lettuce:lettuce-core", version.ref = "lettuce" }
+testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
+testcontainers-redis = { module = "com.redis:testcontainers-redis", version.ref = "redis-testcontainers" }
+kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinx-coroutines" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-assert = { id = "org.jetbrains.kotlin.plugin.power-assert", version.ref = "kotlin" }
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 testballoon = { id = "de.infix.testBalloon", version.ref = "testballoon" }
+shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }

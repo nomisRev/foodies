@@ -40,7 +40,7 @@ dependencies {
     implementation(ktorLibs.client.contentNegotiation)
 
     // Redis
-    implementation("io.lettuce:lettuce-core:6.5.5.RELEASE")
+    implementation(libs.lettuce)
 
     // Logging
     implementation(libs.logback)
@@ -48,18 +48,18 @@ dependencies {
     // Serialization
     implementation(libs.serialization.json)
 
-    implementation("com.sksamuel.cohort:cohort-rabbit:2.8.2")
-    api("com.sksamuel.cohort:cohort-ktor:2.8.2")
-    api("com.sksamuel.cohort:cohort-lettuce:2.8.2")
+    implementation(libs.cohort.rabbit)
+    api(libs.cohort.ktor)
+    api(libs.cohort.lettuce)
 
     // Testing
     testImplementation(project(":server-shared-test"))
     testImplementation(ktorLibs.server.testHost)
     testImplementation(ktorLibs.client.contentNegotiation)
     testImplementation(ktorLibs.serialization.kotlinx.json)
-    testImplementation("org.testcontainers:testcontainers:1.21.4")
-    testImplementation("com.redis:testcontainers-redis:2.2.4")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor:1.10.2")
+    testImplementation(libs.testcontainers.core)
+    testImplementation(libs.testcontainers.redis)
+    testImplementation(libs.kotlinx.coroutines.reactor)
 }
 
 tasks.withType<Test>().configureEach {

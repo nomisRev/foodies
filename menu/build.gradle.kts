@@ -40,8 +40,8 @@ dependencies {
     implementation(libs.exposed.datetime)
     implementation(libs.flyway.postgresql)
 
-    api("com.sksamuel.cohort:cohort-ktor:2.8.2")
-    api("com.sksamuel.cohort:cohort-hikari:2.8.2")
+    api(libs.cohort.ktor)
+    api(libs.cohort.hikari)
 
     testImplementation(project(":server-shared-test"))
     testImplementation(libs.testcontainers.postgresql)
