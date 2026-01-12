@@ -4,6 +4,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 import io.ktor.foodies.order.client.HttpBasketClient
+import io.ktor.foodies.order.events.OrderEventConsumer
+import io.ktor.foodies.order.events.handlers.StockConfirmedEventHandler
+import io.ktor.foodies.order.events.handlers.StockRejectedEventHandler
 import io.ktor.foodies.order.repository.ExposedOrderRepository
 import io.ktor.foodies.order.service.DefaultOrderService
 import io.ktor.foodies.order.service.RabbitOrderEventPublisher
@@ -96,14 +99,32 @@ fun Application.app(config: Config, dataSource: DataSource) {
     val orderRepository = ExposedOrderRepository(dataSource.database)
     val orderService = DefaultOrderService(orderRepository, basketClient, eventPublisher)
 
+    OrderEventConsumer(
+        rabbitChannel,
+        config.rabbit.exchange,
+        StockConfirmedEventHandler(orderService),
+        StockRejectedEventHandler(orderService),
+        this
+    ).start()
+
     routing {
-        healthz()
+        healthz(dataSource)
         orderRoutes(orderService)
         adminRoutes(orderService)
     }
 }
 
-fun Route.healthz() = get("/healthz") { call.respond(HttpStatusCode.OK) }
+fun Route.healthz(dataSource: DataSource) {
+    get("/healthz") { call.respond(HttpStatusCode.OK) }
+    get("/healthz/ready") {
+        val dbHealthy = runCatching {
+            dataSource.hikari.connection.use { it.isValid(5) }
+        }.getOrDefault(false)
+
+        val status = if (dbHealthy) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable
+        call.respond(status, mapOf("database" to if (dbHealthy) "UP" else "DOWN"))
+    }
+}
 
 private fun migrate(dataSource: DataSource) {
     Flyway.configure()

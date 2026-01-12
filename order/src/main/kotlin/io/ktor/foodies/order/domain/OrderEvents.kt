@@ -37,3 +37,24 @@ data class OrderStatusChangedEvent(
     val description: String?,
     val changedAt: Instant,
 )
+
+@Serializable
+data class StockConfirmedEvent(
+    val orderId: Long,
+    val confirmedAt: Instant,
+)
+
+@Serializable
+data class StockRejectedEvent(
+    val orderId: Long,
+    val rejectedItems: List<RejectedItem>,
+    val rejectedAt: Instant,
+)
+
+@Serializable
+data class RejectedItem(
+    val menuItemId: Long,
+    val menuItemName: String,
+    val requestedQuantity: Int,
+    val availableQuantity: Int,
+)
