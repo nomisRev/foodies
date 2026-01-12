@@ -1,0 +1,83 @@
+package io.ktor.foodies.order.domain
+
+import io.ktor.foodies.server.SerializableBigDecimal
+import kotlin.time.Instant
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class Order(
+    val id: Long,
+    val requestId: String,
+    val buyerId: String,                        // Keycloak user ID
+    val buyerEmail: String,                     // User email for notifications
+    val buyerName: String,                      // Display name
+    val status: OrderStatus,
+    val deliveryAddress: Address,
+    val items: List<OrderItem>,
+    val paymentMethod: PaymentMethod?,          // Set after payment verification
+    val totalPrice: SerializableBigDecimal,
+    val description: String?,                   // Status description (e.g., rejection reason)
+    val createdAt: Instant,
+    val updatedAt: Instant,
+)
+
+@Serializable
+data class CreateOrderRequest(
+    val street: String,
+    val city: String,
+    val state: String,
+    val country: String,
+    val zipCode: String,
+    val paymentDetails: PaymentDetails,
+)
+
+@Serializable
+data class PaymentDetails(
+    val cardType: CardType,
+    val cardNumber: String,
+    val cardHolderName: String,
+    val cardSecurityNumber: String,
+    val expirationMonth: Int,
+    val expirationYear: Int,
+)
+
+data class CreateOrder(
+    val requestId: String,
+    val buyerId: String,
+    val buyerEmail: String,
+    val buyerName: String,
+    val deliveryAddress: Address,
+    val items: List<CreateOrderItem>,
+    val totalPrice: SerializableBigDecimal,
+    val paymentDetails: PaymentDetails,
+)
+
+data class CreateOrderItem(
+    val menuItemId: Long,
+    val menuItemName: String,
+    val pictureUrl: String,
+    val unitPrice: SerializableBigDecimal,
+    val quantity: Int,
+)
+
+@Serializable
+data class OrderSummary(
+    val id: Long,
+    val status: OrderStatus,
+    val totalPrice: SerializableBigDecimal,
+    val itemCount: Int,
+    val createdAt: Instant,
+)
+
+@Serializable
+data class CancelOrderRequest(
+    val reason: String,
+)
+
+@Serializable
+data class PaginatedOrders(
+    val orders: List<OrderSummary>,
+    val total: Long,
+    val offset: Long,
+    val limit: Int,
+)
