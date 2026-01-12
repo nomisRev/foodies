@@ -2,7 +2,6 @@ package io.ktor.foodies.basket
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import com.sksamuel.cohort.HealthCheckRegistry.Companion.invoke
 import com.sksamuel.cohort.threads.ThreadDeadlockHealthCheck
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
@@ -21,8 +20,6 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -60,24 +57,5 @@ fun Application.app(module: BasketModule) {
             healthcheck("/healthz/readiness", module.readinessCheck)
         }
         basketRoutes(module.basketService)
-    }
-}
-
-private suspend fun Application.security(config: Config) {
-    val openIdConfig = HttpClient(CIO).use { it.discover(config.auth.issuer) }
-    install(Authentication) {
-        jwt {
-            verifier(openIdConfig.jwksProvider(), config.auth.issuer)
-            validate { credential ->
-// TODO: Setup proper audience in keycloak
-//                 Validate audience if configured
-//                if (config.auth.audience.isNotBlank()) {
-                if (!credential.payload.audience.contains(config.auth.audience)) {
-                    return@validate null
-                }
-//                }
-                credential.payload
-            }
-        }
     }
 }
