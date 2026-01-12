@@ -110,6 +110,7 @@ class OrderServiceTest {
         val createdEvents = mutableListOf<OrderCreatedEvent>()
         val cancelledEvents = mutableListOf<OrderCancelledEvent>()
         val statusChangedEvents = mutableListOf<OrderStatusChangedEvent>()
+        val awaitingValidationEvents = mutableListOf<OrderAwaitingValidationEvent>()
         override suspend fun publish(event: OrderCreatedEvent) {
             createdEvents.add(event)
         }
@@ -118,6 +119,9 @@ class OrderServiceTest {
         }
         override suspend fun publish(event: OrderStatusChangedEvent) {
             statusChangedEvents.add(event)
+        }
+        override suspend fun publish(event: OrderAwaitingValidationEvent) {
+            awaitingValidationEvents.add(event)
         }
     }
 
@@ -291,5 +295,39 @@ class OrderServiceTest {
         org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
             orderService.shipOrder(order.id)
         }
+    }
+
+    @Test
+    fun `should transition to awaiting validation and publish events`() = kotlinx.coroutines.test.runTest {
+        val request = CreateOrderRequest(
+            street = "Street",
+            city = "City",
+            state = "State",
+            country = "Country",
+            zipCode = "12345",
+            paymentDetails = PaymentDetails(
+                cardType = CardType.Visa,
+                cardNumber = "1234567812345678",
+                cardHolderName = "John Doe",
+                cardSecurityNumber = "123",
+                expirationMonth = 12,
+                expirationYear = 2025
+            )
+        )
+
+        val order = orderService.createOrder("req-1", "buyer-1", "buyer@test.com", "John", request, "token")
+
+        val updatedOrder = orderService.transitionToAwaitingValidation(order.id)
+
+        assertEquals(OrderStatus.AwaitingValidation, updatedOrder.status)
+        assertEquals(1, fakeEventPublisher.awaitingValidationEvents.size)
+        assertEquals(order.id, fakeEventPublisher.awaitingValidationEvents[0].orderId)
+        assertEquals(1, fakeEventPublisher.awaitingValidationEvents[0].items.size)
+        assertEquals(1L, fakeEventPublisher.awaitingValidationEvents[0].items[0].menuItemId)
+        assertEquals(2, fakeEventPublisher.awaitingValidationEvents[0].items[0].quantity)
+
+        val statusChangedEvent = fakeEventPublisher.statusChangedEvents.last()
+        assertEquals(OrderStatus.Submitted, statusChangedEvent.oldStatus)
+        assertEquals(OrderStatus.AwaitingValidation, statusChangedEvent.newStatus)
     }
 }

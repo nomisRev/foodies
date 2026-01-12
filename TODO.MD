@@ -13,4 +13,5 @@
 - [x] Implement `GET /admin/orders` (List all orders (admin view with filtering)) as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
 - [x] Implement `GET /healthz/ready` (Readiness check) as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
 - [x] Implement `StockConfirmedEvent` and `StockRejectedEvent` handlers as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
-- [ ] Implement `OrderAwaitingValidationEvent` emission as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [x] Implement `OrderAwaitingValidationEvent` emission as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [ ] Implement `PaymentSucceededEvent` handling as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)

@@ -11,6 +11,12 @@ data class Config(
     val database: DataSource.Config,
     val basket: BasketServiceConfig,
     val rabbit: RabbitConfig,
+    val order: OrderConfig,
+)
+
+@Serializable
+data class OrderConfig(
+    val gracePeriodSeconds: Int,
 )
 
 @Serializable
