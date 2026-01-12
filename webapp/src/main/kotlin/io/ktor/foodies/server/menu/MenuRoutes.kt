@@ -1,18 +1,26 @@
 package io.ktor.foodies.server.menu
 
 import io.ktor.foodies.server.MenuIntersectTrigger
+import io.ktor.foodies.server.UserSession
 import io.ktor.foodies.server.respondHtmxFragment
 import io.ktor.server.application.Application
 import io.ktor.server.htmx.hx
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import io.ktor.server.sessions.get
+import io.ktor.server.sessions.sessions
 import io.ktor.server.util.getOrFail
 import io.ktor.utils.io.ExperimentalKtorApi
 import java.math.RoundingMode
+import kotlinx.html.ButtonType
 import kotlinx.html.TagConsumer
+import kotlinx.html.a
 import kotlinx.html.article
+import kotlinx.html.button
 import kotlinx.html.div
+import kotlinx.html.form
 import kotlinx.html.h3
+import kotlinx.html.hiddenInput
 import kotlinx.html.id
 import kotlinx.html.img
 import kotlinx.html.p
@@ -27,18 +35,24 @@ fun Application.menuRoutes(menuService: MenuService) {
                 val offset = call.request.queryParameters.getOrFail<Int>("offset")
                 val limit = call.request.queryParameters.getOrFail<Int>("limit")
                 val items = menuService.menuItems(offset, limit)
-                call.respondHtmxFragment { buildMenuFragment(items, offset, limit) }
+                val isLoggedIn = call.sessions.get<UserSession>() != null
+                call.respondHtmxFragment { buildMenuFragment(items, offset, limit, isLoggedIn) }
             }
         }
     }
 }
 
-private fun TagConsumer<Appendable>.buildMenuFragment(items: List<MenuItem>, offset: Int, limit: Int) {
+private fun TagConsumer<Appendable>.buildMenuFragment(
+    items: List<MenuItem>,
+    offset: Int,
+    limit: Int,
+    isLoggedIn: Boolean
+) {
     val hasMore = items.size == limit
     val nextOffset = offset + items.size
     val statusMessage = if (hasMore) "" else "You reached the end of the menu."
 
-    items.forEach { menuCard(it) }
+    items.forEach { menuCard(it, isLoggedIn) }
 
     if (hasMore) {
         menuSentinel(nextOffset, limit)
@@ -49,7 +63,7 @@ private fun TagConsumer<Appendable>.buildMenuFragment(items: List<MenuItem>, off
     feedStatus(statusMessage)
 }
 
-private fun TagConsumer<Appendable>.menuCard(item: MenuItem) {
+private fun TagConsumer<Appendable>.menuCard(item: MenuItem, isLoggedIn: Boolean) {
     article(classes = "menu-card") {
         img(src = item.imageUrl, alt = item.name)
 
@@ -60,8 +74,26 @@ private fun TagConsumer<Appendable>.menuCard(item: MenuItem) {
             div(classes = "footer") {
                 val formattedPrice = item.price.setScale(2, RoundingMode.HALF_UP).toPlainString()
                 span(classes = "price") { +"$${formattedPrice}" }
-                span(classes = "tag") { +"Popular" }
+                addToCartButton(item.id, isLoggedIn)
             }
+        }
+    }
+}
+
+private fun TagConsumer<Appendable>.addToCartButton(menuItemId: Long, isLoggedIn: Boolean) {
+    if (isLoggedIn) {
+        form(classes = "add-to-cart-form") {
+            attributes["hx-post"] = "/cart/items"
+            attributes["hx-swap"] = "none"
+            hiddenInput(name = "menuItemId") { value = menuItemId.toString() }
+            hiddenInput(name = "quantity") { value = "1" }
+            button(type = ButtonType.submit, classes = "add-to-cart-btn") {
+                +"Add to Cart"
+            }
+        }
+    } else {
+        a(href = "/login", classes = "add-to-cart-btn login-required") {
+            +"Login to Order"
         }
     }
 }

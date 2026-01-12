@@ -7,3 +7,5 @@ config:
     clientSecret: "$AUTH_CLIENT_SECRET:foodies_client_secret"
   menu:
     baseUrl: "$MENU_BASE_URL:http://localhost:8082"
+  basket:
+    baseUrl: "$BASKET_BASE_URL:http://localhost:8083"
