@@ -10,6 +10,7 @@ data class Config(
     val auth: AuthConfig,
     val database: DataSource.Config,
     val basket: BasketServiceConfig,
+    val payment: PaymentServiceConfig,
     val rabbit: RabbitConfig,
     val order: OrderConfig,
 )
@@ -27,6 +28,11 @@ data class AuthConfig(
 
 @Serializable
 data class BasketServiceConfig(
+    val baseUrl: String,
+)
+
+@Serializable
+data class PaymentServiceConfig(
     val baseUrl: String,
 )
 
