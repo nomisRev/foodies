@@ -1,65 +1,71 @@
 package io.ktor.foodies.payment
 
-import io.ktor.foodies.payment.gateway.PaymentGateway
+import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway
-import kotlinx.coroutines.test.runTest
 import java.math.BigDecimal
-import kotlin.test.Test
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicLong
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.time.Instant
 
-class PaymentServiceTest {
+private class InMemoryPaymentRepository : PaymentRepository {
+    private val payments = ConcurrentHashMap<Long, PaymentRecord>()
+    private val nextId = AtomicLong(1)
 
-    private class InMemoryPaymentRepository : PaymentRepository {
-        private val payments = ConcurrentHashMap<Long, PaymentRecord>()
-        private val nextId = AtomicLong(1)
-
-        override fun create(payment: PaymentRecord): PaymentRecord {
-            val id = nextId.getAndIncrement()
-            val created = payment.copy(id = id)
-            payments[id] = created
-            return created
-        }
-
-        override fun findById(id: Long): PaymentRecord? = payments[id]
-
-        override fun findByOrderId(orderId: Long): PaymentRecord? =
-            payments.values.find { it.orderId == orderId }
-
-        override fun findByBuyerId(buyerId: String, limit: Int, offset: Int): List<PaymentRecord> =
-            payments.values.filter { it.buyerId == buyerId }
-                .drop(offset)
-                .take(limit)
-
-        override fun updateStatus(
-            paymentId: Long,
-            status: PaymentStatus,
-            transactionId: String?,
-            failureReason: String?,
-            processedAt: Instant?
-        ): Boolean {
-            val payment = payments[paymentId] ?: return false
-            payments[paymentId] = payment.copy(
-                status = status,
-                transactionId = transactionId ?: payment.transactionId,
-                failureReason = failureReason ?: payment.failureReason,
-                processedAt = processedAt ?: payment.processedAt
-            )
-            return true
-        }
+    override fun create(payment: PaymentRecord): PaymentRecord {
+        val id = nextId.getAndIncrement()
+        val created = payment.copy(id = id)
+        payments[id] = created
+        return created
     }
 
-    @Test
-    fun `successful payment publishes success event`() = runTest {
-        val repository = InMemoryPaymentRepository()
-        val gateway = SimulatedPaymentGateway(PaymentGatewayConfig(alwaysSucceed = true, processingDelayMs = 0))
-        val service = PaymentServiceImpl(repository, gateway)
+    override fun findById(id: Long): PaymentRecord? = payments[id]
 
-        val result = service.processPayment(
+    override fun findByOrderId(orderId: Long): PaymentRecord? =
+        payments.values.find { it.orderId == orderId }
+
+    override fun findByBuyerId(buyerId: String, limit: Int, offset: Int): List<PaymentRecord> =
+        payments.values.filter { it.buyerId == buyerId }
+            .drop(offset)
+            .take(limit)
+
+    override fun updateStatus(
+        paymentId: Long,
+        status: PaymentStatus,
+        transactionId: String?,
+        failureReason: String?,
+        processedAt: Instant?
+    ): Boolean {
+        val payment = payments[paymentId] ?: return false
+        payments[paymentId] = payment.copy(
+            status = status,
+            transactionId = transactionId ?: payment.transactionId,
+            failureReason = failureReason ?: payment.failureReason,
+            processedAt = processedAt ?: payment.processedAt
+        )
+        return true
+    }
+}
+
+private data class TestContext(
+    val repository: InMemoryPaymentRepository,
+    val service: PaymentService
+)
+
+private fun createTestContext(alwaysSucceed: Boolean = true): TestContext {
+    val repository = InMemoryPaymentRepository()
+    val gateway = SimulatedPaymentGateway(PaymentGatewayConfig(alwaysSucceed = alwaysSucceed, processingDelayMs = 0))
+    val service = PaymentServiceImpl(repository, gateway)
+    return TestContext(repository, service)
+}
+
+val paymentServiceSpec by testSuite {
+    test("successful payment publishes success event") {
+        val ctx = createTestContext(alwaysSucceed = true)
+
+        val result = ctx.service.processPayment(
             ProcessPaymentRequest(
                 eventId = "evt-123",
                 orderId = 1L,
@@ -78,16 +84,13 @@ class PaymentServiceTest {
         )
 
         assertTrue(result is PaymentResult.Success)
-        val payment = repository.findByOrderId(1L)
+        val payment = ctx.repository.findByOrderId(1L)
         assertNotNull(payment)
         assertEquals(PaymentStatus.SUCCEEDED, payment.status)
     }
 
-    @Test
-    fun `duplicate payment request returns already processed`() = runTest {
-        val repository = InMemoryPaymentRepository()
-        val gateway = SimulatedPaymentGateway(PaymentGatewayConfig(alwaysSucceed = true, processingDelayMs = 0))
-        val service = PaymentServiceImpl(repository, gateway)
+    test("duplicate payment request returns already processed") {
+        val ctx = createTestContext(alwaysSucceed = true)
 
         val request = ProcessPaymentRequest(
             eventId = "evt-123",
@@ -106,21 +109,18 @@ class PaymentServiceTest {
         )
 
         // First call succeeds
-        val first = service.processPayment(request)
+        val first = ctx.service.processPayment(request)
         assertTrue(first is PaymentResult.Success)
 
         // Second call returns already processed
-        val second = service.processPayment(request)
+        val second = ctx.service.processPayment(request)
         assertTrue(second is PaymentResult.AlreadyProcessed)
     }
 
-    @Test
-    fun `failed payment updates repository with failure`() = runTest {
-        val repository = InMemoryPaymentRepository()
-        val gateway = SimulatedPaymentGateway(PaymentGatewayConfig(alwaysSucceed = false, processingDelayMs = 0))
-        val service = PaymentServiceImpl(repository, gateway)
+    test("failed payment updates repository with failure") {
+        val ctx = createTestContext(alwaysSucceed = false)
 
-        val result = service.processPayment(
+        val result = ctx.service.processPayment(
             ProcessPaymentRequest(
                 eventId = "evt-123",
                 orderId = 1L,
@@ -140,8 +140,8 @@ class PaymentServiceTest {
 
         assertTrue(result is PaymentResult.Failed)
         assertEquals(PaymentFailureCode.CARD_DECLINED, result.code)
-        
-        val payment = repository.findByOrderId(1L)
+
+        val payment = ctx.repository.findByOrderId(1L)
         assertNotNull(payment)
         assertEquals(PaymentStatus.FAILED, payment.status)
         assertEquals("Card declined", payment.failureReason)
