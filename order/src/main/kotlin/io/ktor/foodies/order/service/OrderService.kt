@@ -1,7 +1,5 @@
 package io.ktor.foodies.order.service
 
-import io.ktor.foodies.order.OrderForbiddenException
-import io.ktor.foodies.order.OrderNotFoundException
 import io.ktor.foodies.order.client.BasketClient
 import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.order.repository.OrderRepository
@@ -34,14 +32,14 @@ interface OrderService {
         buyerId: String? = null
     ): PaginatedOrders
 
-    suspend fun getOrder(id: Long, buyerId: String): Order
+    suspend fun getOrder(id: Long, buyerId: String): GetOrderResult
     suspend fun cancelOrder(requestId: UUID, id: Long, buyerId: String, reason: String): Order
-    suspend fun transitionToAwaitingValidation(id: Long): Order
-    suspend fun shipOrder(requestId: UUID, id: Long): Order
-    suspend fun setStockConfirmed(id: Long): Order
-    suspend fun processStockRejection(id: Long, rejectedItems: List<RejectedItem>): Order
-    suspend fun setPaid(id: Long): Order
-    suspend fun cancelOrderDueToPaymentFailure(id: Long, reason: String): Order
+    suspend fun transitionToAwaitingValidation(id: Long): Order?
+    suspend fun shipOrder(requestId: UUID, id: Long): Order?
+    suspend fun setStockConfirmed(id: Long): Order?
+    suspend fun processStockRejection(id: Long, rejectedItems: List<RejectedItem>): Order?
+    suspend fun setPaid(id: Long): Order?
+    suspend fun cancelOrderDueToPaymentFailure(id: Long, reason: String): Order?
 }
 
 class DefaultOrderService(
@@ -121,16 +119,20 @@ class DefaultOrderService(
         buyerId: String?
     ): PaginatedOrders = orderRepository.findAll(offset, limit, status, buyerId)
 
-    override suspend fun getOrder(id: Long, buyerId: String): Order {
-        val order = orderRepository.findById(id) ?: throw OrderNotFoundException(id)
+    override suspend fun getOrder(id: Long, buyerId: String): GetOrderResult {
+        val order = orderRepository.findById(id) ?: return GetOrderResult.NotFound
         if (order.buyerId != buyerId) {
-            throw OrderForbiddenException(id)
+            return GetOrderResult.Forbidden
         }
-        return order
+        return GetOrderResult.Success(order)
     }
 
     override suspend fun cancelOrder(requestId: UUID, id: Long, buyerId: String, reason: String): Order = idempotencyService.executeIdempotent(requestId, "CancelOrder") {
-        val order = getOrder(id, buyerId)
+        val order = when (val result = getOrder(id, buyerId)) {
+            is GetOrderResult.Success -> result.order
+            is GetOrderResult.NotFound -> throw IllegalArgumentException("Order not found")
+            is GetOrderResult.Forbidden -> throw IllegalArgumentException("Access denied to order")
+        }
         if (order.status == OrderStatus.Cancelled) return@executeIdempotent order
 
         if (order.status !in listOf(OrderStatus.Submitted, OrderStatus.AwaitingValidation, OrderStatus.StockConfirmed)) {
@@ -175,8 +177,8 @@ class DefaultOrderService(
         updatedOrder
     }
 
-    override suspend fun transitionToAwaitingValidation(id: Long): Order {
-        val order = orderRepository.findById(id) ?: throw OrderNotFoundException(id)
+    override suspend fun transitionToAwaitingValidation(id: Long): Order? {
+        val order = orderRepository.findById(id) ?: return null
         if (order.status != OrderStatus.Submitted) {
             return order // Already transitioned or cancelled
         }
@@ -205,8 +207,8 @@ class DefaultOrderService(
         return updatedOrder
     }
 
-    override suspend fun shipOrder(requestId: UUID, id: Long): Order = idempotencyService.executeIdempotent(requestId, "ShipOrder") {
-        val order = orderRepository.findById(id) ?: throw OrderNotFoundException(id)
+    override suspend fun shipOrder(requestId: UUID, id: Long): Order? = idempotencyService.executeIdempotent(requestId, "ShipOrder") {
+        val order = orderRepository.findById(id) ?: return@executeIdempotent null
         if (order.status == OrderStatus.Shipped) return@executeIdempotent order
         if (order.status != OrderStatus.Paid) {
             throw IllegalArgumentException("Order must be Paid to be shipped. Current status: ${order.status}")
@@ -233,8 +235,8 @@ class DefaultOrderService(
         updatedOrder
     }
     
-    override suspend fun setStockConfirmed(id: Long): Order {
-        val order = orderRepository.findById(id) ?: throw OrderNotFoundException(id)
+    override suspend fun setStockConfirmed(id: Long): Order? {
+        val order = orderRepository.findById(id) ?: return null
         if (order.status != OrderStatus.AwaitingValidation) {
             throw IllegalArgumentException("Order must be AwaitingValidation to be stock confirmed. Current status: ${order.status}")
         }
@@ -255,8 +257,8 @@ class DefaultOrderService(
         return updatedOrder
     }
 
-    override suspend fun processStockRejection(id: Long, rejectedItems: List<RejectedItem>): Order {
-        val order = orderRepository.findById(id) ?: throw OrderNotFoundException(id)
+    override suspend fun processStockRejection(id: Long, rejectedItems: List<RejectedItem>): Order? {
+        val order = orderRepository.findById(id) ?: return null
         if (order.status != OrderStatus.AwaitingValidation) {
             throw IllegalArgumentException("Order must be AwaitingValidation to be processed for stock rejection. Current status: ${order.status}")
         }
@@ -329,8 +331,8 @@ class DefaultOrderService(
         }
     }
 
-    override suspend fun setPaid(id: Long): Order {
-        val order = orderRepository.findById(id) ?: throw OrderNotFoundException(id)
+    override suspend fun setPaid(id: Long): Order? {
+        val order = orderRepository.findById(id) ?: return null
         if (order.status != OrderStatus.StockConfirmed) {
             throw IllegalArgumentException("Order must be StockConfirmed to be paid. Current status: ${order.status}")
         }
@@ -351,8 +353,8 @@ class DefaultOrderService(
         return updatedOrder
     }
 
-    override suspend fun cancelOrderDueToPaymentFailure(id: Long, reason: String): Order {
-        val order = orderRepository.findById(id) ?: throw OrderNotFoundException(id)
+    override suspend fun cancelOrderDueToPaymentFailure(id: Long, reason: String): Order? {
+        val order = orderRepository.findById(id) ?: return null
         if (order.status != OrderStatus.StockConfirmed) {
             throw IllegalArgumentException("Order must be StockConfirmed to be cancelled due to payment failure. Current status: ${order.status}")
         }
