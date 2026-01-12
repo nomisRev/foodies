@@ -12,7 +12,7 @@ This specification is inspired by the [eShop PaymentProcessor](https://github.co
 
 | Property | Value |
 |----------|-------|
-| Port | 8084 |
+| Port | 8085 |
 | Module | `payment` |
 | Package | `io.ktor.foodies.payment` |
 | Data Store | PostgreSQL (payment records) |
@@ -800,7 +800,7 @@ payment/
 ```yaml
 config:
   host: "$HOST:0.0.0.0"
-  port: "$PORT:8084"
+  port: "$PORT:8085"
   data_source:
     url: "$DB_URL:jdbc:postgresql://localhost:5434/foodies-payment-database"
     username: "$DB_USERNAME:foodies_admin"
@@ -863,7 +863,7 @@ data class PaymentGatewayConfig(
 | Variable | Description | Default |
 |----------|-------------|---------|
 | HOST | Server bind host | 0.0.0.0 |
-| PORT | Server port | 8084 |
+| PORT | Server port | 8085 |
 | DB_URL | PostgreSQL connection URL | jdbc:postgresql://localhost:5434/foodies-payment-database |
 | DB_USERNAME | Database username | foodies_admin |
 | DB_PASSWORD | Database password | foodies_password |
@@ -1104,10 +1104,10 @@ spec:
       - name: payment
         image: foodies-payment:latest
         ports:
-        - containerPort: 8084
+        - containerPort: 8085
         env:
         - name: PORT
-          value: "8084"
+          value: "8085"
         - name: DB_URL
           value: "jdbc:postgresql://payment-database:5432/foodies-payment-database"
         - name: DB_USERNAME
@@ -1144,13 +1144,13 @@ spec:
         readinessProbe:
           httpGet:
             path: /healthz/ready
-            port: 8084
+            port: 8085
           initialDelaySeconds: 10
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /healthz
-            port: 8084
+            port: 8085
           initialDelaySeconds: 15
           periodSeconds: 20
 ---
@@ -1163,8 +1163,8 @@ spec:
   selector:
     app: payment
   ports:
-  - port: 8084
-    targetPort: 8084
+  - port: 8085
+    targetPort: 8085
 ```
 
 ## Dependencies
