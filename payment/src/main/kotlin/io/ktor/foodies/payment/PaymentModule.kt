@@ -23,7 +23,6 @@ class PaymentModule(
 fun Application.module(config: Config): PaymentModule {
     val dataSource = dataSource(config.dataSource)
 
-    // Run migrations
     Flyway.configure()
         .dataSource(dataSource.hikari)
         .load()
@@ -36,13 +35,11 @@ fun Application.module(config: Config): PaymentModule {
     val eventHandler = OrderStockConfirmedEventHandler(paymentService, eventPublisher)
     val eventConsumer = RabbitMQEventConsumer(config.rabbit, eventHandler)
 
-    // Register shutdown hooks
     monitor.subscribe(ApplicationStopped) {
         eventConsumer.close()
         eventPublisher.close()
     }
 
-    // Start consuming events
     eventConsumer.start()
 
     val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
