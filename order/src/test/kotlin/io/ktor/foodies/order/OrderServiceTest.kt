@@ -96,6 +96,15 @@ class OrderServiceTest {
                 paymentMethod = PaymentMethod(1, order.paymentDetails.cardType, order.paymentDetails.cardHolderName, order.paymentDetails.cardNumber.takeLast(4), order.paymentDetails.expirationMonth, order.paymentDetails.expirationYear),
                 totalPrice = order.totalPrice,
                 description = "Order submitted",
+                history = listOf(
+                    OrderHistoryEntry(
+                        id = 1L,
+                        orderId = (orders.size + 1).toLong(),
+                        status = OrderStatus.Submitted,
+                        description = "Order submitted",
+                        createdAt = Instant.fromEpochMilliseconds(0)
+                    )
+                ),
                 createdAt = Instant.fromEpochMilliseconds(0),
                 updatedAt = Instant.fromEpochMilliseconds(0)
             )

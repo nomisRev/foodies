@@ -1,5 +1,6 @@
 package io.ktor.foodies.order.repository
 
+import io.ktor.foodies.order.database.OrderHistory
 import io.ktor.foodies.order.database.OrderItems
 import io.ktor.foodies.order.database.Orders
 import io.ktor.foodies.order.database.PaymentMethods
@@ -17,24 +18,26 @@ class ExposedOrderRepository(private val database: Database) : OrderRepository {
     override fun findById(id: Long): Order? = transaction(database) {
         val orderRow = Orders.selectAll().where { Orders.id eq id }.singleOrNull() ?: return@transaction null
         val items = OrderItems.selectAll().where { OrderItems.orderId eq id }.map { it.toOrderItem() }
+        val history = OrderHistory.selectAll().where { OrderHistory.orderId eq id }.orderBy(OrderHistory.createdAt, SortOrder.ASC).map { it.toOrderHistoryEntry() }
         val paymentMethodId = orderRow[Orders.paymentMethodId]
         val paymentMethod = paymentMethodId?.let { pmId ->
             PaymentMethods.selectAll().where { PaymentMethods.id eq pmId }.map { it.toPaymentMethod() }.singleOrNull()
         }
 
-        orderRow.toOrder(items, paymentMethod)
+        orderRow.toOrder(items, paymentMethod, history)
     }
 
     override fun findByRequestId(requestId: String): Order? = transaction(database) {
         val orderRow = Orders.selectAll().where { Orders.requestId eq requestId }.singleOrNull() ?: return@transaction null
         val orderId = orderRow[Orders.id].value
         val items = OrderItems.selectAll().where { OrderItems.orderId eq orderId }.map { it.toOrderItem() }
+        val history = OrderHistory.selectAll().where { OrderHistory.orderId eq orderId }.orderBy(OrderHistory.createdAt, SortOrder.ASC).map { it.toOrderHistoryEntry() }
         val paymentMethodId = orderRow[Orders.paymentMethodId]
         val paymentMethod = paymentMethodId?.let { pmId ->
             PaymentMethods.selectAll().where { PaymentMethods.id eq pmId }.map { it.toPaymentMethod() }.singleOrNull()
         }
 
-        orderRow.toOrder(items, paymentMethod)
+        orderRow.toOrder(items, paymentMethod, history)
     }
 
     override fun findByBuyerId(
@@ -115,6 +118,12 @@ class ExposedOrderRepository(private val database: Database) : OrderRepository {
         }.single()
         val orderId = returning[Orders.id]
 
+        OrderHistory.insert {
+            it[OrderHistory.orderId] = orderId
+            it[status] = OrderStatus.Submitted
+            it[description] = "Order submitted"
+        }
+
         order.items.forEach { item ->
             OrderItems.insert {
                 it[OrderItems.orderId] = orderId
@@ -136,10 +145,15 @@ class ExposedOrderRepository(private val database: Database) : OrderRepository {
             it[description] = order.description
             it[updatedAt] = order.updatedAt
         }
+        OrderHistory.insert {
+            it[orderId] = order.id
+            it[status] = order.status
+            it[description] = order.description
+        }
         findById(order.id)!!
     }
 
-    private fun ResultRow.toOrder(items: List<OrderItem>, paymentMethod: PaymentMethod?) = Order(
+    private fun ResultRow.toOrder(items: List<OrderItem>, paymentMethod: PaymentMethod?, history: List<OrderHistoryEntry>) = Order(
         id = this[Orders.id].value,
         requestId = this[Orders.requestId],
         buyerId = this[Orders.buyerId],
@@ -157,8 +171,17 @@ class ExposedOrderRepository(private val database: Database) : OrderRepository {
         paymentMethod = paymentMethod,
         totalPrice = this[Orders.totalPrice],
         description = this[Orders.description],
+        history = history,
         createdAt = this[Orders.createdAt],
         updatedAt = this[Orders.updatedAt]
+    )
+
+    private fun ResultRow.toOrderHistoryEntry() = OrderHistoryEntry(
+        id = this[OrderHistory.id].value,
+        orderId = this[OrderHistory.orderId].value,
+        status = this[OrderHistory.status],
+        description = this[OrderHistory.description],
+        createdAt = this[OrderHistory.createdAt]
     )
 
     private fun ResultRow.toOrderItem() = OrderItem(
