@@ -73,6 +73,7 @@ class InMemoryOrderRepository : OrderRepository {
                 status = it.status,
                 totalPrice = it.totalPrice,
                 itemCount = it.items.sumOf { item -> item.quantity },
+                description = it.description,
                 createdAt = it.createdAt
             )
         }
@@ -94,6 +95,7 @@ class InMemoryOrderRepository : OrderRepository {
                 status = it.status,
                 totalPrice = it.totalPrice,
                 itemCount = it.items.sumOf { item -> item.quantity },
+                description = it.description,
                 createdAt = it.createdAt
             )
         }
@@ -117,7 +119,7 @@ class InMemoryOrderRepository : OrderRepository {
                     pictureUrl = item.pictureUrl,
                     unitPrice = item.unitPrice,
                     quantity = item.quantity,
-                    discount = java.math.BigDecimal.ZERO
+                    discount = 0.toBigDecimal()
                 )
             },
             paymentMethod = PaymentMethod(

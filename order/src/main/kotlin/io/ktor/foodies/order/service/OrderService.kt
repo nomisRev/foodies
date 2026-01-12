@@ -3,8 +3,8 @@ package io.ktor.foodies.order.service
 import io.ktor.foodies.order.client.BasketClient
 import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.order.repository.OrderRepository
+import io.ktor.foodies.server.SerializableBigDecimal
 import io.ktor.foodies.server.validate
-import java.math.BigDecimal
 import java.util.UUID
 import kotlin.time.Instant
 
@@ -39,7 +39,7 @@ interface OrderService {
     suspend fun setStockConfirmed(id: Long): Order?
     suspend fun processStockRejection(id: Long, rejectedItems: List<RejectedItem>): Order?
     suspend fun setPaid(id: Long): Order?
-    suspend fun cancelOrderDueToPaymentFailure(id: Long, reason: String): Order?
+    suspend fun cancelOrderDueToPaymentFailure(id: Long, reason: String, code: PaymentFailureCode): Order?
 }
 
 class DefaultOrderService(
@@ -394,7 +394,7 @@ class DefaultOrderService(
         return updatedOrder
     }
 
-    override suspend fun cancelOrderDueToPaymentFailure(id: Long, reason: String): Order? {
+    override suspend fun cancelOrderDueToPaymentFailure(id: Long, reason: String, code: PaymentFailureCode): Order? {
         val order = orderRepository.findById(id) ?: return null
         if (order.status != OrderStatus.StockConfirmed) {
             throw IllegalArgumentException("Order must be StockConfirmed to be cancelled due to payment failure. Current status: ${order.status}")
@@ -402,12 +402,13 @@ class DefaultOrderService(
 
         val oldStatus = order.status
         val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val updatedOrder = orderRepository.update(order.copy(status = OrderStatus.Cancelled, description = reason, updatedAt = now))
+        val fullReason = "Payment failed ($code): $reason"
+        val updatedOrder = orderRepository.update(order.copy(status = OrderStatus.Cancelled, description = fullReason, updatedAt = now))
 
         val cancelledEvent = OrderCancelledEvent(
             orderId = updatedOrder.id,
             buyerId = updatedOrder.buyerId,
-            reason = reason,
+            reason = fullReason,
             cancelledAt = now
         )
         eventPublisher.publish(cancelledEvent)
@@ -427,11 +428,10 @@ class DefaultOrderService(
             newStatus = OrderStatus.Cancelled,
             totalPrice = updatedOrder.totalPrice,
             currency = updatedOrder.currency,
-            description = reason,
+            description = fullReason,
             changedAt = now
         )
         eventPublisher.publish(statusChangedEvent)
-
         return updatedOrder
     }
 
@@ -452,15 +452,10 @@ class DefaultOrderService(
 
     private fun PaymentMethod.toPaymentMethodInfo(): PaymentMethodInfo {
         val type = PaymentMethodType.CREDIT_CARD // Default for now
-        val brand = when (this.cardType) {
-            CardType.Visa -> CardBrand.VISA
-            CardType.MasterCard -> CardBrand.MASTERCARD
-            CardType.Amex -> CardBrand.AMEX
-        }
         return PaymentMethodInfo(
             type = type,
             cardLastFour = this.cardNumber,
-            cardBrand = brand,
+            cardBrand = this.cardType,
             cardHolderName = this.cardHolderName,
             expirationMonth = this.expirationMonth,
             expirationYear = this.expirationYear

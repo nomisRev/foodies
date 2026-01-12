@@ -75,15 +75,6 @@ enum class PaymentMethodType {
 }
 
 @Serializable
-enum class CardBrand {
-    VISA,
-    MASTERCARD,
-    AMEX,
-    DISCOVER,
-    UNKNOWN
-}
-
-@Serializable
 data class PaymentMethodInfo(
     val type: PaymentMethodType,
     val cardLastFour: String?,
@@ -120,16 +111,33 @@ data class RejectedItem(
 )
 
 @Serializable
-data class PaymentSucceededEvent(
+data class OrderPaymentSucceededEvent(
+    val eventId: String,
     val orderId: Long,
-    val paymentId: String,
+    val paymentId: Long,
+    val transactionId: String,
     val amount: SerializableBigDecimal,
+    val currency: String,
     val processedAt: Instant,
 )
 
 @Serializable
-data class PaymentFailedEvent(
+enum class PaymentFailureCode {
+    INSUFFICIENT_FUNDS,
+    CARD_DECLINED,
+    CARD_EXPIRED,
+    INVALID_CARD,
+    FRAUD_SUSPECTED,
+    GATEWAY_ERROR,
+    TIMEOUT,
+    UNKNOWN
+}
+
+@Serializable
+data class OrderPaymentFailedEvent(
+    val eventId: String,
     val orderId: Long,
-    val reason: String,
-    val failedAt: Instant,
+    val failureReason: String,
+    val failureCode: PaymentFailureCode,
+    val occurredAt: Instant,
 )

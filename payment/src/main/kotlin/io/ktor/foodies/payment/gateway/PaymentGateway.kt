@@ -2,14 +2,14 @@ package io.ktor.foodies.payment.gateway
 
 import io.ktor.foodies.payment.PaymentFailureCode
 import io.ktor.foodies.payment.PaymentMethodInfo
-import java.math.BigDecimal
+import io.ktor.foodies.server.SerializableBigDecimal
 
 interface PaymentGateway {
     suspend fun charge(request: ChargeRequest): GatewayResult
 }
 
 data class ChargeRequest(
-    val amount: BigDecimal,
+    val amount: SerializableBigDecimal,
     val currency: String,
     val paymentMethod: PaymentMethodInfo,
     val orderId: Long,

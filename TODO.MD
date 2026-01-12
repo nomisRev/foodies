@@ -32,14 +32,14 @@ This document contains a list of isolated issues identified by comparing the ORD
 **Priority:** High
 **Spec Reference:** ORDER_SPEC.md lines 481-505
 
-### 5. Missing POST /orders Response Description Field
+### 5. [DONE] Missing POST /orders Response Description Field
 **File:** `order/src/main/kotlin/io/ktor/foodies/order/Routes.kt`
 **Issue:** The POST /orders endpoint should return the full order including `description` field per the spec.
 **Expected:** Ensure the response includes all Order fields including the optional `description`.
 **Priority:** Low
 **Spec Reference:** ORDER_SPEC.md lines 321-335
 
-### 6. Missing CancelOrderRequest Structure
+### 6. [DONE] Missing CancelOrderRequest Structure
 **File:** `order/src/main/kotlin/io/ktor/foodies/order/domain/*`
 **Issue:** The PUT /orders/{orderId}/cancel endpoint expects an optional request body per the spec, but implementation uses `CancelOrderRequest` with a `reason` field.
 **Expected:** Spec shows no request body, but implementation requires one. Clarify if reason should be optional or in query param.
@@ -62,7 +62,7 @@ This document contains a list of isolated issues identified by comparing the ORD
 **Priority:** High
 **Spec Reference:** PAYMENT_SPEC.md lines 176-198
 
-### 9. Event Field Name Mismatch: paymentId vs transactionId
+### 9. [DONE] Event Field Name Mismatch: paymentId vs transactionId
 **File:** `payment/src/main/kotlin/io/ktor/foodies/payment/events/Events.kt`
 **Issue:** `OrderPaymentSucceededEvent` has `paymentId` (Long) but Order service expects `paymentId` as String based on `PaymentSucceededEvent.paymentId`.
 **Expected:** Align the type - spec shows `paymentId: Long` and `transactionId: String` separately.
@@ -90,7 +90,7 @@ This document contains a list of isolated issues identified by comparing the ORD
 **Priority:** High
 **Spec Reference:** PAYMENT_SPEC.md line 197
 
-### 13. Missing GET /payments/{orderId} Admin Endpoint
+### 13. [DONE] Missing GET /payments/{orderId} Admin Endpoint
 **File:** `payment/src/main/kotlin/io/ktor/foodies/payment/Routes.kt`
 **Issue:** Spec defines GET /payments/{orderId} admin endpoint, but current implementation status is unclear.
 **Expected:** Implement admin-only endpoint to retrieve payment details by order ID.
@@ -99,14 +99,14 @@ This document contains a list of isolated issues identified by comparing the ORD
 
 ## Data Model Issues
 
-### 14. CardType vs CardBrand Naming Inconsistency
+### 14. [DONE] CardType vs CardBrand Naming Inconsistency
 **File:** `order/src/main/kotlin/io/ktor/foodies/order/domain/CardType.kt` vs `payment/src/main/kotlin/io/ktor/foodies/payment/Domain.kt`
 **Issue:** Order service uses `CardType` enum, Payment service uses `CardBrand` enum. Both represent the same concept.
 **Expected:** Use consistent naming across services, preferably `CardBrand` as per PAYMENT_SPEC.
 **Priority:** Low
 **Spec Reference:** ORDER_SPEC.md lines 163-168, PAYMENT_SPEC.md lines 149-171
 
-### 15. SerializableBigDecimal vs BigDecimal Usage
+### 15. [DONE] SerializableBigDecimal vs BigDecimal Usage
 **File:** Multiple files
 **Issue:** Inconsistent usage of `SerializableBigDecimal` in events/domain vs `BigDecimal` in internal logic.
 **Expected:** Ensure proper conversion between types and consistent serialization.
@@ -163,7 +163,7 @@ This document contains a list of isolated issues identified by comparing the ORD
   5. Verifies Order status updates to Paid
 **Priority:** Medium
 
-### 22. Missing Test for Payment Failure Stock Return
+### 22. [DONE] Missing Test for Payment Failure Stock Return
 **Issue:** When payment fails, stock should be returned (StockReturnedEvent), but this flow is not visible in tests.
 **Expected:** Test that payment failure triggers stock return event.
 **Priority:** Medium
@@ -172,7 +172,7 @@ This document contains a list of isolated issues identified by comparing the ORD
 ## Summary
 
 **High Priority Issues:** 0
-**Medium Priority Issues:** 3
-**Low Priority Issues:** 6
+**Medium Priority Issues:** 1
+**Low Priority Issues:** 1
 
 **Critical Path:** All high priority security issues have been resolved. The payment flow is now functional as Order service correctly publishes `OrderStockConfirmedEvent`. Port conflicts between Order and Payment services have been resolved by moving Payment to 8085 and ensuring Order uses 8084.
