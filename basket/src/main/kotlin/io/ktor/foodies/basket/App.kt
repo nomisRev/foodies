@@ -63,8 +63,6 @@ fun Application.app(module: BasketModule) {
     }
 }
 
-fun Route.healthz() = get("/healthz") { call.respond(HttpStatusCode.OK) }
-
 private suspend fun Application.security(config: Config) {
     val openIdConfig = HttpClient(CIO).use { it.discover(config.auth.issuer) }
     install(Authentication) {

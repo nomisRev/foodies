@@ -33,8 +33,8 @@ dependencies {
     implementation(libs.exposed.jdbc)
     implementation(libs.flyway.postgresql)
 
+    testImplementation(project(":server-shared-test"))
     testImplementation(ktorLibs.server.testHost)
-    testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testballoon)
 }
 

@@ -27,13 +27,6 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
     val testUserId = "user-123"
     val testToken = createTestToken(testUserId)
 
-    testSuite("GET /healthz") {
-        testBasketService("returns 200 OK") { _ ->
-            val response = jsonClient().get("/healthz")
-            assertEquals(HttpStatusCode.OK, response.status)
-        }
-    }
-
     testSuite("GET /basket") {
         testBasketService("returns empty basket for new user") { _ ->
             val response = jsonClient().get("/basket") {

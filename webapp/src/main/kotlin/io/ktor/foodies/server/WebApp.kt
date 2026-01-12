@@ -64,5 +64,3 @@ fun Application.app(config: Config, httpClient: HttpClient) {
         home()
     }
 }
-
-fun Route.healthz() = get("/healthz") { call.respond(HttpStatusCode.OK) }

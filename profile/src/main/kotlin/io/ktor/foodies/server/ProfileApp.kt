@@ -24,9 +24,12 @@ fun main() {
 fun Application.app(module: ProfileModule) {
     module.consumers.forEach { it.process().launchIn(this) }
 
-    routing {
-        healthz()
+    install(Cohort) {
+        verboseHealthCheckResponse = true
+        healthcheck("/healthz/startup", HealthCheckRegistry(Dispatchers.Default))
+        healthcheck("/healthz/liveness", HealthCheckRegistry(Dispatchers.Default) {
+            register(ThreadDeadlockHealthCheck(), Duration.ZERO, 1.minutes)
+        })
+        healthcheck("/healthz/readiness", module.readinessCheck)
     }
 }
-
-fun Route.healthz() = get("/healthz") { call.respond(HttpStatusCode.OK) }
