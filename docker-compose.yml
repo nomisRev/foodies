@@ -30,6 +30,14 @@ services:
       - "5672:5672"
       - "15672:15672"
 
+  redis:
+    image: redis:7-alpine
+    container_name: foodies-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
   keycloak:
     image: quay.io/keycloak/keycloak:26.5.0
     environment:
@@ -58,3 +66,4 @@ services:
 volumes:
   postgres_data:
   postgres_menu_data:
+  redis_data:
