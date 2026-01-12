@@ -27,7 +27,7 @@ val orderServiceSpec by testSuite {
             country = "Country",
             zipCode = "12345",
             paymentDetails = PaymentDetails(
-                cardType = CardType.Visa,
+                cardType = CardBrand.VISA,
                 cardNumber = "1234567812345678",
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
@@ -61,7 +61,7 @@ val orderServiceSpec by testSuite {
             country = "Country",
             zipCode = "12345",
             paymentDetails = PaymentDetails(
-                cardType = CardType.Visa,
+                cardType = CardBrand.VISA,
                 cardNumber = "1234567812345678",
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
@@ -95,7 +95,7 @@ val orderServiceSpec by testSuite {
             country = "Country",
             zipCode = "12345",
             paymentDetails = PaymentDetails(
-                cardType = CardType.Visa,
+                cardType = CardBrand.VISA,
                 cardNumber = "1234567812345678",
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
@@ -129,7 +129,7 @@ val orderServiceSpec by testSuite {
             country = "Country",
             zipCode = "12345",
             paymentDetails = PaymentDetails(
-                cardType = CardType.Visa,
+                cardType = CardBrand.VISA,
                 cardNumber = "1234567812345678",
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
@@ -169,7 +169,7 @@ val orderServiceSpec by testSuite {
             country = "Country",
             zipCode = "12345",
             paymentDetails = PaymentDetails(
-                cardType = CardType.Visa,
+                cardType = CardBrand.VISA,
                 cardNumber = "1234567812345678",
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
@@ -209,7 +209,7 @@ val orderServiceSpec by testSuite {
             country = "Country",
             zipCode = "12345",
             paymentDetails = PaymentDetails(
-                cardType = CardType.Visa,
+                cardType = CardBrand.VISA,
                 cardNumber = "1234567812345678",
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
@@ -241,7 +241,7 @@ val orderServiceSpec by testSuite {
             country = "Country",
             zipCode = "12345",
             paymentDetails = PaymentDetails(
-                cardType = CardType.Visa,
+                cardType = CardBrand.VISA,
                 cardNumber = "1234567812345678",
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
@@ -277,7 +277,7 @@ val orderServiceSpec by testSuite {
             country = "Country",
             zipCode = "12345",
             paymentDetails = PaymentDetails(
-                cardType = CardType.Visa,
+                cardType = CardBrand.VISA,
                 cardNumber = "1234567812345678",
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
@@ -313,7 +313,7 @@ val orderServiceSpec by testSuite {
             country = "Country",
             zipCode = "12345",
             paymentDetails = PaymentDetails(
-                cardType = CardType.Visa,
+                cardType = CardBrand.VISA,
                 cardNumber = "1234567812345678",
                 cardHolderName = "John Doe",
                 cardSecurityNumber = "123",
@@ -337,5 +337,49 @@ val orderServiceSpec by testSuite {
         val statusChangedEvent = ctx.eventPublisher.statusChangedEvents.last()
         assertEquals(OrderStatus.Submitted, statusChangedEvent.oldStatus)
         assertEquals(OrderStatus.AwaitingValidation, statusChangedEvent.newStatus)
+    }
+
+    test("should cancel order due to payment failure and publish events") {
+        val ctx = createTestContext()
+        ctx.basketClient.basket = CustomerBasket(
+            buyerId = "buyer-1",
+            items = listOf(
+                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+            )
+        )
+
+        val request = CreateOrderRequest(
+            street = "Street",
+            city = "City",
+            state = "State",
+            country = "Country",
+            zipCode = "12345",
+            paymentDetails = PaymentDetails(
+                cardType = CardBrand.VISA,
+                cardNumber = "1234567812345678",
+                cardHolderName = "John Doe",
+                cardSecurityNumber = "123",
+                expirationMonth = 12,
+                expirationYear = 2030
+            )
+        )
+
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+
+        // Move to StockConfirmed
+        val stockConfirmedOrder = order.copy(status = OrderStatus.StockConfirmed)
+        ctx.orderRepository.update(stockConfirmedOrder)
+
+        val cancelledOrder = ctx.service.cancelOrderDueToPaymentFailure(order.id, "Insufficient funds", PaymentFailureCode.INSUFFICIENT_FUNDS)
+
+        assertNotNull(cancelledOrder)
+        assertEquals(OrderStatus.Cancelled, cancelledOrder.status)
+        assertEquals("Payment failed (INSUFFICIENT_FUNDS): Insufficient funds", cancelledOrder.description)
+
+        assertEquals(1, ctx.eventPublisher.cancelledEvents.size)
+        assertEquals("Payment failed (INSUFFICIENT_FUNDS): Insufficient funds", ctx.eventPublisher.cancelledEvents[0].reason)
+
+        assertEquals(1, ctx.eventPublisher.stockReturnedEvents.size)
+        assertEquals(order.id, ctx.eventPublisher.stockReturnedEvents[0].orderId)
     }
 }

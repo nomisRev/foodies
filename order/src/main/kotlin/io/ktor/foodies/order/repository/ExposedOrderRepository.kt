@@ -5,6 +5,8 @@ import io.ktor.foodies.order.database.OrderItems
 import io.ktor.foodies.order.database.Orders
 import io.ktor.foodies.order.database.PaymentMethods
 import io.ktor.foodies.order.domain.*
+import io.ktor.foodies.server.SerializableBigDecimal
+import java.math.BigDecimal
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
@@ -77,6 +79,7 @@ class ExposedOrderRepository(private val database: Database) : OrderRepository {
                     status = row[Orders.status],
                     totalPrice = row[Orders.totalPrice],
                     itemCount = itemCount,
+                    description = row[Orders.description],
                     createdAt = row[Orders.createdAt]
                 )
             }
@@ -134,7 +137,7 @@ class ExposedOrderRepository(private val database: Database) : OrderRepository {
                 it[pictureUrl] = item.pictureUrl
                 it[unitPrice] = item.unitPrice
                 it[quantity] = item.quantity
-                it[discount] = java.math.BigDecimal.ZERO
+                it[discount] = BigDecimal.ZERO
             }
         }
 

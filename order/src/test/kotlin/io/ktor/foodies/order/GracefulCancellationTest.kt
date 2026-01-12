@@ -24,7 +24,7 @@ val gracefulCancellationSpec by testSuite {
                 ),
                 totalPrice = BigDecimal("20.00"),
                 currency = "USD",
-                paymentDetails = PaymentDetails(CardType.Visa, "1234567812345678", "John", "123", 12, 2030)
+                paymentDetails = PaymentDetails(CardBrand.VISA, "1234567812345678", "John", "123", 12, 2030)
             )
         )
 

@@ -45,7 +45,7 @@ data class CreateOrderRequest(
 
 @Serializable
 data class PaymentDetails(
-    val cardType: CardType,
+    val cardType: CardBrand,
     val cardNumber: String,
     val cardHolderName: String,
     val cardSecurityNumber: String,
@@ -93,6 +93,7 @@ data class OrderSummary(
     val status: OrderStatus,
     val totalPrice: SerializableBigDecimal,
     val itemCount: Int,
+    val description: String?,
     val createdAt: Instant,
 )
 

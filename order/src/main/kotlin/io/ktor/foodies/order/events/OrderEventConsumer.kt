@@ -76,13 +76,13 @@ class OrderEventConsumer(
         channel.queueDeclare(queueName, true, false, false, null)
         channel.queueBind(queueName, exchange, routingKey)
 
-        channel.messages<PaymentSucceededEvent>(queueName)
+        channel.messages<OrderPaymentSucceededEvent>(queueName)
             .onEach { message ->
                 runCatching {
                     paymentSucceededHandler.handle(message.value)
                     message.ack()
                 }.onFailure { e ->
-                    logger.error("Error processing PaymentSucceededEvent", e)
+                    logger.error("Error processing OrderPaymentSucceededEvent", e)
                     message.nack()
                 }
             }
@@ -96,13 +96,13 @@ class OrderEventConsumer(
         channel.queueDeclare(queueName, true, false, false, null)
         channel.queueBind(queueName, exchange, routingKey)
 
-        channel.messages<PaymentFailedEvent>(queueName)
+        channel.messages<OrderPaymentFailedEvent>(queueName)
             .onEach { message ->
                 runCatching {
                     paymentFailedHandler.handle(message.value)
                     message.ack()
                 }.onFailure { e ->
-                    logger.error("Error processing PaymentFailedEvent", e)
+                    logger.error("Error processing OrderPaymentFailedEvent", e)
                     message.nack()
                 }
             }

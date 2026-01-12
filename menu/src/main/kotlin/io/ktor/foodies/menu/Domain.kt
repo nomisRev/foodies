@@ -50,7 +50,7 @@ data class CreateMenuItem(
     val name: String,
     val description: String,
     val imageUrl: String,
-    val price: BigDecimal,
+    val price: SerializableBigDecimal,
     val stock: Int,
 )
 
@@ -58,7 +58,7 @@ data class UpdateMenuItem(
     val name: String? = null,
     val description: String? = null,
     val imageUrl: String? = null,
-    val price: BigDecimal? = null,
+    val price: SerializableBigDecimal? = null,
     val stock: Int? = null,
 )
 

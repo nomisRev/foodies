@@ -1,8 +1,8 @@
 package io.ktor.foodies.order
 
 import io.ktor.foodies.order.domain.CancelOrderRequest
-import io.ktor.foodies.order.domain.CardType
-import io.ktor.foodies.order.domain.CardTypeResponse
+import io.ktor.foodies.order.domain.CardBrand
+import io.ktor.foodies.order.domain.CardBrandResponse
 import io.ktor.foodies.order.domain.CreateOrderRequest
 import io.ktor.foodies.order.domain.OrderStatus
 import io.ktor.foodies.order.service.OrderService
@@ -45,7 +45,7 @@ fun Route.orderRoutes(orderService: OrderService) = authenticate {
         }
 
         get("/card-types") {
-            val cardTypes = CardType.entries.map { CardTypeResponse(it.name, it.displayName) }
+            val cardTypes = CardBrand.entries.map { CardBrandResponse(it.name, it.displayName) }
             call.respond(cardTypes)
         }
 
@@ -84,7 +84,9 @@ fun Route.orderRoutes(orderService: OrderService) = authenticate {
             val principal = call.principal<JWTPrincipal>()!!
             val buyerId = principal.buyerId()
             val id: Long by call.parameters
-            val reason = call.receive<CancelOrderRequest>().reason
+            
+            val body = runCatching { call.receive<CancelOrderRequest>() }.getOrNull()
+            val reason = body?.reason ?: "Cancelled by user"
 
             val order = orderService.cancelOrder(requestId, id, buyerId, reason)
             call.respond(order)

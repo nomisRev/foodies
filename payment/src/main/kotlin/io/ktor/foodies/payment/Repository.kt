@@ -8,7 +8,7 @@ import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-import java.math.BigDecimal
+import io.ktor.foodies.server.SerializableBigDecimal
 
 interface PaymentRepository {
     fun create(payment: PaymentRecord): PaymentRecord
