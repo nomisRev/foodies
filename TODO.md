@@ -43,7 +43,7 @@
 - [x] Implement `SimulatedGatewayTest` to verify gateway behavior from specification
 
 ### Task 3.3: Integration Testing
-- [ ] Implement `PaymentRepositoryTest` using Testcontainers
+- [x] Implement `PaymentRepositoryTest` using Testcontainers
 - [ ] Implement `OrderStockConfirmedHandlerTest`
 
 ## Phase 4: Observability
@@ -51,3 +51,8 @@
 ### Task 4.1: Monitoring and Metrics
 - [ ] Implement Prometheus metrics for payment processing
 - [ ] Implement structured logging for payment lifecycle
+
+## Phase 5: Infrastructure and Deployment
+
+### Task 5.1: Kubernetes Configuration
+- [ ] Create Kubernetes manifests for Payment Service and Database
