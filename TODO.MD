@@ -18,4 +18,5 @@
 - [x] Implement payment details validation (CVV, expiry, card number length) in `OrderService`
 - [x] Implement full idempotency pattern using `processed_requests` table as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
 - [x] Implement Order History audit trail for all order state changes as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
-- [ ] Implement Order Notifications (Email/push) on status changes as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [x] Implement Order Notifications (Email/push) on status changes as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [ ] Restrict order cancellation to Submitted, AwaitingValidation, or StockConfirmed states as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
