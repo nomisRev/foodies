@@ -24,6 +24,12 @@
 - [x] Implement idempotency logic and gateway integration
 
 ### Task 2.2: Implement Events & RabbitMQ Integration
-- [ ] Create `payment/src/main/kotlin/io/ktor/foodies/payment/events/Events.kt` with event definitions
+- [x] Create `payment/src/main/kotlin/io/ktor/foodies/payment/events/Events.kt` with event definitions
 - [ ] Implement `EventPublisher` and `RabbitMQEventPublisher`
 - [ ] Implement `OrderStockConfirmedEventHandler`
+- [ ] Implement `RabbitMQEventConsumer`
+
+## Phase 3: API and Application Wiring
+
+### Task 3.1: Implement API and DI
+- [ ] Create `payment/src/main/kotlin/io/ktor/foodies/payment/Routes.kt` with health and admin routes
