@@ -3,10 +3,10 @@ package io.ktor.foodies.basket
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.redis.testcontainers.RedisContainer
+import com.sksamuel.cohort.HealthCheckRegistry
 import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
-import io.ktor.foodies.rabbitmq.Consumer
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
@@ -15,6 +15,7 @@ import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.coroutines
+import kotlinx.coroutines.Dispatchers
 import java.util.Date
 
 private const val TEST_SECRET = "test-jwt-secret-for-end-to-end-testing"
@@ -64,7 +65,11 @@ fun TestSuite.testBasketService(
             val menuClient = InMemoryMenuClient()
             val repository = RedisBasketRepository(connection.coroutines())
             val service = BasketServiceImpl(repository, menuClient)
-            val module = BasketModule(basketService = service, consumers = emptyList())
+            val module = BasketModule(
+                basketService = service,
+                consumers = emptyList(),
+                readinessCheck = HealthCheckRegistry(Dispatchers.IO)
+            )
 
             application {
                 install(Authentication) {
