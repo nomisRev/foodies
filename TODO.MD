@@ -115,11 +115,12 @@ This document contains a list of isolated issues identified by comparing the ORD
 
 ## Configuration Issues
 
-### 16. Missing Payment Service URL in Order Config
+### 16. [DONE] Missing Payment Service URL in Order Config
 **File:** `order/src/main/kotlin/io/ktor/foodies/order/Config.kt`
 **Issue:** Order service may need to know Payment service URL for direct HTTP calls (if any) or for health check dependencies.
 **Expected:** Consider if any direct HTTP communication is needed between services (currently only event-driven).
 **Priority:** Low
+**Status:** Added Payment service URL to Order Config and implemented health check dependency in `/healthz/ready`.
 
 ### 17. [DONE] Payment Service Port Not Configurable via Default
 **File:** `specs/PAYMENT_SPEC.md`
@@ -173,6 +174,6 @@ This document contains a list of isolated issues identified by comparing the ORD
 
 **High Priority Issues:** 0
 **Medium Priority Issues:** 1
-**Low Priority Issues:** 1
+**Low Priority Issues:** 0
 
 **Critical Path:** All high priority security issues have been resolved. The payment flow is now functional as Order service correctly publishes `OrderStockConfirmedEvent`. Port conflicts between Order and Payment services have been resolved by moving Payment to 8085 and ensuring Order uses 8084.

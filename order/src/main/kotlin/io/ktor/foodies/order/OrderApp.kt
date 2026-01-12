@@ -3,6 +3,7 @@ package io.ktor.foodies.order
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
+import io.ktor.client.request.get
 import io.ktor.foodies.order.client.HttpBasketClient
 import io.ktor.foodies.order.events.OrderEventConsumer
 import io.ktor.foodies.order.events.handlers.*
@@ -113,21 +114,32 @@ fun Application.app(config: Config, dataSource: DataSource) {
     ).start()
 
     routing {
-        healthz(dataSource)
+        healthz(dataSource, config, httpClient)
         orderRoutes(orderService)
         adminRoutes(orderService)
     }
 }
 
-fun Route.healthz(dataSource: DataSource) {
+fun Route.healthz(dataSource: DataSource, config: Config, httpClient: HttpClient) {
     get("/healthz") { call.respond(HttpStatusCode.OK) }
     get("/healthz/ready") {
         val dbHealthy = runCatching {
             dataSource.hikari.connection.use { it.isValid(5) }
         }.getOrDefault(false)
 
-        val status = if (dbHealthy) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable
-        call.respond(status, mapOf("database" to if (dbHealthy) "UP" else "DOWN"))
+        val paymentHealthy = runCatching {
+            httpClient.get("${config.payment.baseUrl}/healthz").status == HttpStatusCode.OK
+        }.getOrDefault(false)
+
+        val healthy = dbHealthy && paymentHealthy
+        val status = if (healthy) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable
+        call.respond(
+            status,
+            mapOf(
+                "database" to if (dbHealthy) "UP" else "DOWN",
+                "payment" to if (paymentHealthy) "UP" else "DOWN"
+            )
+        )
     }
 }
 
