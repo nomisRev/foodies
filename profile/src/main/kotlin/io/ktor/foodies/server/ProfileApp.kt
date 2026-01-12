@@ -1,16 +1,18 @@
 package io.ktor.foodies.server
 
-import io.ktor.http.HttpStatusCode
+import com.sksamuel.cohort.Cohort
+import com.sksamuel.cohort.HealthCheckRegistry
+import com.sksamuel.cohort.threads.ThreadDeadlockHealthCheck
 import io.ktor.server.application.Application
+import io.ktor.server.application.install
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.getAs
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
