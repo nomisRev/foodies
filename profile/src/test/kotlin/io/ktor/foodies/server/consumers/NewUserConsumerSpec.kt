@@ -1,6 +1,7 @@
 package io.ktor.foodies.server.consumers
 
 import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.rabbitmq.messages
 import io.ktor.foodies.server.customers.migratedPostgresDataSource
 import io.ktor.foodies.server.profile.ExposedProfileRepository
 import io.ktor.foodies.server.test.channel

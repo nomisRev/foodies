@@ -24,14 +24,13 @@ ktor {
 dependencies {
     implementation(project(":server-shared"))
     implementation(project(":keycloak-events"))
+    implementation(project(":rabbitmq-ext"))
 
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.config.yaml)
     implementation(libs.logback)
 
     implementation(libs.serialization.json)
-
-    implementation(libs.rabbitmq)
 
     implementation(libs.postgresql)
     implementation(libs.hikari)
