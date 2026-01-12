@@ -10,6 +10,7 @@ data class OrderCreatedEvent(
     val buyerId: String,
     val items: List<OrderItemSnapshot>,
     val totalPrice: SerializableBigDecimal,
+    val currency: String,
     val createdAt: Instant
 )
 
@@ -34,6 +35,8 @@ data class OrderStatusChangedEvent(
     val buyerId: String,
     val oldStatus: OrderStatus,
     val newStatus: OrderStatus,
+    val totalPrice: SerializableBigDecimal,
+    val currency: String,
     val description: String?,
     val changedAt: Instant,
 )
@@ -61,6 +64,44 @@ data class StockValidationItem(
 data class StockConfirmedEvent(
     val orderId: Long,
     val confirmedAt: Instant,
+)
+
+@Serializable
+enum class PaymentMethodType {
+    CREDIT_CARD,
+    DEBIT_CARD,
+    DIGITAL_WALLET,
+    BANK_TRANSFER
+}
+
+@Serializable
+enum class CardBrand {
+    VISA,
+    MASTERCARD,
+    AMEX,
+    DISCOVER,
+    UNKNOWN
+}
+
+@Serializable
+data class PaymentMethodInfo(
+    val type: PaymentMethodType,
+    val cardLastFour: String?,
+    val cardBrand: CardBrand?,
+    val cardHolderName: String?,
+    val expirationMonth: Int?,
+    val expirationYear: Int?
+)
+
+@Serializable
+data class OrderStockConfirmedEvent(
+    val eventId: String,
+    val orderId: Long,
+    val buyerId: String,
+    val totalAmount: SerializableBigDecimal,
+    val currency: String,
+    val paymentMethod: PaymentMethodInfo,
+    val occurredAt: Instant
 )
 
 @Serializable

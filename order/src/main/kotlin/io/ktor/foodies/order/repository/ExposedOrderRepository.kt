@@ -109,6 +109,7 @@ class ExposedOrderRepository(private val database: Database) : OrderRepository {
             it[buyerName] = order.buyerName
             it[status] = OrderStatus.Submitted
             it[totalPrice] = order.totalPrice
+            it[currency] = order.currency
             it[description] = "Order submitted"
             it[street] = order.deliveryAddress.street
             it[city] = order.deliveryAddress.city
@@ -185,6 +186,7 @@ class ExposedOrderRepository(private val database: Database) : OrderRepository {
         items = items,
         paymentMethod = paymentMethod,
         totalPrice = this[Orders.totalPrice],
+        currency = this[Orders.currency],
         description = this[Orders.description],
         history = history,
         createdAt = this[Orders.createdAt],

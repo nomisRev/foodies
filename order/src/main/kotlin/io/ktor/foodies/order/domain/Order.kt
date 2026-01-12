@@ -16,6 +16,7 @@ data class Order(
     val items: List<OrderItem>,
     val paymentMethod: PaymentMethod?,          // Set after payment verification
     val totalPrice: SerializableBigDecimal,
+    val currency: String,
     val description: String?,                   // Status description (e.g., rejection reason)
     val history: List<OrderHistoryEntry> = emptyList(),
     val createdAt: Instant,
@@ -38,6 +39,7 @@ data class CreateOrderRequest(
     val state: String,
     val country: String,
     val zipCode: String,
+    val currency: String = "USD",
     val paymentDetails: PaymentDetails,
 )
 
@@ -73,6 +75,7 @@ data class CreateOrder(
     val deliveryAddress: Address,
     val items: List<CreateOrderItem>,
     val totalPrice: SerializableBigDecimal,
+    val currency: String,
     val paymentDetails: PaymentDetails,
 )
 

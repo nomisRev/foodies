@@ -88,6 +88,7 @@ fun Application.app(config: Config, dataSource: DataSource) {
         config.rabbit.routingKey,
         "order.cancelled",
         "order.status-changed",
+        "order.stock-confirmed",
         "order.awaiting-validation",
         "order.stock-returned"
     )
