@@ -33,5 +33,6 @@ fun Application.app(module: PaymentModule) {
             })
             healthcheck("/healthz/readiness", module.readinessCheck)
         }
+        paymentRoutes(module.paymentService)
     }
 }

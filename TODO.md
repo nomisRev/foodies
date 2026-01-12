@@ -36,8 +36,11 @@
 ## Phase 3: API and Application Wiring
 
 ### Task 3.1: Implement API and DI
-- [ ] Create `payment/src/main/kotlin/io/ktor/foodies/payment/Routes.kt` with admin routes
+- [x] Create `payment/src/main/kotlin/io/ktor/foodies/payment/Routes.kt` with admin routes
 
-### Task 3.2: Integration Testing
+### Task 3.2: Unit Testing
+- [ ] Implement `PaymentServiceTest` to verify payment logic from specification
+
+### Task 3.3: Integration Testing
 - [ ] Implement `PaymentRepositoryTest` using Testcontainers
 - [ ] Implement `OrderStockConfirmedHandlerTest`
