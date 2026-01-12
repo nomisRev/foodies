@@ -30,10 +30,14 @@
 - [x] Implement `RabbitMQEventConsumer`
 
 ### Task 2.3: Integration: Wiring everything together
-- [ ] Implement `PaymentModule` in `payment/src/main/kotlin/io/ktor/foodies/payment/PaymentModule.kt`
-- [ ] Update `App.kt` to use `PaymentModule`
+- [x] Implement `PaymentModule` in `payment/src/main/kotlin/io/ktor/foodies/payment/PaymentModule.kt`
+- [x] Update `App.kt` to use `PaymentModule`
 
 ## Phase 3: API and Application Wiring
 
 ### Task 3.1: Implement API and DI
-- [ ] Create `payment/src/main/kotlin/io/ktor/foodies/payment/Routes.kt` with health and admin routes
+- [ ] Create `payment/src/main/kotlin/io/ktor/foodies/payment/Routes.kt` with admin routes
+
+### Task 3.2: Integration Testing
+- [ ] Implement `PaymentRepositoryTest` using Testcontainers
+- [ ] Implement `OrderStockConfirmedHandlerTest`

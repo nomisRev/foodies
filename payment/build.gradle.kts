@@ -50,6 +50,10 @@ dependencies {
     // Logging
     implementation(libs.logback)
 
+    // Health Checks
+    implementation(libs.cohort.ktor)
+    implementation(libs.cohort.hikari)
+
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:${libs.versions.kotlinx.coroutines.get()}")
 

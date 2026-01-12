@@ -1,5 +1,6 @@
 package io.ktor.foodies.payment
 
+import io.ktor.foodies.server.DataSource
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -7,16 +8,9 @@ import kotlinx.serialization.Serializable
 data class Config(
     val host: String,
     val port: Int,
-    @SerialName("data_source") val dataSource: DataSourceConfig,
+    @SerialName("data_source") val dataSource: DataSource.Config,
     val rabbit: RabbitConfig,
     val gateway: PaymentGatewayConfig,
-)
-
-@Serializable
-data class DataSourceConfig(
-    val url: String,
-    val username: String,
-    val password: String,
 )
 
 @Serializable
