@@ -71,3 +71,18 @@ data class RejectedItem(
     val requestedQuantity: Int,
     val availableQuantity: Int,
 )
+
+@Serializable
+data class PaymentSucceededEvent(
+    val orderId: Long,
+    val paymentId: String,
+    val amount: SerializableBigDecimal,
+    val processedAt: Instant,
+)
+
+@Serializable
+data class PaymentFailedEvent(
+    val orderId: Long,
+    val reason: String,
+    val failedAt: Instant,
+)
