@@ -1,57 +1,269 @@
-# foodies
+# Foodies
+
+A microservices-based food ordering application built with Kotlin and Ktor. The system uses Keycloak for authentication, RabbitMQ for event streaming, PostgreSQL for data persistence, and Redis for caching.
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              Web Browser                                     │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    │
+                                    ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         webapp (Port 8080)                                   │
+│                    HTMX UI + OAuth2 Authentication                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+           │                    │                    │
+           ▼                    ▼                    ▼
+┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
+│  menu (8082)    │  │  basket (8083)  │  │  profile (8081) │
+│  REST API       │  │  REST API       │  │  Event-Driven   │
+│  PostgreSQL     │  │  Redis + JWT    │  │  PostgreSQL     │
+└─────────────────┘  └─────────────────┘  └─────────────────┘
+                              │                    ▲
+                              │                    │
+                              ▼                    │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            RabbitMQ                                          │
+│                     Event Streaming & Messaging                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ▲
+                                    │
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         Keycloak (Port 8000)                                 │
+│                    Identity & Access Management                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Services
+
+### Implemented
+
+| Service | Port | Description | Database |
+|---------|------|-------------|----------|
+| **webapp** | 8080 | Main web application with HTMX UI and OAuth2/OIDC authentication | - |
+| **menu** | 8082 | Menu item management with full CRUD REST API | PostgreSQL |
+| **basket** | 8083 | Shopping basket service with JWT authentication | Redis |
+| **profile** | 8081 | Event-driven user profile service (consumes Keycloak events) | PostgreSQL |
+
+### Planned (Specifications Available)
+
+| Service | Port | Description |
+|---------|------|-------------|
+| **order** | 8084 | Order lifecycle management with saga pattern |
+| **payment** | 8085 | Event-driven payment processing |
+| **admin** | 8086 | Centralized administration interface |
 
 ## Modules
 
-- `webapp`: Ktor server serving the web UI and handling authentication with Keycloak.
-- `profile`: Ktor service for user profile data and webhooks.
-- `keycloak-webhook`: Custom Keycloak event listener provider that forwards registration events to the profile service.
-- `server-shared` and `server-shared-test`: Shared server utilities and test helpers.
-
-## Running Keycloak with the profile registration webhook
-
-1) Build the provider jar so Keycloak can load it:
-
-```bash
-./gradlew :keycloak-webhook:build
+```
+foodies/
+├── webapp/                      # Main web application
+├── menu/                        # Menu microservice
+├── basket/                      # Basket microservice
+├── profile/                     # Profile microservice
+├── server-shared/               # Shared server utilities
+├── server-shared-test/          # Shared test helpers
+├── keycloak-events/             # Keycloak event models
+├── keycloak-rabbitmq-publisher/ # Custom Keycloak provider for RabbitMQ
+├── k8s/                         # Kubernetes manifests
+├── docs/                        # Documentation
+└── specs/                       # Service specifications
 ```
 
-2) Start Keycloak and RabbitMQ (from the `webapp` module directory) with the included `docker-compose.yml`:
+## Technology Stack
+
+| Category | Technology |
+|----------|------------|
+| Language | Kotlin (JDK 21) |
+| Framework | Ktor 3.3.3 |
+| Build | Gradle with Kotlin DSL |
+| Database | PostgreSQL 18, Redis 7 |
+| ORM | Exposed v1 |
+| Migrations | Flyway |
+| Messaging | RabbitMQ 4.2 |
+| Authentication | Keycloak 26.5 (OAuth2/OIDC) |
+| Frontend | HTMX 1.9.12, kotlinx.html |
+| Testing | TestBalloon, Testcontainers |
+| Deployment | Docker Compose, Kubernetes |
+
+## Quick Start
+
+### Prerequisites
+
+- JDK 21
+- Docker and Docker Compose
+
+### 1. Build the Keycloak Provider
 
 ```bash
-cd webapp
-docker compose up keycloak rabbitmq
+./gradlew :keycloak-rabbitmq-publisher:build
 ```
 
-Environment variables (with defaults) used by the Keycloak container for RabbitMQ delivery:
-
-- `RABBITMQ_HOST` (default `rabbitmq`)
-- `RABBITMQ_PORT` (default `5672`)
-- `RABBITMQ_USERNAME` (default `guest`)
-- `RABBITMQ_PASSWORD` (default `guest`)
-- `RABBITMQ_QUEUE` (default `profile.registration`)
-
-The realm import in `webapp/keycloak/realm.json` enables the `profile-webhook` listener for `REGISTER` events.
-
-## Running the profile service
-
-The profile service listens on port `8081` by default (see `profile/src/main/resources/application.yaml`) and consumes Keycloak registration events from RabbitMQ.
-Update the `rabbit` section in `application.yaml` (or the corresponding environment variables) so it can reach your broker. A RabbitMQ container is included in `profile/docker-compose.yml`:
+### 2. Start Infrastructure
 
 ```bash
-cd profile
-docker compose up rabbitmq
+docker compose up -d
 ```
 
-Start the service with:
+This starts:
+- PostgreSQL (profile database on 5432, menu database on 5433)
+- Redis (6379)
+- RabbitMQ (5672, management UI on 15672)
+- Keycloak (8000)
+
+### 3. Run Services
+
+In separate terminals:
 
 ```bash
-./gradlew :profile:run
+./gradlew :profile:run    # Port 8081
+./gradlew :menu:run       # Port 8082
+./gradlew :basket:run     # Port 8083
+./gradlew :webapp:run     # Port 8080
 ```
 
-## Running tests
+### 4. Access the Application
 
-Use the Gradle Wrapper from the project root:
+- **Web App**: http://localhost:8080
+- **Keycloak Admin**: http://localhost:8000 (admin/admin)
+- **RabbitMQ Management**: http://localhost:15672 (guest/guest)
+
+### Test User
+
+- Username: `food_lover`
+- Password: `password`
+
+## Running Tests
 
 ```bash
 ./gradlew check
 ```
+
+## API Endpoints
+
+### Menu Service (Port 8082)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/menu` | List menu items (paginated: `offset`, `limit` max 50) |
+| GET | `/menu/{id}` | Get single menu item |
+| POST | `/menu` | Create menu item |
+| PUT | `/menu/{id}` | Update menu item (partial updates supported) |
+| DELETE | `/menu/{id}` | Delete menu item |
+| GET | `/healthz` | Health check |
+
+### Basket Service (Port 8083)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/basket` | Get current user's basket |
+| POST | `/basket/items` | Add item to basket |
+| PUT | `/basket/items/{itemId}` | Update item quantity |
+| DELETE | `/basket/items/{itemId}` | Remove item from basket |
+| DELETE | `/basket` | Clear basket |
+| GET | `/healthz` | Health check |
+
+### Profile Service (Port 8081)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/healthz` | Health check |
+
+*Profile data is managed via Keycloak events (Registration, UpdateProfile, Delete)*
+
+### WebApp (Port 8080)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/` | Home page with menu feed |
+| GET | `/login` | OAuth2 login redirect |
+| GET | `/oauth/callback` | OAuth2 callback handler |
+| GET | `/logout` | Logout and redirect to Keycloak |
+| GET | `/menu` | Paginated menu items (HTMX fragments) |
+| GET | `/healthz` | Health check |
+
+## Configuration
+
+Services are configured via environment variables with sensible defaults. See each service's `application.yaml` for details:
+
+- `webapp/src/main/resources/application.yaml`
+- `menu/src/main/resources/application.yaml`
+- `basket/src/main/resources/application.yaml`
+- `profile/src/main/resources/application.yaml`
+
+### Key Environment Variables
+
+| Variable | Service | Description |
+|----------|---------|-------------|
+| `HOST` | All | Server host (default: 0.0.0.0) |
+| `PORT` | All | Server port |
+| `DB_URL` | menu, profile | PostgreSQL connection string |
+| `DB_USERNAME` | menu, profile | Database username |
+| `DB_PASSWORD` | menu, profile | Database password |
+| `REDIS_HOST` | basket | Redis host |
+| `REDIS_PORT` | basket | Redis port |
+| `RABBITMQ_HOST` | profile, basket | RabbitMQ host |
+| `RABBITMQ_PORT` | profile, basket | RabbitMQ port |
+| `AUTH_ISSUER` | webapp, basket | Keycloak issuer URL |
+| `AUTH_CLIENT_ID` | webapp | OAuth client ID |
+| `AUTH_CLIENT_SECRET` | webapp | OAuth client secret |
+| `MENU_BASE_URL` | webapp, basket | Menu service URL |
+
+## Kubernetes Deployment
+
+See [k8s/README.md](k8s/README.md) for detailed deployment instructions.
+
+```bash
+kubectl apply -f k8s/namespace.yaml
+kubectl apply -f k8s/secrets/
+kubectl apply -f k8s/configmaps/
+kubectl apply -f k8s/databases/
+kubectl apply -f k8s/infrastructure/
+kubectl apply -f k8s/services/
+kubectl apply -f k8s/ingress.yaml
+```
+
+## Documentation
+
+- [Project Setup Guide](docs/PROJECT_SETUP.md) - Ktor server setup best practices
+
+### Service Documentation
+
+- [WebApp](webapp/README.MD)
+- [Menu](menu/README.MD)
+- [Basket](basket/README.md)
+- [Profile](profile/README.MD)
+
+### Service Specifications (Planned)
+
+- [Order Service](order/SPECIFICATION.md)
+- [Payment Service](payment/SPECIFICATION.md)
+- [Admin Service](admin/SPECIFICATION.md)
+- [Basket Service](basket/SPECIFICATION.md)
+
+## Architecture Patterns
+
+### Manual Dependency Injection
+Dependencies are wired explicitly in `Module` classes without a DI framework, promoting clear understanding of application structure.
+
+### Layered Architecture
+```
+Routes (HTTP) → Service (Business Logic) → Repository (Data Access) → Database
+```
+
+### Event-Driven Communication
+Services communicate via RabbitMQ events with idempotent operations and manual ack/nack for reliable processing.
+
+### Validation DSL
+```kotlin
+validate {
+    name.validate(String::isNotBlank) { "name must not be blank" }
+    price.validate({ it > BigDecimal.ZERO }) { "price must be positive" }
+}
+```
+
+## License
+
+This project is for educational purposes.
