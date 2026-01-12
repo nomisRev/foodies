@@ -68,6 +68,7 @@ class GetOrderDetailsTest {
         override suspend fun publish(event: OrderCreatedEvent) {}
         override suspend fun publish(event: OrderCancelledEvent) {}
         override suspend fun publish(event: OrderStatusChangedEvent) {}
+        override suspend fun publish(event: OrderAwaitingValidationEvent) {}
     }
 
     private val orderService = DefaultOrderService(fakeOrderRepository, fakeBasketClient, fakeEventPublisher)

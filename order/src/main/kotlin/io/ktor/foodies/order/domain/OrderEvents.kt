@@ -39,6 +39,19 @@ data class OrderStatusChangedEvent(
 )
 
 @Serializable
+data class OrderAwaitingValidationEvent(
+    val orderId: Long,
+    val buyerId: String,
+    val items: List<StockValidationItem>,
+)
+
+@Serializable
+data class StockValidationItem(
+    val menuItemId: Long,
+    val quantity: Int,
+)
+
+@Serializable
 data class StockConfirmedEvent(
     val orderId: Long,
     val confirmedAt: Instant,
