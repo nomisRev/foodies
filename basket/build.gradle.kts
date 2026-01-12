@@ -48,6 +48,10 @@ dependencies {
     // Serialization
     implementation(libs.serialization.json)
 
+    implementation("com.sksamuel.cohort:cohort-rabbit:2.8.2")
+    api("com.sksamuel.cohort:cohort-ktor:2.8.2")
+    api("com.sksamuel.cohort:cohort-lettuce:2.8.2")
+
     // Testing
     testImplementation(project(":server-shared-test"))
     testImplementation(ktorLibs.server.testHost)

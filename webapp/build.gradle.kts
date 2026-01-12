@@ -39,10 +39,8 @@ dependencies {
 
     implementation(libs.logback)
 
-    implementation(libs.postgresql)
-    implementation(libs.hikari)
-    implementation(libs.exposed.jdbc)
-    implementation(libs.flyway.postgresql)
+    api("com.sksamuel.cohort:cohort-ktor:2.8.2")
+    api("com.sksamuel.cohort:cohort-hikari:2.8.2")
 
     testImplementation(project(":server-shared-test"))
 }
