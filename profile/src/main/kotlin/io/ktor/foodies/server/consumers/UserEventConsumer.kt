@@ -1,5 +1,7 @@
 package io.ktor.foodies.server.consumers
 
+import io.ktor.foodies.rabbitmq.Consumer
+import io.ktor.foodies.rabbitmq.Message
 import io.ktor.foodies.server.profile.ProfileRepository
 import io.ktor.foodies.user.event.UserEvent
 import kotlinx.coroutines.delay
