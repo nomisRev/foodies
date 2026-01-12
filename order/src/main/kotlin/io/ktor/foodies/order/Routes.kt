@@ -58,8 +58,9 @@ fun Route.orderRoutes(orderService: OrderService) = authenticate {
         }
 
         post {
-            val requestId = call.request.header("X-Request-Id")
+            val requestIdString = call.request.header("X-Request-Id")
                 ?: throw IllegalArgumentException("X-Request-Id header is required")
+            val requestId = java.util.UUID.fromString(requestIdString)
             val principal = call.principal<JWTPrincipal>()!!
             val buyerId = principal.buyerId()
             val buyerEmail = principal.buyerEmail()
@@ -73,13 +74,16 @@ fun Route.orderRoutes(orderService: OrderService) = authenticate {
         }
 
         put("/{id}/cancel") {
+            val requestIdString = call.request.header("X-Request-Id")
+                ?: throw IllegalArgumentException("X-Request-Id header is required")
+            val requestId = java.util.UUID.fromString(requestIdString)
             val principal = call.principal<JWTPrincipal>()!!
             val buyerId = principal.buyerId()
             val id = call.parameters["id"]?.toLongOrNull()
                 ?: throw IllegalArgumentException("Order ID is required")
             val reason = call.receive<CancelOrderRequest>().reason
 
-            val order = orderService.cancelOrder(id, buyerId, reason)
+            val order = orderService.cancelOrder(requestId, id, buyerId, reason)
             call.respond(order)
         }
     }

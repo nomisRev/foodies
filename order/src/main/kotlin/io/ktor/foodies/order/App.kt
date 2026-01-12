@@ -9,9 +9,11 @@ import io.ktor.foodies.order.events.handlers.PaymentFailedEventHandler
 import io.ktor.foodies.order.events.handlers.PaymentSucceededEventHandler
 import io.ktor.foodies.order.events.handlers.StockConfirmedEventHandler
 import io.ktor.foodies.order.events.handlers.StockRejectedEventHandler
+import io.ktor.foodies.order.repository.ExposedIdempotencyRepository
 import io.ktor.foodies.order.repository.ExposedOrderRepository
 import io.ktor.foodies.order.service.DefaultOrderService
 import io.ktor.foodies.order.service.GracePeriodService
+import io.ktor.foodies.order.service.IdempotencyService
 import io.ktor.foodies.order.service.RabbitOrderEventPublisher
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.rabbitmq.RabbitConfig as ExtRabbitConfig
@@ -101,7 +103,9 @@ fun Application.app(config: Config, dataSource: DataSource) {
         "order.awaiting-validation"
     )
     val orderRepository = ExposedOrderRepository(dataSource.database)
-    val orderService = DefaultOrderService(orderRepository, basketClient, eventPublisher)
+    val idempotencyRepository = ExposedIdempotencyRepository(dataSource.database)
+    val idempotencyService = IdempotencyService(idempotencyRepository)
+    val orderService = DefaultOrderService(orderRepository, basketClient, eventPublisher, idempotencyService)
     val gracePeriodService = GracePeriodService(config.order, orderService, this)
     orderService.setGracePeriodService(gracePeriodService)
 

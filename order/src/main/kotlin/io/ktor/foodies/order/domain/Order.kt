@@ -39,7 +39,21 @@ data class PaymentDetails(
     val cardSecurityNumber: String,
     val expirationMonth: Int,
     val expirationYear: Int,
-)
+) {
+    fun isNotExpired(): Boolean {
+        val now = try {
+            java.time.YearMonth.now()
+        } catch (e: Exception) {
+            return false
+        }
+        val expiry = try {
+            java.time.YearMonth.of(expirationYear, expirationMonth)
+        } catch (e: Exception) {
+            return false
+        }
+        return !expiry.isBefore(now)
+    }
+}
 
 data class CreateOrder(
     val requestId: String,

@@ -7,6 +7,7 @@ import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
+import io.ktor.server.request.header
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -29,10 +30,13 @@ fun Route.adminRoutes(orderService: OrderService) = authenticate {
 
         put("/{id}/ship") {
             call.requireAdmin {
+                val requestIdString = call.request.header("X-Request-Id")
+                    ?: throw IllegalArgumentException("X-Request-Id header is required")
+                val requestId = java.util.UUID.fromString(requestIdString)
                 val id = call.parameters["id"]?.toLongOrNull()
                     ?: throw IllegalArgumentException("Order ID is required")
 
-                val order = orderService.shipOrder(id)
+                val order = orderService.shipOrder(requestId, id)
                 call.respond(order)
             }
         }

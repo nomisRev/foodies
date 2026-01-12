@@ -45,6 +45,7 @@ dependencies {
     // Database
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.datetime)
+    implementation("org.jetbrains.exposed:exposed-json:${libs.versions.exposed.get()}")
     implementation("org.jetbrains.exposed:exposed-dao:${libs.versions.exposed.get()}")
     implementation(libs.postgresql)
     implementation(libs.hikari)
