@@ -44,7 +44,7 @@
 
 ### Task 3.3: Integration Testing
 - [x] Implement `PaymentRepositoryTest` using Testcontainers
-- [ ] Implement `OrderStockConfirmedHandlerTest`
+- [x] Implement `OrderStockConfirmedHandlerTest`
 
 ## Phase 4: Observability
 
@@ -52,7 +52,12 @@
 - [ ] Implement Prometheus metrics for payment processing
 - [ ] Implement structured logging for payment lifecycle
 
-## Phase 5: Infrastructure and Deployment
+## Phase 5: Reliability
 
-### Task 5.1: Kubernetes Configuration
+### Task 5.1: Resilience
+- [ ] Implement retry logic for transient payment gateway failures (from PAYMENT_SPEC.md)
+
+## Phase 6: Infrastructure and Deployment
+
+### Task 6.1: Kubernetes Configuration
 - [ ] Create Kubernetes manifests for Payment Service and Database
