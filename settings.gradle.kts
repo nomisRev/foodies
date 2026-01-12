@@ -16,5 +16,6 @@ include(":order")
 include(":rabbitmq-ext")
 include(":keycloak-rabbitmq-publisher")
 include(":keycloak-events")
+include(":payment")
 
 rootProject.name = "foodies"
