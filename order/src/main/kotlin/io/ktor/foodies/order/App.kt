@@ -94,7 +94,8 @@ fun Application.app(config: Config, dataSource: DataSource) {
         config.rabbit.routingKey,
         "order.cancelled",
         "order.status-changed",
-        "order.awaiting-validation"
+        "order.awaiting-validation",
+        "order.stock-returned"
     )
     val orderRepository = ExposedOrderRepository(dataSource.database)
     val idempotencyRepository = ExposedIdempotencyRepository(dataSource.database)

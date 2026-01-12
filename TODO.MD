@@ -20,4 +20,7 @@
 - [x] Implement Order History audit trail for all order state changes as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
 - [x] Implement Order Notifications (Email/push) on status changes as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
 - [x] Restrict order cancellation to Submitted, AwaitingValidation, or StockConfirmed states as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
-- [ ] Implement Partial Fulfillment handling (mixed availability) as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [x] Implement Partial Fulfillment handling (mixed availability) as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [x] Implement Graceful cancellation (proper stock return events) as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [x] Implement Menu service stock validation (OrderAwaitingValidationEvent handling) as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [ ] Implement Payment service as defined in [specs/PAYMENT_SPEC.md](specs/PAYMENT_SPEC.md)

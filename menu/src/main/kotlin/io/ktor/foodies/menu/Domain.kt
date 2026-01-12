@@ -13,6 +13,7 @@ data class MenuItem(
     val description: String,
     val imageUrl: String,
     val price: SerializableBigDecimal,
+    val stock: Int,
     val createdAt: Instant,
     val updatedAt: Instant,
 )
@@ -24,6 +25,7 @@ data class MenuItemResponse(
     val description: String,
     val imageUrl: String,
     val price: SerializableBigDecimal,
+    val stock: Int,
 )
 
 @Serializable
@@ -32,6 +34,7 @@ data class CreateMenuItemRequest(
     val description: String,
     val imageUrl: String,
     val price: SerializableBigDecimal,
+    val stock: Int = 0,
 )
 
 @Serializable
@@ -40,6 +43,7 @@ data class UpdateMenuItemRequest(
     val description: String? = null,
     val imageUrl: String? = null,
     val price: SerializableBigDecimal? = null,
+    val stock: Int? = null,
 )
 
 data class CreateMenuItem(
@@ -47,6 +51,7 @@ data class CreateMenuItem(
     val description: String,
     val imageUrl: String,
     val price: BigDecimal,
+    val stock: Int,
 )
 
 data class UpdateMenuItem(
@@ -54,6 +59,7 @@ data class UpdateMenuItem(
     val description: String? = null,
     val imageUrl: String? = null,
     val price: BigDecimal? = null,
+    val stock: Int? = null,
 )
 
 fun CreateMenuItemRequest.validate(): CreateMenuItem =
@@ -63,6 +69,7 @@ fun CreateMenuItemRequest.validate(): CreateMenuItem =
             description = description.validate(String::isNotBlank) { "description must not be blank" },
             imageUrl = imageUrl.validate(String::isNotBlank) { "imageUrl must not be blank" },
             price = price.validate({ it > BigDecimal.ZERO }) { "price must be greater than 0" },
+            stock = stock.validate({ it >= 0 }) { "stock must be 0 or greater" },
         )
     }
 
@@ -73,6 +80,7 @@ fun UpdateMenuItemRequest.validate(): UpdateMenuItem =
             description = description?.validate(String::isNotBlank) { "description must not be blank" },
             imageUrl = imageUrl?.validate(String::isNotBlank) { "imageUrl must not be blank" },
             price = price?.validate({ it > BigDecimal.ZERO }) { "price must be greater than 0" },
+            stock = stock?.validate({ it >= 0 }) { "stock must be 0 or greater" },
         )
     }
 
@@ -82,4 +90,5 @@ fun MenuItem.toResponse(): MenuItemResponse = MenuItemResponse(
     description = description,
     imageUrl = imageUrl,
     price = price,
+    stock = stock,
 )

@@ -69,13 +69,13 @@ class StockEventHandlerTest {
     }
 
     @Test
-    fun `StockRejectedEventHandler should cancel order`() = runTest {
+    fun `StockRejectedEventHandler should cancel order when all items rejected`() = runTest {
         val order = createOrder(OrderStatus.AwaitingValidation)
         fakeOrderRepository.orders.add(order)
 
         rejectedHandler.handle(StockRejectedEvent(
             orderId = order.id,
-            rejectedItems = listOf(RejectedItem(1, "Burger", 2, 1)),
+            rejectedItems = listOf(RejectedItem(1, "Burger", 2, 0)),
             rejectedAt = Instant.fromEpochMilliseconds(0)
         ))
 
@@ -87,6 +87,28 @@ class StockEventHandlerTest {
         assertEquals(order.id, cancelEvent.orderId)
     }
 
+    @Test
+    fun `StockRejectedEventHandler should partially fulfill order when some items available`() = runTest {
+        val order = createOrder(OrderStatus.AwaitingValidation)
+        fakeOrderRepository.orders.add(order)
+
+        rejectedHandler.handle(StockRejectedEvent(
+            orderId = order.id,
+            rejectedItems = listOf(RejectedItem(1, "Burger", 2, 1)),
+            rejectedAt = Instant.fromEpochMilliseconds(0)
+        ))
+
+        val updatedOrder = fakeOrderRepository.findById(order.id)
+        assertEquals(OrderStatus.StockConfirmed, updatedOrder?.status)
+        assertEquals(1, updatedOrder?.items?.size)
+        assertEquals(1, updatedOrder?.items?.first()?.quantity)
+        assertEquals(BigDecimal.TEN.setScale(2), updatedOrder?.totalPrice?.setScale(2))
+        assertEquals("Order partially fulfilled due to stock availability", updatedOrder?.description)
+        
+        val statusEvent = fakeEventPublisher.events.filterIsInstance<OrderStatusChangedEvent>().last()
+        assertEquals(OrderStatus.StockConfirmed, statusEvent.newStatus)
+    }
+
     private fun createOrder(status: OrderStatus) = Order(
         id = 1,
         requestId = "req-1",
@@ -95,9 +117,9 @@ class StockEventHandlerTest {
         buyerName = "User",
         status = status,
         deliveryAddress = Address("S", "C", "S", "C", "Z"),
-        items = emptyList(),
+        items = listOf(OrderItem(1, 1, "Burger", "url", BigDecimal.TEN, 2, BigDecimal.ZERO)),
         paymentMethod = null,
-        totalPrice = BigDecimal.TEN,
+        totalPrice = BigDecimal.valueOf(20),
         description = null,
         createdAt = Instant.fromEpochMilliseconds(0),
         updatedAt = Instant.fromEpochMilliseconds(0)

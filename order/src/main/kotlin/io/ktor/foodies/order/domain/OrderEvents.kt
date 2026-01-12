@@ -46,6 +46,12 @@ data class OrderAwaitingValidationEvent(
 )
 
 @Serializable
+data class StockReturnedEvent(
+    val orderId: Long,
+    val items: List<StockValidationItem>,
+)
+
+@Serializable
 data class StockValidationItem(
     val menuItemId: Long,
     val quantity: Int,
