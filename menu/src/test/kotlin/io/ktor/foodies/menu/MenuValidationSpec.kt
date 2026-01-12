@@ -14,6 +14,7 @@ val menuValidationSpec by testSuite {
             description = "Delicious cheese pizza",
             imageUrl = "https://example.com/pizza.jpg",
             price = BigDecimal("10.99"),
+            categoryId = 1,
         )
 
         assertEquals(
@@ -22,6 +23,7 @@ val menuValidationSpec by testSuite {
                 description = "Delicious cheese pizza",
                 imageUrl = "https://example.com/pizza.jpg",
                 price = BigDecimal("10.99"),
+                categoryId = 1,
             ),
             request.validate()
         )
@@ -34,6 +36,7 @@ val menuValidationSpec by testSuite {
                 description = "",
                 imageUrl = " ",
                 price = BigDecimal.ZERO,
+                categoryId = 1,
             ).validate()
         }
 
@@ -48,6 +51,7 @@ val menuValidationSpec by testSuite {
             UpdateMenuItemRequest(
                 description = " ",
                 price = BigDecimal("-1.00"),
+                categoryId = 1,
             ).validate()
         }
 
@@ -60,6 +64,7 @@ val menuValidationSpec by testSuite {
             name = "Updated Pizza",
             description = "Even more delicious pizza",
             price = BigDecimal("12.99"),
+            categoryId = 1,
         )
 
         assertEquals(
@@ -67,6 +72,7 @@ val menuValidationSpec by testSuite {
                 name = "Updated Pizza",
                 description = "Even more delicious pizza",
                 price = BigDecimal("12.99"),
+                categoryId = 1,
             ),
             request.validate()
         )

@@ -1,19 +1,20 @@
 package io.ktor.foodies.menu
 
 interface MenuService {
-    fun list(offset: Int? = null, limit: Int? = null): List<MenuItem>
+    fun list(offset: Int? = null, limit: Int? = null, categoryId: Long? = null): List<MenuItem>
     fun get(id: Long): MenuItem?
     fun create(request: CreateMenuItemRequest): MenuItem
     fun update(id: Long, request: UpdateMenuItemRequest): MenuItem?
     fun delete(id: Long): Boolean
     fun search(query: String): List<MenuItem>
+    fun listCategories(): List<Category>
 }
 
 class MenuServiceImpl(private val repository: MenuRepository) : MenuService {
-    override fun list(offset: Int?, limit: Int?): List<MenuItem> {
+    override fun list(offset: Int?, limit: Int?, categoryId: Long?): List<MenuItem> {
         val safeOffset = (offset ?: DEFAULT_OFFSET).coerceAtLeast(0)
         val safeLimit = (limit ?: DEFAULT_LIMIT).coerceIn(1, MAX_LIMIT)
-        return repository.list(safeOffset, safeLimit)
+        return repository.list(safeOffset, safeLimit, categoryId)
     }
 
     override fun get(id: Long): MenuItem? = repository.findById(id)
@@ -27,6 +28,8 @@ class MenuServiceImpl(private val repository: MenuRepository) : MenuService {
     override fun delete(id: Long): Boolean = repository.delete(id)
 
     override fun search(query: String): List<MenuItem> = repository.search(query)
+
+    override fun listCategories(): List<Category> = repository.listCategories()
 
     private companion object {
         const val DEFAULT_OFFSET = 0

@@ -39,6 +39,7 @@ fun Application.menuRoutes(menuService: MenuService) {
         hx {
             get("/menu") {
                 val search = call.request.queryParameters["search"]
+                val categoryId = call.request.queryParameters["category"]?.toLongOrNull()
                 val isLoggedIn = call.sessions.get<UserSession>() != null
 
                 if (search != null) {
@@ -54,8 +55,8 @@ fun Application.menuRoutes(menuService: MenuService) {
                 } else {
                     val offset = call.request.queryParameters.getOrFail<Int>("offset")
                     val limit = call.request.queryParameters.getOrFail<Int>("limit")
-                    val items = menuService.menuItems(offset, limit)
-                    call.respondHtmxFragment { buildMenuFragment(items, offset, limit, isLoggedIn) }
+                    val items = menuService.menuItems(offset, limit, categoryId)
+                    call.respondHtmxFragment { buildMenuFragment(items, offset, limit, isLoggedIn, categoryId) }
                 }
             }
         }
@@ -85,6 +86,7 @@ private fun FlowContent.menuItemDetailPage(item: MenuItem, isLoggedIn: Boolean) 
             img(src = item.imageUrl, alt = item.name, classes = "detail-image")
 
             div(classes = "detail-content") {
+                div(classes = "category-badge") { +item.categoryName }
                 h1 { +item.name }
                 p(classes = "description") { +item.description }
 
@@ -102,7 +104,8 @@ private fun TagConsumer<*>.buildMenuFragment(
     items: List<MenuItem>,
     offset: Int,
     limit: Int,
-    isLoggedIn: Boolean
+    isLoggedIn: Boolean,
+    categoryId: Long? = null
 ) {
     val hasMore = items.size == limit
     val nextOffset = offset + items.size
@@ -111,7 +114,7 @@ private fun TagConsumer<*>.buildMenuFragment(
     items.forEach { menuCard(it, isLoggedIn) }
 
     if (hasMore) {
-        menuSentinel(nextOffset, limit)
+        menuSentinel(nextOffset, limit, categoryId)
     } else {
         feedComplete()
     }
@@ -126,6 +129,9 @@ private fun TagConsumer<*>.menuCard(item: MenuItem, isLoggedIn: Boolean) {
         }
 
         div(classes = "content") {
+            div(classes = "card-header") {
+                span(classes = "category-badge") { +item.categoryName }
+            }
             a(href = "/menu/${item.id}") {
                 h3 { +item.name }
             }
@@ -158,10 +164,11 @@ private fun TagConsumer<*>.addToCartButton(menuItemId: Long, isLoggedIn: Boolean
     }
 }
 
-private fun TagConsumer<*>.menuSentinel(nextOffset: Int, limit: Int) {
+private fun TagConsumer<*>.menuSentinel(nextOffset: Int, limit: Int, categoryId: Long? = null) {
     div(classes = "sentinel") {
         id = "feed-sentinel"
-        attributes["hx-get"] = "/menu?offset=$nextOffset&limit=$limit"
+        val categoryParam = if (categoryId != null) "&category=$categoryId" else ""
+        attributes["hx-get"] = "/menu?offset=$nextOffset&limit=$limit$categoryParam"
         attributes["hx-trigger"] = MenuIntersectTrigger
         attributes["hx-swap"] = "outerHTML"
         attributes["hx-indicator"] = "#feed-spinner"

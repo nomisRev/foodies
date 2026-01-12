@@ -32,6 +32,7 @@ val menuServiceSpec by testSuite {
                         description = "Description $it",
                         imageUrl = "https://example.com/$it.jpg",
                         price = BigDecimal("1.00"),
+                        categoryId = 1,
                     )
                 )
             }
@@ -55,6 +56,7 @@ val menuServiceSpec by testSuite {
                         description = "",
                         imageUrl = " ",
                         price = BigDecimal.ZERO,
+                        categoryId = 1,
                     )
                 )
             }
@@ -69,6 +71,7 @@ val menuServiceSpec by testSuite {
                     description = "Juicy",
                     imageUrl = "https://example.com/burger.jpg",
                     price = BigDecimal("11.50"),
+                    categoryId = 1,
                 )
             )
 

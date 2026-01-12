@@ -1,3 +1,4 @@
 - [x] Menu item detail page
 - [x] Menu search
-- [ ] Menu categories and filtering
+- [x] Menu categories and filtering
+- [ ] Checkout page and order creation

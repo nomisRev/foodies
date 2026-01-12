@@ -28,6 +28,7 @@ val menuRepositorySpec by testSuite {
                     description = "Classic pizza",
                     imageUrl = "https://example.com/margherita.jpg",
                     price = BigDecimal("9.50"),
+                    categoryId = 1,
                 )
             )
 
@@ -43,6 +44,7 @@ val menuRepositorySpec by testSuite {
                     description = "First item",
                     imageUrl = "https://example.com/first.jpg",
                     price = BigDecimal("5.00"),
+                    categoryId = 1,
                 )
             )
             val second = repository().create(
@@ -51,6 +53,7 @@ val menuRepositorySpec by testSuite {
                     description = "Second item",
                     imageUrl = "https://example.com/second.jpg",
                     price = BigDecimal("6.00"),
+                    categoryId = 1,
                 )
             )
             val third = repository().create(
@@ -59,6 +62,7 @@ val menuRepositorySpec by testSuite {
                     description = "Third item",
                     imageUrl = "https://example.com/third.jpg",
                     price = BigDecimal("7.00"),
+                    categoryId = 1,
                 )
             )
 
@@ -74,6 +78,7 @@ val menuRepositorySpec by testSuite {
                     description = "Creamy pasta",
                     imageUrl = "https://example.com/pasta.jpg",
                     price = BigDecimal("12.00"),
+                    categoryId = 1,
                 )
             )
 
@@ -82,12 +87,14 @@ val menuRepositorySpec by testSuite {
                 UpdateMenuItem(
                     name = "Updated Pasta",
                     price = BigDecimal("13.25"),
+                    categoryId = 2,
                 )
             )
 
             assertNotNull(updated)
             assertEquals("Updated Pasta", updated.name)
             assertEquals(BigDecimal("13.25"), updated.price)
+            assertEquals(2, updated.categoryId)
             assertEquals(updated, repository().findById(created.id))
         }
 
@@ -107,6 +114,7 @@ val menuRepositorySpec by testSuite {
                     description = "Juicy burger",
                     imageUrl = "https://example.com/burger.jpg",
                     price = BigDecimal("10.00"),
+                    categoryId = 1,
                 )
             )
 
@@ -126,6 +134,7 @@ val menuRepositorySpec by testSuite {
                     description = "Classic tomato and mozzarella",
                     imageUrl = "https://example.com/margherita.jpg",
                     price = BigDecimal("9.50"),
+                    categoryId = 1,
                 )
             )
             val pasta = repository().create(
@@ -134,6 +143,7 @@ val menuRepositorySpec by testSuite {
                     description = "Creamy sauce with bacon",
                     imageUrl = "https://example.com/carbonara.jpg",
                     price = BigDecimal("12.00"),
+                    categoryId = 1,
                 )
             )
 

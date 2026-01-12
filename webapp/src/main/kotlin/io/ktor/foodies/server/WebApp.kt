@@ -61,6 +61,6 @@ fun Application.app(config: Config, httpClient: HttpClient) {
 
     routing {
         staticResources("/static", "static")
-        home()
+        home(menuService)
     }
 }

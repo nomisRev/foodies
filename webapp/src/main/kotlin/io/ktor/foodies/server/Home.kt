@@ -1,5 +1,7 @@
 package io.ktor.foodies.server
 
+import io.ktor.foodies.server.menu.MenuService
+import io.ktor.foodies.server.menu.Category
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.Route
@@ -26,33 +28,55 @@ import kotlinx.html.title
 const val DefaultMenuPageSize = 12
 const val MenuIntersectTrigger = "intersect once rootMargin: 800px"
 
-fun Route.home() = get("/") {
+fun Route.home(menuService: MenuService) = get("/") {
     val isLoggedIn = call.sessions.get<UserSession>() != null
+    val categoryId = call.request.queryParameters["category"]?.toLongOrNull()
+    val categories = menuService.getCategories()
 
     call.respondHtmlWithLayout("Foodies - Discover the menu", isLoggedIn) {
         section(classes = "hero") {
             h1 { +"Your favorite dishes, one click away." }
 
-            div(classes = "menu-grid") {
-                id = "menu-feed"
+            div(classes = "menu-container") {
+                categoriesSidebar(categories, categoryId)
 
-                div(classes = "sentinel") {
-                    id = "feed-sentinel"
-                    attributes["hx-get"] = "/menu?offset=0&limit=$DefaultMenuPageSize"
-                    attributes["hx-trigger"] = MenuIntersectTrigger
-                    attributes["hx-swap"] = "outerHTML"
-                    attributes["hx-indicator"] = "#feed-spinner"
-                    span { +"Loading menu..." }
+                div(classes = "menu-grid-container") {
+                    div(classes = "menu-grid") {
+                        id = "menu-feed"
+
+                        div(classes = "sentinel") {
+                            id = "feed-sentinel"
+                            val categoryParam = if (categoryId != null) "&category=$categoryId" else ""
+                            attributes["hx-get"] = "/menu?offset=0&limit=$DefaultMenuPageSize$categoryParam"
+                            attributes["hx-trigger"] = MenuIntersectTrigger
+                            attributes["hx-swap"] = "outerHTML"
+                            attributes["hx-indicator"] = "#feed-spinner"
+                            span { +"Loading menu..." }
+                        }
+                    }
+
+                    div(classes = "feed-status") {
+                        span {
+                            id = "feed-status"
+                            attributes["role"] = "status"
+                            attributes["aria-live"] = "polite"
+                        }
+                        div(classes = "spinner htmx-indicator") { id = "feed-spinner" }
+                    }
                 }
             }
+        }
+    }
+}
 
-            div(classes = "feed-status") {
-                span {
-                    id = "feed-status"
-                    attributes["role"] = "status"
-                    attributes["aria-live"] = "polite"
-                }
-                div(classes = "spinner htmx-indicator") { id = "feed-spinner" }
+private fun FlowContent.categoriesSidebar(categories: List<Category>, activeCategoryId: Long?) {
+    div(classes = "categories-sidebar") {
+        a(href = "/", classes = "category-link ${if (activeCategoryId == null) "active" else ""}") {
+            +"All"
+        }
+        categories.forEach { category ->
+            a(href = "/?category=${category.id}", classes = "category-link ${if (activeCategoryId == category.id) "active" else ""}") {
+                +category.name
             }
         }
     }

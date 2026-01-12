@@ -22,6 +22,7 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         description = "Fresh salmon roll",
         imageUrl = "https://example.com/salmon-roll.jpg",
         price = BigDecimal("9.50"),
+        categoryId = 1,
     )
     testMenuService("Create Menu Item") {
         val response = jsonClient().post("/menu") {
@@ -35,6 +36,7 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         assertEquals(item.description, sushi.description)
         assertEquals(item.imageUrl, sushi.imageUrl)
         assertEquals(item.price, sushi.price)
+        assertEquals(item.categoryId, sushi.categoryId)
     }
 
     testMenuService("Get created item") {
@@ -93,13 +95,16 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
     listOf(null, "name").flatMap { nameOrNull ->
         listOf(null, "description").flatMap { descriptionOrNull ->
             listOf(null, "imageUrl").flatMap { imageUrlOrNull ->
-                listOf(null, BigDecimal("12.50")).map { priceOrNull ->
-                    UpdateMenuItemRequest(
-                        name = nameOrNull,
-                        description = descriptionOrNull,
-                        imageUrl = imageUrlOrNull,
-                        price = priceOrNull
-                    )
+                listOf(null, BigDecimal("12.50")).flatMap { priceOrNull ->
+                    listOf(null, 2L).map { categoryIdOrNull ->
+                        UpdateMenuItemRequest(
+                            name = nameOrNull,
+                            description = descriptionOrNull,
+                            imageUrl = imageUrlOrNull,
+                            price = priceOrNull,
+                            categoryId = categoryIdOrNull
+                        )
+                    }
                 }
             }
         }
@@ -122,15 +127,17 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
             assertEquals(updateRequest.description ?: created.description, updated.description)
             assertEquals(updateRequest.imageUrl ?: created.imageUrl, updated.imageUrl)
             assertEquals(updateRequest.price ?: created.price, updated.price)
+            assertEquals(updateRequest.categoryId ?: created.categoryId, updated.categoryId)
         }
     }
 
     testMenuService("Update missing item returns 404") {
-        val updateRequest = CreateMenuItemRequest(
+        val updateRequest = UpdateMenuItemRequest(
             name = "Non-existent Item",
             description = "This should fail",
             imageUrl = "https://example.com/fail.jpg",
-            price = BigDecimal("5.00")
+            price = BigDecimal("5.00"),
+            categoryId = 1,
         )
 
         val response = jsonClient().put("/menu/-100") {
@@ -142,11 +149,12 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
     }
 
     testMenuService("Update with incorrect path param") {
-        val updateRequest = CreateMenuItemRequest(
+        val updateRequest = UpdateMenuItemRequest(
             name = "Invalid Update",
             description = "This should fail",
             imageUrl = "https://example.com/fail.jpg",
-            price = BigDecimal("5.00")
+            price = BigDecimal("5.00"),
+            categoryId = 1,
         )
 
         val response = jsonClient().put("/menu/not-an-id") {

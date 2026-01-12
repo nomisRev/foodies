@@ -15,8 +15,14 @@ fun Route.menuRoutes(menuService: MenuService) = route("/menu") {
     get {
         val offset: Int? by call.parameters
         val limit: Int? by call.parameters
-        val menuItems = menuService.list(offset, limit).map { it.toResponse() }
+        val categoryId: Long? by call.parameters
+        val menuItems = menuService.list(offset, limit, categoryId).map { it.toResponse() }
         call.respond(menuItems)
+    }
+
+    get("/categories") {
+        val categories = menuService.listCategories().map { it.toResponse() }
+        call.respond(categories)
     }
 
     get("/{id}") {
