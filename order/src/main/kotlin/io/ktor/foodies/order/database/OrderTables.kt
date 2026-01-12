@@ -1,6 +1,6 @@
 package io.ktor.foodies.order.database
 
-import io.ktor.foodies.order.domain.CardType
+import io.ktor.foodies.order.domain.CardBrand
 import io.ktor.foodies.order.domain.OrderStatus
 import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.*
@@ -12,7 +12,7 @@ import org.jetbrains.exposed.v1.json.jsonb
 
 object PaymentMethods : LongIdTable("payment_methods") {
     val buyerId = varchar("buyer_id", 255)
-    val cardType = enumerationByName("card_type", 50, CardType::class)
+    val cardType = enumerationByName("card_type", 50, CardBrand::class)
     val cardHolderName = varchar("card_holder_name", 255)
     val cardNumberMasked = varchar("card_number_masked", 4)
     val expirationMonth = integer("expiration_month")
