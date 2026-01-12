@@ -176,18 +176,8 @@ This document breaks down the implementation of the Health Check Specification i
 - [ ] Write test that `/healthz/readiness` returns 200 OK when menu service is healthy
 - [ ] Write test that `/healthz/readiness` returns 503 when menu service is unavailable
 
-### Task 7.5: Manual Testing in Local Environment
-- [ ] Start all services locally (menu, profile, webapp)
-- [ ] Test `curl http://localhost:8082/healthz/startup` returns 200
-- [ ] Test `curl http://localhost:8082/healthz/liveness` returns 200 with verbose JSON
-- [ ] Test `curl http://localhost:8082/healthz/readiness` returns 200 with database status
-- [ ] Repeat above tests for profile (port 8081) and webapp (port 8080)
-- [ ] Stop PostgreSQL container and verify readiness endpoints return 503
-- [ ] Restart PostgreSQL and verify readiness endpoints return 200 again
-
 ### Task 7.6: Kubernetes Probe Testing
-- [ ] Build and tag Docker images for all three services
-- [ ] Deploy to local Kubernetes cluster (minikube/kind/docker-desktop)
+- [ ] Deploy to local Kubernetes cluster (docker-desktop)
 - [ ] Verify pods reach "Ready" state within 60 seconds
 - [ ] Check pod events: `kubectl describe pod -n foodies -l app=menu`
 - [ ] Verify no CrashLoopBackOff during startup
