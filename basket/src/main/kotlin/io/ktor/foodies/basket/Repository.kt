@@ -2,6 +2,7 @@ package io.ktor.foodies.basket
 
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
+import io.lettuce.core.api.StatefulRedisConnection
 import io.lettuce.core.api.coroutines
 import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 import kotlinx.serialization.json.Json
@@ -40,7 +41,7 @@ class RedisBasketRepository(
  * and the coroutine-based commands interface.
  */
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-fun createRedisClient(config: RedisConfig): Pair<RedisClient, RedisCoroutinesCommands<String, String>> {
+fun createRedisClient(config: RedisConfig): Pair<RedisClient, StatefulRedisConnection<String, String>> {
     val redisUri = if (config.password.isBlank()) {
         "redis://${config.host}:${config.port}"
     } else {
@@ -48,7 +49,7 @@ fun createRedisClient(config: RedisConfig): Pair<RedisClient, RedisCoroutinesCom
     }
     val client = RedisClient.create(redisUri)
     val connection = client.connect()
-    return client to connection.coroutines()
+    return client to connection
 }
 
 /**

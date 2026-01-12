@@ -1,8 +1,12 @@
 package io.ktor.foodies.basket
 
+import com.sksamuel.cohort.HealthCheckRegistry
+import com.sksamuel.cohort.healthcheck.http.EndpointHealthCheck
+import com.sksamuel.cohort.lettuce.RedisHealthCheck
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.get
 import io.ktor.foodies.basket.events.OrderCreatedEvent
 import io.ktor.foodies.basket.events.orderCreatedEventConsumer
 import io.ktor.foodies.rabbitmq.Consumer
@@ -14,37 +18,33 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
+import io.lettuce.core.api.coroutines
+import kotlinx.coroutines.Dispatchers
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 data class BasketModule(
     val basketService: BasketService,
-    val consumers: List<Consumer>
+    val consumers: List<Consumer>,
+    val readinessCheck: HealthCheckRegistry
 )
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun Application.module(config: Config): BasketModule {
-    // Create HTTP client for Menu service
     val httpClient = HttpClient(CIO) {
         install(ContentNegotiation) { json() }
     }
-    monitor.subscribe(ApplicationStopped) {
-        httpClient.close()
-    }
+    monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
-    // Create Menu client
     val menuClient = HttpMenuClient(httpClient, config.menu.baseUrl)
 
-    // Create Redis client
     val (redisClient, redisCommands) = createRedisClient(config.redis)
-    monitor.subscribe(ApplicationStopped) {
-        redisClient.shutdown()
-    }
+    monitor.subscribe(ApplicationStopped) { redisClient.shutdown() }
 
-    // Create repository and service
-    val basketRepository = RedisBasketRepository(redisCommands)
+    val basketRepository = RedisBasketRepository(redisCommands.coroutines())
     val basketService = BasketServiceImpl(basketRepository, menuClient)
 
-    // Create RabbitMQ consumer for OrderCreatedEvent
     val rabbitConfig = RabbitConfig(
         host = config.rabbit.host,
         port = config.rabbit.port,
@@ -58,8 +58,14 @@ fun Application.module(config: Config): BasketModule {
         basketRepository
     )
 
+    val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
+        register(RedisHealthCheck(redisCommands), Duration.ZERO, 5.seconds)
+        register("menu-service", EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") })
+    }
+
     return BasketModule(
         basketService = basketService,
-        consumers = listOf(orderCreatedConsumer)
+        consumers = listOf(orderCreatedConsumer),
+        readinessCheck = readinessCheck
     )
 }
