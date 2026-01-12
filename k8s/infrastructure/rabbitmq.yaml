@@ -49,6 +49,37 @@ spec:
                 secretKeyRef:
                   name: rabbitmq-credentials
                   key: RABBITMQ_PASSWORD
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "200m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          startupProbe:
+            exec:
+              command:
+                - rabbitmq-diagnostics
+                - ping
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 60
+          livenessProbe:
+            exec:
+              command:
+                - rabbitmq-diagnostics
+                - ping
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - rabbitmq-diagnostics
+                - check_running
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           volumeMounts:
             - name: data
               mountPath: /var/lib/rabbitmq

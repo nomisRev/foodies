@@ -63,6 +63,8 @@ spec:
               value: "true"
             - name: KC_HTTP_RELATIVE_PATH
               value: "/auth"
+            - name: KC_HTTP_MANAGEMENT_RELATIVE_PATH
+              value: "/"
             - name: KC_PROXY_HEADERS
               value: "xforwarded"
             - name: KC_BOOTSTRAP_ADMIN_USERNAME
@@ -108,6 +110,34 @@ spec:
           ports:
             - containerPort: 8000
               name: http
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "200m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          startupProbe:
+            httpGet:
+              path: /health/started
+              port: 9000
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 60
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 9000
+            periodSeconds: 30
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 9000
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
           volumeMounts:
             - name: realm-import
               mountPath: /opt/keycloak/data/import
