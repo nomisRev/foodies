@@ -17,7 +17,7 @@ metadata:
   name: profile
   namespace: foodies
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: profile
@@ -33,6 +33,34 @@ spec:
           ports:
             - containerPort: 8081
               name: http
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          startupProbe:
+            httpGet:
+              path: /healthz/startup
+              port: 8081
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz/liveness
+              port: 8081
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz/readiness
+              port: 8081
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
           env:
             - name: HOST
               value: "0.0.0.0"
