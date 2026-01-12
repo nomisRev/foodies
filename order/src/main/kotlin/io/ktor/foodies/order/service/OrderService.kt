@@ -36,6 +36,8 @@ interface OrderService {
     suspend fun getOrder(id: Long, buyerId: String): Order
     suspend fun cancelOrder(id: Long, buyerId: String, reason: String): Order
     suspend fun shipOrder(id: Long): Order
+    suspend fun setStockConfirmed(id: Long): Order
+    suspend fun cancelOrderDueToStockRejection(id: Long, reason: String): Order
 }
 
 class DefaultOrderService(
@@ -173,6 +175,59 @@ class DefaultOrderService(
             changedAt = now
         )
         eventPublisher.publish(event)
+        return updatedOrder
+    }
+    
+    override suspend fun setStockConfirmed(id: Long): Order {
+        val order = orderRepository.findById(id) ?: throw OrderNotFoundException(id)
+        if (order.status != OrderStatus.AwaitingValidation) {
+            throw IllegalArgumentException("Order must be AwaitingValidation to be stock confirmed. Current status: ${order.status}")
+        }
+
+        val oldStatus = order.status
+        val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        val updatedOrder = orderRepository.update(order.copy(status = OrderStatus.StockConfirmed, updatedAt = now))
+
+        val event = OrderStatusChangedEvent(
+            orderId = updatedOrder.id,
+            buyerId = updatedOrder.buyerId,
+            oldStatus = oldStatus,
+            newStatus = OrderStatus.StockConfirmed,
+            description = "Stock confirmed by menu service",
+            changedAt = now
+        )
+        eventPublisher.publish(event)
+        return updatedOrder
+    }
+
+    override suspend fun cancelOrderDueToStockRejection(id: Long, reason: String): Order {
+        val order = orderRepository.findById(id) ?: throw OrderNotFoundException(id)
+        if (order.status != OrderStatus.AwaitingValidation) {
+             throw IllegalArgumentException("Order must be AwaitingValidation to be cancelled due to stock rejection. Current status: ${order.status}")
+        }
+
+        val oldStatus = order.status
+        val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        val updatedOrder = orderRepository.update(order.copy(status = OrderStatus.Cancelled, description = reason, updatedAt = now))
+
+        val cancelledEvent = OrderCancelledEvent(
+            orderId = updatedOrder.id,
+            buyerId = updatedOrder.buyerId,
+            reason = reason,
+            cancelledAt = now
+        )
+        eventPublisher.publish(cancelledEvent)
+
+        val statusChangedEvent = OrderStatusChangedEvent(
+            orderId = updatedOrder.id,
+            buyerId = updatedOrder.buyerId,
+            oldStatus = oldStatus,
+            newStatus = OrderStatus.Cancelled,
+            description = reason,
+            changedAt = now
+        )
+        eventPublisher.publish(statusChangedEvent)
+
         return updatedOrder
     }
 

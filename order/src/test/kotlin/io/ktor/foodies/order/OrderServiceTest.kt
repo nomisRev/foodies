@@ -39,6 +39,26 @@ class OrderServiceTest {
             }
             return PaginatedOrders(summaries, filtered.size.toLong(), offset, limit)
         }
+        override fun findAll(
+            offset: Long,
+            limit: Int,
+            status: OrderStatus?,
+            buyerId: String?
+        ): PaginatedOrders {
+            val filtered = orders.filter { (buyerId == null || it.buyerId == buyerId) && (status == null || it.status == status) }
+            val sorted = filtered.sortedByDescending { it.createdAt }
+            val paged = sorted.drop(offset.toInt()).take(limit)
+            val summaries = paged.map {
+                OrderSummary(
+                    id = it.id,
+                    status = it.status,
+                    totalPrice = it.totalPrice,
+                    itemCount = it.items.sumOf { item -> item.quantity },
+                    createdAt = it.createdAt
+                )
+            }
+            return PaginatedOrders(summaries, filtered.size.toLong(), offset, limit)
+        }
         override fun create(order: CreateOrder): Order {
             val newOrder = Order(
                 id = (orders.size + 1).toLong(),

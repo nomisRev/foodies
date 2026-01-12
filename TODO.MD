@@ -11,4 +11,6 @@
     - [x] Implement `PUT /admin/orders/{orderId}/ship` in `AdminRoutes.kt`
     - [x] Register `AdminRoutes` in `App.kt`
 - [x] Implement `GET /admin/orders` (List all orders (admin view with filtering)) as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
-- [ ] Implement `GET /healthz/ready` (Readiness check) as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [x] Implement `GET /healthz/ready` (Readiness check) as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [x] Implement `StockConfirmedEvent` and `StockRejectedEvent` handlers as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)
+- [ ] Implement `OrderAwaitingValidationEvent` emission as defined in [specs/ORDER_SPEC.md](specs/ORDER_SPEC.md)

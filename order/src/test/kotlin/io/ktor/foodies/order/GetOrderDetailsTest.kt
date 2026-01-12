@@ -28,6 +28,14 @@ class GetOrderDetailsTest {
         ): PaginatedOrders {
             return PaginatedOrders(emptyList(), 0, offset, limit)
         }
+        override fun findAll(
+            offset: Long,
+            limit: Int,
+            status: OrderStatus?,
+            buyerId: String?
+        ): PaginatedOrders {
+            return PaginatedOrders(emptyList(), 0, offset, limit)
+        }
         override fun create(order: CreateOrder): Order {
             val newOrder = Order(
                 id = (orders.size + 1).toLong(),
