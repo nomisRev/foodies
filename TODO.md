@@ -15,4 +15,10 @@
 - [x] Create `payment/src/main/kotlin/io/ktor/foodies/payment/Repository.kt` with `PaymentRepository` interface and implementation
 
 ### Task 1.4: External Payment Gateway
-- [ ] Implement `PaymentGateway` interface and `SimulatedPaymentGateway`
+- [x] Implement `PaymentGateway` interface and `SimulatedPaymentGateway`
+
+## Phase 2: Service Layer and Events
+
+### Task 2.1: Implement Payment Service
+- [ ] Create `PaymentService` interface and implementation in `payment/src/main/kotlin/io/ktor/foodies/payment/Service.kt`
+- [ ] Implement idempotency logic and gateway integration
