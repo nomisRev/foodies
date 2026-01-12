@@ -4,7 +4,7 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.serialization)
     alias(libs.plugins.testballoon)
-    id("com.gradleup.shadow") version "9.3.1"
+    alias(libs.plugins.shadow)
 }
 
 kotlin {
