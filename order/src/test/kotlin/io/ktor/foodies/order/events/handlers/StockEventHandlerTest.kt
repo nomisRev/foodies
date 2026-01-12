@@ -33,6 +33,7 @@ class StockEventHandlerTest {
         override suspend fun publish(event: OrderCreatedEvent) { events.add(event) }
         override suspend fun publish(event: OrderCancelledEvent) { events.add(event) }
         override suspend fun publish(event: OrderStatusChangedEvent) { events.add(event) }
+        override suspend fun publish(event: OrderAwaitingValidationEvent) { events.add(event) }
     }
 
     private val fakeBasketClient = object : BasketClient {

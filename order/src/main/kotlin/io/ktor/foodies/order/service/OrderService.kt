@@ -35,6 +35,7 @@ interface OrderService {
 
     suspend fun getOrder(id: Long, buyerId: String): Order
     suspend fun cancelOrder(id: Long, buyerId: String, reason: String): Order
+    suspend fun transitionToAwaitingValidation(id: Long): Order
     suspend fun shipOrder(id: Long): Order
     suspend fun setStockConfirmed(id: Long): Order
     suspend fun cancelOrderDueToStockRejection(id: Long, reason: String): Order
@@ -45,6 +46,11 @@ class DefaultOrderService(
     private val basketClient: BasketClient,
     private val eventPublisher: OrderEventPublisher,
 ) : OrderService {
+    private var gracePeriodService: GracePeriodService? = null
+
+    fun setGracePeriodService(service: GracePeriodService) {
+        this.gracePeriodService = service
+    }
     override suspend fun createOrder(
         requestId: String,
         buyerId: String,
@@ -91,6 +97,8 @@ class DefaultOrderService(
             createdAt = order.createdAt
         )
         eventPublisher.publish(event)
+
+        gracePeriodService?.scheduleGracePeriodExpiration(order.id)
 
         return order
     }
@@ -144,6 +152,36 @@ class DefaultOrderService(
             oldStatus = oldStatus,
             newStatus = OrderStatus.Cancelled,
             description = reason,
+            changedAt = now
+        )
+        eventPublisher.publish(statusChangedEvent)
+
+        return updatedOrder
+    }
+
+    override suspend fun transitionToAwaitingValidation(id: Long): Order {
+        val order = orderRepository.findById(id) ?: throw OrderNotFoundException(id)
+        if (order.status != OrderStatus.Submitted) {
+            return order // Already transitioned or cancelled
+        }
+
+        val oldStatus = order.status
+        val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        val updatedOrder = orderRepository.update(order.copy(status = OrderStatus.AwaitingValidation, updatedAt = now))
+
+        val awaitingValidationEvent = OrderAwaitingValidationEvent(
+            orderId = updatedOrder.id,
+            buyerId = updatedOrder.buyerId,
+            items = updatedOrder.items.map { StockValidationItem(it.menuItemId, it.quantity) }
+        )
+        eventPublisher.publish(awaitingValidationEvent)
+
+        val statusChangedEvent = OrderStatusChangedEvent(
+            orderId = updatedOrder.id,
+            buyerId = updatedOrder.buyerId,
+            oldStatus = oldStatus,
+            newStatus = OrderStatus.AwaitingValidation,
+            description = "Order moved to AwaitingValidation after grace period",
             changedAt = now
         )
         eventPublisher.publish(statusChangedEvent)
