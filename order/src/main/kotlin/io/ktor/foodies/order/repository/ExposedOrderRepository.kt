@@ -8,6 +8,7 @@ import io.ktor.foodies.order.domain.*
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
+import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.insertReturning
 import org.jetbrains.exposed.v1.jdbc.selectAll
@@ -142,9 +143,23 @@ class ExposedOrderRepository(private val database: Database) : OrderRepository {
     override fun update(order: Order): Order = transaction(database) {
         Orders.update({ Orders.id eq order.id }) {
             it[status] = order.status
+            it[totalPrice] = order.totalPrice
             it[description] = order.description
             it[updatedAt] = order.updatedAt
         }
+
+        // Handle OrderItems updates for partial fulfillment
+        val currentItemIds = order.items.map { it.id }
+        OrderItems.deleteWhere { (OrderItems.orderId eq order.id) and (OrderItems.id notInList currentItemIds) }
+
+        order.items.forEach { item ->
+            OrderItems.update({ OrderItems.id eq item.id }) {
+                it[quantity] = item.quantity
+                it[unitPrice] = item.unitPrice
+                it[discount] = item.discount
+            }
+        }
+
         OrderHistory.insert {
             it[orderId] = order.id
             it[status] = order.status
