@@ -10,13 +10,13 @@
 ## Configuration & Fixtures
 - [x] Implement `com.foodies.e2e.config.TestConfig` for environment-based settings
 - [x] Implement `com.foodies.e2e.config.PlaywrightFixtures` for Playwright resource management
-- [ ] Implement `com.foodies.e2e.fixtures.MenuData` with test menu items
-- [ ] Implement `com.foodies.e2e.fixtures.UserData` with test user credentials
+- [x] Implement `com.foodies.e2e.fixtures.MenuData` with test menu items
+- [x] Implement `com.foodies.e2e.fixtures.UserData` with test user credentials
 
 ## Utility Helpers
-- [ ] Implement `com.foodies.e2e.utils.HtmxHelpers` for waiting on HTMX swaps
-- [ ] Implement `com.foodies.e2e.utils.ApiHelpers` for backend interactions
-- [ ] Implement `com.foodies.e2e.utils.TestHelpers` for screenshots and scrolling
+- [x] Implement `com.foodies.e2e.utils.HtmxHelpers` for waiting on HTMX swaps
+- [x] Implement `com.foodies.e2e.utils.ApiHelpers` for backend interactions
+- [x] Implement `com.foodies.e2e.utils.TestHelpers` for screenshots and scrolling
 
 ## Authentication Tests
 - [ ] Implement `com.foodies.e2e.setup.AuthSetup` to capture login session state
