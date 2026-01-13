@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.menu
+package io.ktor.foodies.server.htmx.menu
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
