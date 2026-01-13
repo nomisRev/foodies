@@ -2,13 +2,11 @@ package io.ktor.foodies.order.database
 
 import io.ktor.foodies.order.domain.CardBrand
 import io.ktor.foodies.order.domain.OrderStatus
-import kotlinx.serialization.json.Json
 import org.jetbrains.exposed.v1.core.*
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
 import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.datetime.timestamp
-import org.jetbrains.exposed.v1.json.jsonb
 
 object PaymentMethods : LongIdTable("payment_methods") {
     val buyerId = varchar("buyer_id", 255)
@@ -58,13 +56,4 @@ object OrderHistory : LongIdTable("order_history") {
     val status = enumerationByName("status", 50, OrderStatus::class)
     val description = text("description").nullable()
     val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
-}
-
-object ProcessedRequests : Table("processed_requests") {
-    val requestId = uuid("request_id")
-    val commandType = varchar("command_type", 100)
-    val result = jsonb<String>("result", Json.Default).nullable()
-    val createdAt = timestamp("created_at").defaultExpression(CurrentTimestamp)
-
-    override val primaryKey = PrimaryKey(requestId)
 }

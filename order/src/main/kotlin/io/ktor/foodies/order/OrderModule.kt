@@ -8,7 +8,6 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientCon
 import io.ktor.foodies.order.client.HttpBasketClient
 import io.ktor.foodies.order.events.OrderEventConsumer
 import io.ktor.foodies.order.events.handlers.*
-import io.ktor.foodies.order.repository.ExposedIdempotencyRepository
 import io.ktor.foodies.order.repository.ExposedOrderRepository
 import io.ktor.foodies.order.service.*
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
@@ -74,9 +73,7 @@ fun Application.module(config: Config): OrderModule {
         "order.stock-returned"
     )
     val orderRepository = ExposedOrderRepository(dataSource.database)
-    val idempotencyRepository = ExposedIdempotencyRepository(dataSource.database)
-    val idempotencyService = IdempotencyService(idempotencyRepository)
-    val orderService = DefaultOrderService(orderRepository, basketClient, eventPublisher, idempotencyService)
+    val orderService = DefaultOrderService(orderRepository, basketClient, eventPublisher)
     val gracePeriodService = GracePeriodService(config.order, orderService, this)
     orderService.setGracePeriodService(gracePeriodService)
 

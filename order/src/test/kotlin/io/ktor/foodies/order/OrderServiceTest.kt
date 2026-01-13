@@ -153,6 +153,44 @@ val orderServiceSpec by testSuite {
         assertEquals(OrderStatus.Cancelled, ctx.eventPublisher.statusChangedEvents[0].newStatus)
     }
 
+    test("should return existing order when cancelling already cancelled order") {
+        val ctx = createTestContext()
+        ctx.basketClient.basket = CustomerBasket(
+            buyerId = "buyer-1",
+            items = listOf(
+                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+            )
+        )
+
+        val request = CreateOrderRequest(
+            street = "Street",
+            city = "City",
+            state = "State",
+            country = "Country",
+            zipCode = "12345",
+            paymentDetails = PaymentDetails(
+                cardType = CardBrand.VISA,
+                cardNumber = "1234567812345678",
+                cardHolderName = "John Doe",
+                cardSecurityNumber = "123",
+                expirationMonth = 12,
+                expirationYear = 2030
+            )
+        )
+
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+
+        // Manually set status to Cancelled
+        val cancelledOrder = order.copy(status = OrderStatus.Cancelled)
+        ctx.orderRepository.update(cancelledOrder)
+
+        val result = ctx.service.cancelOrder(UUID.randomUUID(), order.id, "buyer-1", "Reason")
+
+        assertEquals(OrderStatus.Cancelled, result.status)
+        assertEquals(0, ctx.eventPublisher.cancelledEvents.size)
+        assertEquals(0, ctx.eventPublisher.statusChangedEvents.size)
+    }
+
     test("should ship order and publish event") {
         val ctx = createTestContext()
         ctx.basketClient.basket = CustomerBasket(
@@ -191,6 +229,44 @@ val orderServiceSpec by testSuite {
         assertEquals(1, ctx.eventPublisher.statusChangedEvents.size)
         assertEquals(OrderStatus.Paid, ctx.eventPublisher.statusChangedEvents[0].oldStatus)
         assertEquals(OrderStatus.Shipped, ctx.eventPublisher.statusChangedEvents[0].newStatus)
+    }
+
+    test("should return existing order when shipping already shipped order") {
+        val ctx = createTestContext()
+        ctx.basketClient.basket = CustomerBasket(
+            buyerId = "buyer-1",
+            items = listOf(
+                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+            )
+        )
+
+        val request = CreateOrderRequest(
+            street = "Street",
+            city = "City",
+            state = "State",
+            country = "Country",
+            zipCode = "12345",
+            paymentDetails = PaymentDetails(
+                cardType = CardBrand.VISA,
+                cardNumber = "1234567812345678",
+                cardHolderName = "John Doe",
+                cardSecurityNumber = "123",
+                expirationMonth = 12,
+                expirationYear = 2030
+            )
+        )
+
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+
+        // Manually set status to Shipped
+        val shippedOrder = order.copy(status = OrderStatus.Shipped)
+        ctx.orderRepository.update(shippedOrder)
+
+        val result = ctx.service.shipOrder(UUID.randomUUID(), order.id)
+
+        assertNotNull(result)
+        assertEquals(OrderStatus.Shipped, result.status)
+        assertEquals(0, ctx.eventPublisher.statusChangedEvents.size)
     }
 
     test("should throw error if shipping order that is not paid") {
