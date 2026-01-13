@@ -16,6 +16,7 @@ dependencies {
     implementation(ktorLibs.client.core)
     implementation(ktorLibs.client.cio)
     implementation(libs.logback)
+    testImplementation(kotlin("test"))
 }
 
 tasks.test {
