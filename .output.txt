@@ -39,22 +39,26 @@ fixtures
 utils
 
 e2e/build/classes/kotlin/main/com/foodies/e2e/config:
-PlaywrightFixtures$browser$1.class
-PlaywrightFixtures$browser$2.class
-PlaywrightFixtures$context$1.class
-PlaywrightFixtures$context$2.class
-PlaywrightFixtures$page$1.class
-PlaywrightFixtures$page$2.class
-PlaywrightFixtures$playwright$1.class
-PlaywrightFixtures$playwright$2.class
-PlaywrightFixtures.class
+AppBrowserType.class
+PlaywrightFixturesKt$authenticatedContextFixture$1.class
+PlaywrightFixturesKt$authenticatedContextFixture$2.class
+PlaywrightFixturesKt$browserFixture$1$WhenMappings.class
+PlaywrightFixturesKt$browserFixture$1.class
+PlaywrightFixturesKt$browserFixture$2.class
+PlaywrightFixturesKt$pageFixture$1.class
+PlaywrightFixturesKt$pageFixture$2.class
+PlaywrightFixturesKt$playwrightFixture$1.class
+PlaywrightFixturesKt$playwrightFixture$2.class
+PlaywrightFixturesKt$unauthenticatedContextFixture$1.class
+PlaywrightFixturesKt$unauthenticatedContextFixture$2.class
+PlaywrightFixturesKt.class
 TestConfig$Companion.class
 TestConfig.class
 
 e2e/build/classes/kotlin/main/com/foodies/e2e/fixtures:
 MenuData.class
-MenuItem.class
-User.class
+TestMenuItem.class
+TestUser.class
 UserData.class
 
 e2e/build/classes/kotlin/main/com/foodies/e2e/utils:
@@ -172,6 +176,13 @@ internal-name-to-source.tab.len
 internal-name-to-source.tab.values.at
 internal-name-to-source.tab_i
 internal-name-to-source.tab_i.len
+package-parts.tab
+package-parts.tab.keystream
+package-parts.tab.keystream.len
+package-parts.tab.len
+package-parts.tab.values.at
+package-parts.tab_i
+package-parts.tab_i.len
 proto.tab
 proto.tab.keystream
 proto.tab.keystream.len
@@ -186,6 +197,20 @@ source-to-classes.tab.len
 source-to-classes.tab.values.at
 source-to-classes.tab_i
 source-to-classes.tab_i.len
+subtypes.tab
+subtypes.tab.keystream
+subtypes.tab.keystream.len
+subtypes.tab.len
+subtypes.tab.values.at
+subtypes.tab_i
+subtypes.tab_i.len
+supertypes.tab
+supertypes.tab.keystream
+supertypes.tab.keystream.len
+supertypes.tab.len
+supertypes.tab.values.at
+supertypes.tab_i
+supertypes.tab_i.len
 
 e2e/build/kotlin/compileKotlin/cacheable/caches-jvm/lookups:
 counters.tab
@@ -352,6 +377,22 @@ e2e/src/main/kotlin/com/foodies:
 e2e
 
 e2e/src/main/kotlin/com/foodies/e2e:
+config
+fixtures
+utils
+
+e2e/src/main/kotlin/com/foodies/e2e/config:
+PlaywrightFixtures.kt
+TestConfig.kt
+
+e2e/src/main/kotlin/com/foodies/e2e/fixtures:
+MenuData.kt
+UserData.kt
+
+e2e/src/main/kotlin/com/foodies/e2e/utils:
+ApiHelpers.kt
+HtmxHelpers.kt
+TestHelpers.kt
 
 e2e/src/test:
 kotlin
