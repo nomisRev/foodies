@@ -32,6 +32,7 @@ val menuServiceSpec by testSuite {
                         description = "Description $it",
                         imageUrl = "https://example.com/$it.jpg",
                         price = BigDecimal("1.00"),
+                        stock = 10,
                     )
                 )
             }
@@ -55,13 +56,15 @@ val menuServiceSpec by testSuite {
                         description = "",
                         imageUrl = " ",
                         price = BigDecimal.ZERO,
+                        stock = -1,
                     )
                 )
             }
             // Kova collects all validation errors
-            assertTrue(validationError.reasons.size >= 4, "Expected at least 4 validation errors")
+            assertTrue(validationError.reasons.size >= 5, "Expected at least 5 validation errors")
             assertTrue(validationError.reasons.any { it.contains("blank") || it.contains("not be empty") })
             assertTrue(validationError.reasons.any { it.contains("greater") || it.contains("must be more than") })
+            assertTrue(validationError.reasons.any { it.contains("stock") })
 
             val created = service().create(
                 CreateMenuItemRequest(
@@ -69,6 +72,7 @@ val menuServiceSpec by testSuite {
                     description = "Juicy",
                     imageUrl = "https://example.com/burger.jpg",
                     price = BigDecimal("11.50"),
+                    stock = 10,
                 )
             )
 
@@ -77,12 +81,14 @@ val menuServiceSpec by testSuite {
                 UpdateMenuItemRequest(
                     name = "Updated Burger",
                     price = BigDecimal("12.00"),
+                    stock = 5,
                 )
             )
 
             assertNotNull(updated)
             assertEquals("Updated Burger", updated.name)
             assertEquals(BigDecimal("12.00"), updated.price)
+            assertEquals(5, updated.stock)
             assertEquals(updated, repository().findById(created.id))
 
             assertTrue(service().delete(created.id))
