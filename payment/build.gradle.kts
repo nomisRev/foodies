@@ -30,6 +30,7 @@ dependencies {
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.server.metrics.micrometer)
 
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.datetime)
@@ -44,6 +45,10 @@ dependencies {
     implementation(project(":keycloak-events"))
 
     implementation(libs.logback)
+
+    // Metrics
+    implementation(libs.micrometer.core)
+    implementation(libs.micrometer.prometheus)
 
     implementation(libs.cohort.ktor)
     implementation(libs.cohort.hikari)

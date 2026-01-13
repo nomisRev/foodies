@@ -31,6 +31,7 @@ dependencies {
     implementation(ktorLibs.server.auth.jwt)
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.server.metrics.micrometer)
 
     implementation(ktorLibs.server.htmlBuilder)
     implementation(ktorLibs.server.htmx)
@@ -38,6 +39,10 @@ dependencies {
     implementation(ktorLibs.serialization.kotlinx.json)
 
     implementation(libs.logback)
+
+    // Metrics
+    implementation(libs.micrometer.core)
+    implementation(libs.micrometer.prometheus)
 
     api(libs.cohort.ktor)
     api(libs.cohort.hikari)

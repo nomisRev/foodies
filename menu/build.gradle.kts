@@ -26,11 +26,16 @@ dependencies {
 
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.server.metrics.micrometer)
     implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.serialization.kotlinx.json)
 
     implementation(libs.logback)
+
+    // Metrics
+    implementation(libs.micrometer.core)
+    implementation(libs.micrometer.prometheus)
 
     implementation(libs.serialization.json)
 

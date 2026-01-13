@@ -20,6 +20,7 @@ dependencies {
     implementation(ktorLibs.server.auth.jwt)
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.server.metrics.micrometer)
 
     implementation(ktorLibs.server.htmlBuilder)
     implementation(ktorLibs.server.htmx)
@@ -32,6 +33,10 @@ dependencies {
     implementation(libs.hikari)
     implementation(libs.exposed.jdbc)
     implementation(libs.flyway.postgresql)
+
+    // Metrics
+    implementation(libs.micrometer.core)
+    implementation(libs.micrometer.prometheus)
 
     testImplementation(project(":server-shared-test"))
     testImplementation(ktorLibs.server.testHost)

@@ -28,6 +28,7 @@ dependencies {
 
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.server.metrics.micrometer)
     implementation(libs.logback)
 
     implementation(libs.serialization.json)
@@ -36,6 +37,10 @@ dependencies {
     implementation(libs.hikari)
     implementation(libs.exposed.jdbc)
     implementation(libs.flyway.postgresql)
+
+    // Metrics
+    implementation(libs.micrometer.core)
+    implementation(libs.micrometer.prometheus)
 
     implementation(libs.cohort.rabbit)
     api(libs.cohort.ktor)
