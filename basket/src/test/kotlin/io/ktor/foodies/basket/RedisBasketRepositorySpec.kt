@@ -13,6 +13,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalLettuceCoroutinesApi::class)
 @TestRegistering
 context(ctx: ServiceContext)
 fun TestSuite.testRedis(
