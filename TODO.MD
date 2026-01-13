@@ -23,8 +23,8 @@
 - [x] Document configuration options
 
 ## Phase 5: Testing
-- [ ] Write unit tests for `RedisSessionStorage`
-- [ ] Write integration tests with TestContainers
+- [x] Write unit tests for `RedisSessionStorage`
+- [x] Write integration tests with TestContainers
 - [ ] Test session persistence across pod restarts
 - [ ] Test concurrent session access from multiple replicas
 - [ ] Load test with multiple WebApp replicas
