@@ -19,7 +19,7 @@
 - [x] Implement `com.foodies.e2e.utils.TestHelpers` for screenshots and scrolling
 
 ## Authentication Tests
-- [ ] Implement `com.foodies.e2e.setup.AuthSetup` to capture login session state
+- [x] Implement `com.foodies.e2e.setup.AuthSetup` to capture login session state
 - [ ] Implement `com.foodies.e2e.htmx.auth.LogoutTest` to verify logout flow
 
 ## Menu Tests
