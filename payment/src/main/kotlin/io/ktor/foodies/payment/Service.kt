@@ -3,7 +3,7 @@ package io.ktor.foodies.payment
 import io.ktor.foodies.payment.gateway.ChargeRequest
 import io.ktor.foodies.payment.gateway.GatewayResult
 import io.ktor.foodies.payment.gateway.PaymentGateway
-import java.math.BigDecimal
+import io.ktor.foodies.server.SerializableBigDecimal
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -30,7 +30,7 @@ data class ProcessPaymentRequest(
     val eventId: String,                           // For idempotency
     val orderId: Long,
     val buyerId: String,
-    val amount: BigDecimal,
+    val amount: SerializableBigDecimal,
     val currency: String,
     val paymentMethod: PaymentMethodInfo
 )

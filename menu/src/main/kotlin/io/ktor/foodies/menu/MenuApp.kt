@@ -2,6 +2,7 @@ package io.ktor.foodies.menu
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
+import com.sksamuel.cohort.HealthCheckRegistry.Companion.invoke
 import com.sksamuel.cohort.threads.ThreadDeadlockHealthCheck
 import io.ktor.foodies.server.ValidationException
 import io.ktor.http.HttpStatusCode
@@ -38,7 +39,6 @@ fun Application.app(module: MenuModule) {
 
     install(Cohort) {
         verboseHealthCheckResponse = true
-
         healthcheck("/healthz/startup", HealthCheckRegistry(Dispatchers.Default))
         healthcheck("/healthz/liveness", HealthCheckRegistry(Dispatchers.Default) {
             register(ThreadDeadlockHealthCheck(), Duration.ZERO, 1.minutes)

@@ -5,3 +5,10 @@ config:
     url: "$DB_URL:jdbc:postgresql://localhost:5433/foodies-menu-database"
     username: "$DB_USERNAME:foodies_admin"
     password: "$DB_PASSWORD:foodies_password"
+  rabbit:
+    host: "$RABBITMQ_HOST:localhost"
+    port: "$RABBITMQ_PORT:5672"
+    username: "$RABBITMQ_USERNAME:guest"
+    password: "$RABBITMQ_PASSWORD:guest"
+    exchange: "$RABBITMQ_EXCHANGE:foodies"
+    queue: "$RABBITMQ_QUEUE:menu.stock-validation"
