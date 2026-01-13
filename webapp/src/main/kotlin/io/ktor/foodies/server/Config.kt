@@ -11,7 +11,7 @@ data class Config(
     val security: Security,
     val menu: Menu,
     val basket: Basket,
-    val redis: RedisSessionConfig? = null
+    val redis: RedisSessionConfig
 ) {
     @Serializable
     data class Security(val issuer: String, val clientId: String, val clientSecret: String)
