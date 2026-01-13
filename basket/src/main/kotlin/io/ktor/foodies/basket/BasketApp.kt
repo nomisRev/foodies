@@ -51,9 +51,7 @@ fun Application.app(module: BasketModule) {
         install(Cohort) {
             verboseHealthCheckResponse = true
             healthcheck("/healthz/startup", HealthCheckRegistry(Dispatchers.Default))
-            healthcheck("/healthz/liveness", HealthCheckRegistry(Dispatchers.Default) {
-                register(ThreadDeadlockHealthCheck(), Duration.ZERO, 1.minutes)
-            })
+            healthcheck("/healthz/liveness", HealthCheckRegistry(Dispatchers.Default))
             healthcheck("/healthz/readiness", module.readinessCheck)
         }
         basketRoutes(module.basketService)
