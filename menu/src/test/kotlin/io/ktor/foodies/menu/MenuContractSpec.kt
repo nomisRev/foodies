@@ -22,6 +22,7 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         description = "Fresh salmon roll",
         imageUrl = "https://example.com/salmon-roll.jpg",
         price = BigDecimal("9.50"),
+        stock = 10,
     )
     testMenuService("Create Menu Item") {
         val response = jsonClient().post("/menu") {
@@ -35,6 +36,7 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         assertEquals(item.description, sushi.description)
         assertEquals(item.imageUrl, sushi.imageUrl)
         assertEquals(item.price, sushi.price)
+        assertEquals(item.stock, sushi.stock)
     }
 
     testMenuService("Get created item") {
@@ -93,13 +95,16 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
     listOf(null, "name").flatMap { nameOrNull ->
         listOf(null, "description").flatMap { descriptionOrNull ->
             listOf(null, "imageUrl").flatMap { imageUrlOrNull ->
-                listOf(null, BigDecimal("12.50")).map { priceOrNull ->
-                    UpdateMenuItemRequest(
-                        name = nameOrNull,
-                        description = descriptionOrNull,
-                        imageUrl = imageUrlOrNull,
-                        price = priceOrNull
-                    )
+                listOf(null, BigDecimal("12.50")).flatMap { priceOrNull ->
+                    listOf(null, 20).map { stockOrNull ->
+                        UpdateMenuItemRequest(
+                            name = nameOrNull,
+                            description = descriptionOrNull,
+                            imageUrl = imageUrlOrNull,
+                            price = priceOrNull,
+                            stock = stockOrNull
+                        )
+                    }
                 }
             }
         }
@@ -122,6 +127,7 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
             assertEquals(updateRequest.description ?: created.description, updated.description)
             assertEquals(updateRequest.imageUrl ?: created.imageUrl, updated.imageUrl)
             assertEquals(updateRequest.price ?: created.price, updated.price)
+            assertEquals(updateRequest.stock ?: created.stock, updated.stock)
         }
     }
 
