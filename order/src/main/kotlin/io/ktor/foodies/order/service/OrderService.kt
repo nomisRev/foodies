@@ -46,7 +46,6 @@ class DefaultOrderService(
     private val orderRepository: OrderRepository,
     private val basketClient: BasketClient,
     private val eventPublisher: OrderEventPublisher,
-    private val idempotencyService: IdempotencyService,
 ) : OrderService {
     private var gracePeriodService: GracePeriodService? = null
 
@@ -60,10 +59,10 @@ class DefaultOrderService(
         buyerName: String,
         request: CreateOrderRequest,
         token: String
-    ): Order = idempotencyService.executeIdempotent(requestId, "CreateOrder") {
+    ): Order {
         val existingOrder = orderRepository.findByRequestId(requestId.toString())
         if (existingOrder != null) {
-            return@executeIdempotent existingOrder
+            return existingOrder
         }
 
         val address = request.validate()
@@ -104,7 +103,7 @@ class DefaultOrderService(
 
         gracePeriodService?.scheduleGracePeriodExpiration(order.id)
 
-        order
+        return order
     }
 
     override suspend fun getOrders(
@@ -129,13 +128,13 @@ class DefaultOrderService(
         return GetOrderResult.Success(order)
     }
 
-    override suspend fun cancelOrder(requestId: UUID, id: Long, buyerId: String, reason: String): Order = idempotencyService.executeIdempotent(requestId, "CancelOrder") {
+    override suspend fun cancelOrder(requestId: UUID, id: Long, buyerId: String, reason: String): Order {
         val order = when (val result = getOrder(id, buyerId)) {
             is GetOrderResult.Success -> result.order
             is GetOrderResult.NotFound -> throw IllegalArgumentException("Order not found")
             is GetOrderResult.Forbidden -> throw IllegalArgumentException("Access denied to order")
         }
-        if (order.status == OrderStatus.Cancelled) return@executeIdempotent order
+        if (order.status == OrderStatus.Cancelled) return order
 
         if (order.status !in listOf(OrderStatus.Submitted, OrderStatus.AwaitingValidation, OrderStatus.StockConfirmed)) {
             throw IllegalArgumentException("Cannot cancel order in ${order.status} status")
@@ -178,7 +177,7 @@ class DefaultOrderService(
         )
         eventPublisher.publish(statusChangedEvent)
 
-        updatedOrder
+        return updatedOrder
     }
 
     override suspend fun transitionToAwaitingValidation(id: Long): Order? {
@@ -213,9 +212,9 @@ class DefaultOrderService(
         return updatedOrder
     }
 
-    override suspend fun shipOrder(requestId: UUID, id: Long): Order? = idempotencyService.executeIdempotent(requestId, "ShipOrder") {
-        val order = orderRepository.findById(id) ?: return@executeIdempotent null
-        if (order.status == OrderStatus.Shipped) return@executeIdempotent order
+    override suspend fun shipOrder(requestId: UUID, id: Long): Order? {
+        val order = orderRepository.findById(id) ?: return null
+        if (order.status == OrderStatus.Shipped) return order
         if (order.status != OrderStatus.Paid) {
             throw IllegalArgumentException("Order must be Paid to be shipped. Current status: ${order.status}")
         }
@@ -240,7 +239,7 @@ class DefaultOrderService(
             changedAt = now
         )
         eventPublisher.publish(event)
-        updatedOrder
+        return updatedOrder
     }
     
     override suspend fun setStockConfirmed(id: Long): Order? {
