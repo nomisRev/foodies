@@ -8,7 +8,7 @@ plugins {
 }
 
 application {
-    mainClass.set("io.ktor.foodies.payment.AppKt")
+    mainClass.set("io.ktor.foodies.payment.PaymentAppKt")
 }
 
 kotlin {
