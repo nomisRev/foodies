@@ -1,0 +1,23 @@
+config:
+  host: "$HOST:0.0.0.0"
+  port: "$PORT:8084"
+  auth:
+    issuer: "$AUTH_ISSUER:http://localhost:8000/realms/foodies-keycloak"
+    audience: "$AUTH_AUDIENCE:foodies"
+  database:
+    url: "$DB_URL:jdbc:postgresql://localhost:5433/foodies-order-database"
+    username: "$DB_USERNAME:foodies_admin"
+    password: "$DB_PASSWORD:foodies_password"
+  basket:
+    baseUrl: "$BASKET_BASE_URL:http://localhost:8083"
+  payment:
+    baseUrl: "$PAYMENT_BASE_URL:http://localhost:8085"
+  rabbit:
+    host: "$RABBITMQ_HOST:localhost"
+    port: "$RABBITMQ_PORT:5672"
+    username: "$RABBITMQ_USERNAME:guest"
+    password: "$RABBITMQ_PASSWORD:guest"
+    exchange: "$RABBITMQ_EXCHANGE:foodies.events"
+    routingKey: "$RABBITMQ_ROUTING_KEY:order.created"
+  order:
+    gracePeriodSeconds: "$ORDER_GRACE_PERIOD_SECONDS:60"
