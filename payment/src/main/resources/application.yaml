@@ -1,0 +1,17 @@
+config:
+  host: "$HOST:0.0.0.0"
+  port: "$PORT:8085"
+  data_source:
+    url: "$DB_URL:jdbc:postgresql://localhost:5434/foodies-payment-database"
+    username: "$DB_USERNAME:foodies_admin"
+    password: "$DB_PASSWORD:foodies_password"
+  rabbit:
+    host: "$RABBITMQ_HOST:localhost"
+    port: "$RABBITMQ_PORT:5672"
+    username: "$RABBITMQ_USERNAME:guest"
+    password: "$RABBITMQ_PASSWORD:guest"
+    consume_queue: "$RABBITMQ_CONSUME_QUEUE:payment.stock-confirmed"
+    publish_exchange: "$RABBITMQ_PUBLISH_EXCHANGE:foodies.events"
+  gateway:
+    always_succeed: "$PAYMENT_ALWAYS_SUCCEED:true"
+    processing_delay_ms: "$PAYMENT_DELAY_MS:100"

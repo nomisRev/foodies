@@ -34,6 +34,7 @@ dependencies {
 
     implementation(libs.serialization.json)
 
+    implementation(project(":rabbitmq-ext"))
     implementation(libs.postgresql)
     implementation(libs.hikari)
     implementation(libs.exposed.jdbc)

@@ -14,7 +14,7 @@ data class CustomerBasket(
     val buyerId: String,
     val items: List<BasketItem> = emptyList()
 ) {
-    fun totalPrice(): BigDecimal = items.sumOf { it.unitPrice * it.quantity.toBigDecimal() }
+    fun totalPrice(): SerializableBigDecimal = items.sumOf { it.unitPrice * it.quantity.toBigDecimal() }
 }
 
 /**
@@ -76,7 +76,7 @@ fun createBasketItem(
     menuItemName: String,
     menuItemDescription: String,
     menuItemImageUrl: String,
-    unitPrice: BigDecimal,
+    unitPrice: SerializableBigDecimal,
     quantity: Int
 ): BasketItem = BasketItem(
     id = UUID.randomUUID().toString(),
