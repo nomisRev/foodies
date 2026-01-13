@@ -9,3 +9,8 @@ config:
     baseUrl: "$MENU_BASE_URL:http://localhost:8082"
   basket:
     baseUrl: "$BASKET_BASE_URL:http://localhost:8083"
+  redis:
+    host: "$REDIS_HOST:localhost"
+    port: "$REDIS_PORT:6379"
+    password: "$REDIS_PASSWORD:"
+    ttlSeconds: "$SESSION_TTL_SECONDS:3600"

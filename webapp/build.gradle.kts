@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.testballoon)
 }
 
-application { mainClass = "io.ktor.app.AppKt" }
+application { mainClass = "io.ktor.foodies.server.WebAppKt" }
 
 kotlin {
     jvmToolchain(21)
@@ -38,11 +38,15 @@ dependencies {
     implementation(ktorLibs.serialization.kotlinx.json)
 
     implementation(libs.logback)
+    implementation(libs.lettuce)
+    implementation(libs.cohort.lettuce)
+    implementation(libs.kotlinx.coroutines.reactor)
 
     api(libs.cohort.ktor)
     api(libs.cohort.hikari)
 
     testImplementation(project(":server-shared-test"))
+    testImplementation(libs.testcontainers.redis)
 }
 
 tasks.withType<Test>().configureEach {

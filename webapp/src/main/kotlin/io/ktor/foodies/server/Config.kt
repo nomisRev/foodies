@@ -1,6 +1,5 @@
 package io.ktor.foodies.server
 
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -9,7 +8,8 @@ data class Config(
     val port: Int,
     val security: Security,
     val menu: Menu,
-    val basket: Basket
+    val basket: Basket,
+    val redis: RedisSession
 ) {
     @Serializable
     data class Security(val issuer: String, val clientId: String, val clientSecret: String)
@@ -19,4 +19,12 @@ data class Config(
 
     @Serializable
     data class Basket(val baseUrl: String)
+
+    @Serializable
+    data class RedisSession(
+        val host: String,
+        val port: Int,
+        val password: String = "",
+        val ttlSeconds: Long = 3600
+    )
 }

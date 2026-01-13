@@ -1,18 +1,16 @@
-package io.ktor.foodies.server.cart
+package io.ktor.foodies.server.htmx.cart
 
-import io.ktor.foodies.server.UserSession
-import io.ktor.foodies.server.basket.BasketItem
-import io.ktor.foodies.server.basket.BasketService
-import io.ktor.foodies.server.basket.CustomerBasket
-import io.ktor.foodies.server.respondHtmxFragment
-import io.ktor.http.HttpStatusCode
+import io.ktor.foodies.server.getValue
+import io.ktor.foodies.server.htmx.basket.BasketItem
+import io.ktor.foodies.server.htmx.basket.BasketService
+import io.ktor.foodies.server.htmx.basket.CustomerBasket
+import io.ktor.foodies.server.htmx.respondHtmxFragment
+import io.ktor.foodies.server.security.UserSession
+import io.ktor.foodies.server.security.withUserSession
 import io.ktor.server.application.Application
-import io.ktor.server.auth.authenticate
 import io.ktor.server.html.respondHtml
 import io.ktor.server.htmx.hx
 import io.ktor.server.request.receiveParameters
-import io.ktor.server.response.respond
-import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -25,6 +23,7 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlinx.html.ButtonType
 import kotlinx.html.FlowContent
+import kotlinx.html.HTML
 import kotlinx.html.TagConsumer
 import kotlinx.html.a
 import kotlinx.html.body
@@ -36,7 +35,6 @@ import kotlinx.html.h2
 import kotlinx.html.h3
 import kotlinx.html.head
 import kotlinx.html.header
-import kotlinx.html.hiddenInput
 import kotlinx.html.id
 import kotlinx.html.img
 import kotlinx.html.lang
@@ -53,13 +51,11 @@ import kotlinx.html.title
 @OptIn(ExperimentalKtorApi::class)
 fun Application.cartRoutes(basketService: BasketService) {
     routing {
-        // Cart badge - returns just the badge HTML fragment
         hx {
             get("/cart/badge") {
                 val session = call.sessions.get<UserSession>()
                 val itemCount = if (session != null) {
-                    runCatching { basketService.getBasket(session.idToken).items.sumOf { it.quantity } }
-                        .getOrDefault(0)
+                    runCatching { basketService.getBasket(session.idToken).items.sumOf { it.quantity } }.getOrDefault(0)
                 } else {
                     0
                 }
@@ -67,123 +63,71 @@ fun Application.cartRoutes(basketService: BasketService) {
             }
         }
 
-        // Full cart page - requires authentication
-        authenticate {
+        withUserSession {
             get("/cart") {
-                val session = call.sessions.get<UserSession>()
-                    ?: return@get call.respondRedirect("/login")
-
-                val basket = runCatching { basketService.getBasket(session.idToken) }
-                    .getOrElse { CustomerBasket(buyerId = "", items = emptyList()) }
-
-                call.respondHtml(HttpStatusCode.OK) {
-                    cartPage(basket)
-                }
+                val basket = basketService.getBasket(session().idToken)
+                call.respondHtml { cartPage(basket) }
             }
-        }
 
-        // HTMX-powered cart operations
-        hx {
-            // Add item to cart
-            post("/cart/items") {
-                val session = call.sessions.get<UserSession>()
-                if (session == null) {
-                    // Return redirect header for HTMX to handle
-                    call.response.headers.append("HX-Redirect", "/login")
-                    call.respond(HttpStatusCode.Unauthorized)
-                    return@post
-                }
+            hx {
+                post("/cart/items") {
+                    val session = session()
+                    val form = call.receiveParameters()
+                    val menuItemId: Long by form
+                    val quantity: Int? by form
 
-                val params = call.receiveParameters()
-                val menuItemId = params["menuItemId"]?.toLongOrNull()
-                val quantity = params["quantity"]?.toIntOrNull() ?: 1
-
-                if (menuItemId == null) {
-                    call.respond(HttpStatusCode.BadRequest, "Missing menuItemId")
-                    return@post
-                }
-
-                val result = runCatching { basketService.addItem(session.idToken, menuItemId, quantity) }
-
-                if (result.isSuccess) {
-                    val basket = result.getOrThrow()
+                    val basket = basketService.addItem(session.idToken, menuItemId, quantity ?: 1)
                     val itemCount = basket.items.sumOf { it.quantity }
-                    // Return updated badge with OOB swap
+
                     call.respondHtmxFragment {
                         cartBadgeOob(itemCount)
                         addToCartSuccess()
                     }
-                } else {
-                    call.respond(HttpStatusCode.InternalServerError, "Failed to add item to cart")
                 }
-            }
 
-            // Update item quantity
-            put("/cart/items/{itemId}") {
-                val session = call.sessions.get<UserSession>()
-                    ?: return@put call.respond(HttpStatusCode.Unauthorized)
+                put("/cart/items/{itemId}") {
+                    val session = session()
+                    val itemId: String by call.parameters
+                    val quantity: Int by call.receiveParameters()
 
-                val itemId = call.parameters["itemId"]
-                    ?: return@put call.respond(HttpStatusCode.BadRequest)
+                    val basket = basketService.updateItemQuantity(session.idToken, itemId, quantity)
 
-                val params = call.receiveParameters()
-                val quantity = params["quantity"]?.toIntOrNull()
-                    ?: return@put call.respond(HttpStatusCode.BadRequest, "Invalid quantity")
-
-                val result = runCatching { basketService.updateItemQuantity(session.idToken, itemId, quantity) }
-
-                if (result.isSuccess) {
-                    val basket = result.getOrThrow()
                     call.respondHtmxFragment {
                         cartItemsFragment(basket)
                         cartSummaryOob(basket)
                         cartBadgeOob(basket.items.sumOf { it.quantity })
                     }
-                } else {
-                    call.respond(HttpStatusCode.InternalServerError, "Failed to update item")
                 }
-            }
 
-            // Remove item from cart
-            delete("/cart/items/{itemId}") {
-                val session = call.sessions.get<UserSession>()
-                    ?: return@delete call.respond(HttpStatusCode.Unauthorized)
+                delete("/cart/items/{itemId}") {
+                    val session = session()
+                    val itemId: String by call.parameters
 
-                val itemId = call.parameters["itemId"]
-                    ?: return@delete call.respond(HttpStatusCode.BadRequest)
+                    val basket = basketService.removeItem(session.idToken, itemId)
 
-                val result = runCatching { basketService.removeItem(session.idToken, itemId) }
-
-                if (result.isSuccess) {
-                    val basket = result.getOrThrow()
                     call.respondHtmxFragment {
                         cartItemsFragment(basket)
                         cartSummaryOob(basket)
                         cartBadgeOob(basket.items.sumOf { it.quantity })
                     }
-                } else {
-                    call.respond(HttpStatusCode.InternalServerError, "Failed to remove item")
                 }
-            }
 
-            // Clear entire cart
-            delete("/cart") {
-                val session = call.sessions.get<UserSession>()
-                    ?: return@delete call.respond(HttpStatusCode.Unauthorized)
+                delete("/cart") {
+                    val session = session()
 
-                runCatching { basketService.clearBasket(session.idToken) }
+                    basketService.clearBasket(session.idToken)
 
-                call.respondHtmxFragment {
-                    cartItemsFragment(CustomerBasket(buyerId = "", items = emptyList()))
-                    cartSummaryOob(CustomerBasket(buyerId = "", items = emptyList()))
-                    cartBadgeOob(0)
+                    call.respondHtmxFragment {
+                        cartItemsFragment(CustomerBasket(buyerId = "", items = emptyList()))
+                        cartSummaryOob(CustomerBasket(buyerId = "", items = emptyList()))
+                        cartBadgeOob(0)
+                    }
                 }
             }
         }
     }
 }
 
-// Cart badge component (item count) for TagConsumer (HTMX fragments)
 private fun TagConsumer<*>.cartBadge(itemCount: Int) {
     a(href = "/cart", classes = "cart-link") {
         id = "cart-badge"
@@ -199,7 +143,6 @@ private fun TagConsumer<*>.cartBadge(itemCount: Int) {
     }
 }
 
-// Cart badge for FlowContent (inside HTML body)
 private fun FlowContent.cartBadgeFlow(itemCount: Int) {
     a(href = "/cart", classes = "cart-link") {
         id = "cart-badge"
@@ -215,7 +158,6 @@ private fun FlowContent.cartBadgeFlow(itemCount: Int) {
     }
 }
 
-// Cart badge with OOB swap for HTMX updates
 private fun TagConsumer<*>.cartBadgeOob(itemCount: Int) {
     a(href = "/cart", classes = "cart-link") {
         id = "cart-badge"
@@ -231,7 +173,6 @@ private fun TagConsumer<*>.cartBadgeOob(itemCount: Int) {
     }
 }
 
-// Success feedback after adding to cart
 private fun TagConsumer<*>.addToCartSuccess() {
     div(classes = "toast success") {
         id = "toast"
@@ -240,8 +181,7 @@ private fun TagConsumer<*>.addToCartSuccess() {
     }
 }
 
-// Full cart page HTML
-private fun kotlinx.html.HTML.cartPage(basket: CustomerBasket) {
+private fun HTML.cartPage(basket: CustomerBasket) {
     lang = "en"
     head {
         meta { charset = "utf-8" }
@@ -289,7 +229,6 @@ private fun kotlinx.html.HTML.cartPage(basket: CustomerBasket) {
     }
 }
 
-// Cart items fragment for HTMX swap
 private fun TagConsumer<*>.cartItemsFragment(basket: CustomerBasket) {
     div(classes = "cart-items") {
         id = "cart-items"
@@ -303,7 +242,6 @@ private fun TagConsumer<*>.cartItemsFragment(basket: CustomerBasket) {
     }
 }
 
-// Empty cart state for TagConsumer
 private fun TagConsumer<*>.cartEmpty() {
     div(classes = "cart-empty") {
         h2 { +"Your cart is empty" }
@@ -312,7 +250,6 @@ private fun TagConsumer<*>.cartEmpty() {
     }
 }
 
-// Empty cart state for FlowContent
 private fun FlowContent.cartEmptyFlow() {
     div(classes = "cart-empty") {
         h2 { +"Your cart is empty" }
@@ -321,7 +258,6 @@ private fun FlowContent.cartEmptyFlow() {
     }
 }
 
-// Individual cart item card for TagConsumer
 private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
     div(classes = "cart-item") {
         id = "cart-item-${item.id}"
@@ -378,7 +314,6 @@ private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
     }
 }
 
-// Individual cart item card for FlowContent
 private fun FlowContent.cartItemCardFlow(item: BasketItem) {
     div(classes = "cart-item") {
         id = "cart-item-${item.id}"
@@ -435,7 +370,6 @@ private fun FlowContent.cartItemCardFlow(item: BasketItem) {
     }
 }
 
-// Cart summary (totals) for FlowContent
 private fun FlowContent.cartSummaryFlow(basket: CustomerBasket) {
     div(classes = "cart-summary") {
         id = "cart-summary"
@@ -470,7 +404,6 @@ private fun FlowContent.cartSummaryFlow(basket: CustomerBasket) {
     }
 }
 
-// Cart summary with OOB swap for TagConsumer
 private fun TagConsumer<*>.cartSummaryOob(basket: CustomerBasket) {
     div(classes = "cart-summary") {
         id = "cart-summary"
