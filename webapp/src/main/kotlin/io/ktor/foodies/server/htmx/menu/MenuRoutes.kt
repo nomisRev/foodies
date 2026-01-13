@@ -1,8 +1,8 @@
-package io.ktor.foodies.server.menu
+package io.ktor.foodies.server.htmx.menu
 
-import io.ktor.foodies.server.MenuIntersectTrigger
-import io.ktor.foodies.server.session.UserSession
-import io.ktor.foodies.server.respondHtmxFragment
+import io.ktor.foodies.server.htmx.MenuIntersectTrigger
+import io.ktor.foodies.server.htmx.respondHtmxFragment
+import io.ktor.foodies.server.security.UserSession
 import io.ktor.server.application.Application
 import io.ktor.server.htmx.hx
 import io.ktor.server.routing.get

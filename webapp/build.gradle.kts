@@ -7,7 +7,7 @@ plugins {
     alias(libs.plugins.testballoon)
 }
 
-application { mainClass = "io.ktor.app.AppKt" }
+application { mainClass = "io.ktor.foodies.server.WebAppKt" }
 
 kotlin {
     jvmToolchain(21)
