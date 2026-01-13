@@ -1,15 +1,28 @@
 package com.foodies.e2e.fixtures
 
-data class MenuItem(
+import java.math.BigDecimal
+
+data class TestMenuItem(
     val name: String,
     val description: String,
-    val price: String
+    val price: BigDecimal,
+    val imageUrl: String
 )
 
 object MenuData {
-    val items = listOf(
-        MenuItem("Margherita", "Classic pizza with tomato sauce and mozzarella", "9.50"),
-        MenuItem("Pasta Carbonara", "Creamy pasta with pancetta and egg", "12.00"),
-        MenuItem("Beef Burger", "Juicy beef patty with lettuce and cheese", "10.00")
+    val testMenuItems = listOf(
+        TestMenuItem(
+            name = "Margherita Pizza",
+            description = "Classic tomato and mozzarella pizza",
+            price = BigDecimal("12.99"),
+            imageUrl = "https://example.com/pizza.jpg"
+        ),
+        TestMenuItem(
+            name = "Caesar Salad",
+            description = "Fresh romaine with parmesan and croutons",
+            price = BigDecimal("8.99"),
+            imageUrl = "https://example.com/salad.jpg"
+        )
+        // Add more test data as needed
     )
 }
