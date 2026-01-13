@@ -13,6 +13,7 @@ import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.testing.ApplicationTestBuilder
+import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.coroutines
 import kotlinx.coroutines.Dispatchers
@@ -54,6 +55,7 @@ fun createTestToken(
     .withExpiresAt(Date(System.currentTimeMillis() + 60_000))
     .sign(Algorithm.HMAC256(TEST_SECRET))
 
+@OptIn(ExperimentalLettuceCoroutinesApi::class)
 @TestRegistering
 context(ctx: ServiceContext)
 fun TestSuite.testBasketService(
