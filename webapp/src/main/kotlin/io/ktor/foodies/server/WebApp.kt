@@ -2,7 +2,6 @@ package io.ktor.foodies.server
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import com.sksamuel.cohort.threads.ThreadDeadlockHealthCheck
 import io.ktor.foodies.server.htmx.cart.cartRoutes
 import io.ktor.foodies.server.htmx.home
 import io.ktor.foodies.server.htmx.menu.menuRoutes
@@ -20,6 +19,7 @@ import io.ktor.server.routing.routing
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()

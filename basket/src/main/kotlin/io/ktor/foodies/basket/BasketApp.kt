@@ -2,7 +2,6 @@ package io.ktor.foodies.basket
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import com.sksamuel.cohort.threads.ThreadDeadlockHealthCheck
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.foodies.server.ValidationException
@@ -24,8 +23,6 @@ import io.ktor.server.routing.routing
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()

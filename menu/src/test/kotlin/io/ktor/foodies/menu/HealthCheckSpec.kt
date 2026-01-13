@@ -13,12 +13,9 @@ val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
         assertEquals(HttpStatusCode.OK, response.status)
     }
 
-    testMenuService("liveness probe returns 200 OK with ThreadDeadlockHealthCheck status") {
+    testMenuService("liveness probe returns 200 OK") {
         val response = client.get("/healthz/liveness")
         assertEquals(HttpStatusCode.OK, response.status)
-
-        val body = response.bodyAsText()
-        assertContains(body, "thread_deadlocks", ignoreCase = true)
     }
 
     testMenuService("readiness probe returns 200 OK when database is healthy") {
