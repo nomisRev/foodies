@@ -34,7 +34,7 @@
 ## Order & Profile Tests
 - [ ] Implement `com.foodies.e2e.htmx.order.CreateOrderTest` for complete checkout flow
 - [ ] Implement `com.foodies.e2e.htmx.order.OrderHistoryTest` for viewing past orders
-- [ ] Implement `com.foodies.e2e.htmx.profile.ViewProfileTest` for profile verification
+- [x] Implement `com.foodies.e2e.htmx.profile.ViewProfileTest` for profile verification
 
 ## CI/CD Integration
 - [ ] Create `.github/workflows/e2e-htmx.yml` to run E2E tests in GitHub Actions
