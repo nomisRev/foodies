@@ -44,4 +44,5 @@ bin/
 ### Mac OS ###
 .DS_Store
 PROMPT.MD
-TODO.md
+TODO.MD
+/specs/
