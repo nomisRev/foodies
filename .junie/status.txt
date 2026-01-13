@@ -1,0 +1,5 @@
+1. Initialize TODO.MD with tasks from DISTRIBUTED_SESSION.md (✓)
+2. Update dependencies in webapp/build.gradle.kts ( )
+3. Implement SessionStorage interface and implementations ( )
+4. Update WebApp configuration and Security.kt ( )
+5. Verify build and update TODO.MD ( )

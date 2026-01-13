@@ -39,6 +39,9 @@ dependencies {
     implementation(ktorLibs.serialization.kotlinx.json)
 
     implementation(libs.logback)
+    implementation(libs.lettuce)
+    implementation(libs.cohort.lettuce)
+    implementation(libs.kotlinx.coroutines.reactor)
 
     // Metrics
     implementation(libs.micrometer.core)
@@ -48,6 +51,7 @@ dependencies {
     api(libs.cohort.hikari)
 
     testImplementation(project(":server-shared-test"))
+    testImplementation(libs.testcontainers.redis)
 }
 
 tasks.withType<Test>().configureEach {
