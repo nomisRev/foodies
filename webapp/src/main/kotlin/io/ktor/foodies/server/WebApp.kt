@@ -20,6 +20,7 @@ import io.ktor.server.routing.routing
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
