@@ -1,3 +1,0 @@
-Take the single smallest  most important task from TODO.md, and start working on it.
-When the task is done make sure ./gradlew build passes.
-Once it passes review the TODO.md and update it with the current state. Finally before finishing commit all your changes with a nice and brief summary message.
