@@ -18,9 +18,9 @@
 - [x] Add TestContainers Redis for tests
 
 ## Phase 4: Update Kubernetes Configuration
-- [ ] Add Redis environment variables to `webapp.yaml`
-- [ ] Update readiness probe to include Redis check
-- [ ] Document configuration options
+- [x] Add Redis environment variables to `webapp.yaml`
+- [x] Update readiness probe to include Redis check
+- [x] Document configuration options
 
 ## Phase 5: Testing
 - [ ] Write unit tests for `RedisSessionStorage`

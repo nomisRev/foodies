@@ -80,3 +80,9 @@ spec:
               value: http://menu:8082
             - name: BASKET_BASE_URL
               value: http://basket:8083
+            - name: REDIS_HOST
+              value: redis
+            - name: REDIS_PORT
+              value: "6379"
+            - name: SESSION_TTL_SECONDS
+              value: "3600"
