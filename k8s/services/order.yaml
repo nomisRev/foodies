@@ -67,7 +67,7 @@ spec:
             - name: PORT
               value: "8084"
             - name: AUTH_ISSUER
-              value: "http://keycloak:8000/realms/foodies-keycloak"
+              value: "http://keycloak:8000/auth/realms/foodies-keycloak"
             - name: AUTH_AUDIENCE
               value: "foodies"
             - name: DB_URL
