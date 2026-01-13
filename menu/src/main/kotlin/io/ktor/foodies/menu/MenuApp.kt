@@ -3,7 +3,6 @@ package io.ktor.foodies.menu
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.HealthCheckRegistry.Companion.invoke
-import com.sksamuel.cohort.threads.ThreadDeadlockHealthCheck
 import io.ktor.foodies.server.ValidationException
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
@@ -18,8 +17,6 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.Dispatchers
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
