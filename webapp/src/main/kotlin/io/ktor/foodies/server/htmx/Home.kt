@@ -1,5 +1,6 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.server.htmx
 
+import io.ktor.foodies.server.security.UserSession
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.Route
@@ -82,7 +83,6 @@ fun Route.home() = get("/") {
                 }
             }
 
-            // Toast container for notifications
             div(classes = "toast-container") {
                 div { id = "toast" }
             }
@@ -90,10 +90,6 @@ fun Route.home() = get("/") {
     }
 }
 
-/**
- * Cart badge link that loads the item count via HTMX.
- * The badge count is loaded asynchronously to avoid blocking page load.
- */
 fun FlowContent.cartBadgeLink() {
     a(href = "/cart", classes = "cart-link") {
         id = "cart-badge"

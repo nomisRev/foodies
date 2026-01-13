@@ -2,7 +2,6 @@ package io.ktor.foodies.server
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import com.sksamuel.cohort.threads.ThreadDeadlockHealthCheck
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.config.ApplicationConfig
@@ -11,8 +10,6 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
@@ -27,9 +24,7 @@ fun Application.app(module: ProfileModule) {
     install(Cohort) {
         verboseHealthCheckResponse = true
         healthcheck("/healthz/startup", HealthCheckRegistry(Dispatchers.Default))
-        healthcheck("/healthz/liveness", HealthCheckRegistry(Dispatchers.Default) {
-            register(ThreadDeadlockHealthCheck(), Duration.ZERO, 1.minutes)
-        })
+        healthcheck("/healthz/liveness", HealthCheckRegistry(Dispatchers.Default))
         healthcheck("/healthz/readiness", module.readinessCheck)
     }
 }

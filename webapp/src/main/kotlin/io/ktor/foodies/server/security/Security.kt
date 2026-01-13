@@ -1,9 +1,8 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.server.security
 
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.request.get
+import io.ktor.foodies.server.Config
 import io.ktor.foodies.server.openid.OpenIdConfiguration
 import io.ktor.foodies.server.openid.discover
 import io.ktor.http.HttpMethod
@@ -27,24 +26,27 @@ import io.ktor.server.response.respond
 import io.ktor.server.response.respondRedirect
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import io.ktor.server.sessions.SessionStorage
 import io.ktor.server.sessions.Sessions
 import io.ktor.server.sessions.cookie
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.SerialName
+import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @Serializable
 data class UserSession(val idToken: String)
 
-suspend fun Application.security(config: Config.Security, httpClient: HttpClient) {
+@OptIn(ExperimentalLettuceCoroutinesApi::class)
+suspend fun Application.security(
+    config: Config.Security,
+    httpClient: HttpClient,
+    sessionStorage: SessionStorage
+) {
     install(Sessions) {
-        // TODO redis for distributed session, or sticky load balancing
-        cookie<UserSession>("USER_SESSION") {
+        cookie<UserSession>("USER_SESSION", sessionStorage) {
             cookie.secure = !this@security.developmentMode
             cookie.httpOnly = true
             cookie.extensions["SameSite"] = "lax"
