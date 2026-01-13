@@ -2,19 +2,20 @@ package io.ktor.foodies.server.security
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.createRouteScopedPlugin
+import io.ktor.server.auth.AuthenticationChecked
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 
-fun interface WithSessionScope {
+fun interface UserSessionScope {
     suspend fun RoutingContext.session(): UserSession
 }
 
-inline fun Route.withSession(build: WithSessionScope.() -> Unit): Route = apply {
+inline fun Route.withUserSession(build: UserSessionScope.() -> Unit): Route = apply {
     install(createRouteScopedPlugin("SessionAuth") {
-        onCall { call ->
+        on(AuthenticationChecked) { call ->
             val session = call.sessions.get<UserSession>()
             if (session == null) {
                 call.response.headers.append("HX-Redirect", "/login")
@@ -23,5 +24,5 @@ inline fun Route.withSession(build: WithSessionScope.() -> Unit): Route = apply 
         }
     })
 
-    build(WithSessionScope { call.sessions.get<UserSession>()!! })
+    build(UserSessionScope { call.sessions.get<UserSession>()!! })
 }
