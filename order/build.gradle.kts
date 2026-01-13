@@ -8,7 +8,7 @@ plugins {
 }
 
 application {
-    mainClass.set("io.ktor.foodies.order.AppKt")
+    mainClass.set("io.ktor.foodies.order.OrderAppKt")
 }
 
 kotlin {
@@ -54,6 +54,10 @@ dependencies {
 
     // RabbitMQ
     implementation(libs.rabbitmq)
+
+    // Health checks
+    implementation(libs.cohort.ktor)
+    implementation(libs.cohort.hikari)
 
     // Shared modules
     implementation(project(":server-shared"))

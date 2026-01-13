@@ -1,28 +1,13 @@
 package io.ktor.foodies.order
 
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
-import io.ktor.client.request.get
-import io.ktor.foodies.order.client.HttpBasketClient
-import io.ktor.foodies.order.events.OrderEventConsumer
-import io.ktor.foodies.order.events.handlers.*
-import io.ktor.foodies.order.repository.ExposedIdempotencyRepository
-import io.ktor.foodies.order.repository.ExposedOrderRepository
-import io.ktor.foodies.order.service.*
-import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
-import io.ktor.foodies.rabbitmq.RabbitConfig as ExtRabbitConfig
-import io.ktor.foodies.server.DataSource
+import com.sksamuel.cohort.Cohort
+import com.sksamuel.cohort.HealthCheckRegistry
+import com.sksamuel.cohort.threads.ThreadDeadlockHealthCheck
 import io.ktor.foodies.server.ValidationException
-import io.ktor.foodies.server.dataSource
-import io.ktor.foodies.server.openid.discover
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
-import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.install
-import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.getAs
 import io.ktor.server.engine.embeddedServer
@@ -30,22 +15,20 @@ import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import org.flywaydb.core.Flyway
+import kotlinx.coroutines.Dispatchers
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.minutes
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
-        val dataSource = dataSource(config.database)
-        migrate(dataSource)
         security(config)
-        app(config, dataSource)
+        app(module(config))
     }.start(wait = true)
 }
 
-fun Application.app(config: Config, dataSource: DataSource) {
+fun Application.app(module: OrderModule) {
     install(ContentNegotiation) { json() }
 
     install(StatusPages) {
@@ -57,110 +40,17 @@ fun Application.app(config: Config, dataSource: DataSource) {
         }
     }
 
-    val httpClient = HttpClient(CIO) {
-        install(ClientContentNegotiation) { json() }
+    install(Cohort) {
+        verboseHealthCheckResponse = true
+        healthcheck("/healthz/startup", HealthCheckRegistry(Dispatchers.Default))
+        healthcheck("/healthz/liveness", HealthCheckRegistry(Dispatchers.Default) {
+            register(ThreadDeadlockHealthCheck(), Duration.ZERO, 1.minutes)
+        })
+        healthcheck("/healthz/readiness", module.readinessCheck)
     }
-    monitor.subscribe(ApplicationStopped) {
-        httpClient.close()
-    }
-
-    val basketClient = HttpBasketClient(httpClient, config.basket.baseUrl)
-
-    val rabbitFactory = rabbitConnectionFactory(
-        ExtRabbitConfig(
-            config.rabbit.host,
-            config.rabbit.port,
-            config.rabbit.username,
-            config.rabbit.password
-        )
-    )
-    val rabbitConnection = rabbitFactory.newConnection()
-    val rabbitChannel = rabbitConnection.createChannel()
-    rabbitChannel.exchangeDeclare(config.rabbit.exchange, "topic", true)
-
-    monitor.subscribe(ApplicationStopped) {
-        runCatching { rabbitChannel.close() }
-        runCatching { rabbitConnection.close() }
-    }
-
-    val eventPublisher = RabbitOrderEventPublisher(
-        rabbitChannel,
-        config.rabbit.exchange,
-        config.rabbit.routingKey,
-        "order.cancelled",
-        "order.status-changed",
-        "order.stock-confirmed",
-        "order.awaiting-validation",
-        "order.stock-returned"
-    )
-    val orderRepository = ExposedOrderRepository(dataSource.database)
-    val idempotencyRepository = ExposedIdempotencyRepository(dataSource.database)
-    val idempotencyService = IdempotencyService(idempotencyRepository)
-    val orderService = DefaultOrderService(orderRepository, basketClient, eventPublisher, idempotencyService)
-    val gracePeriodService = GracePeriodService(config.order, orderService, this)
-    orderService.setGracePeriodService(gracePeriodService)
-
-    val notificationService = LoggingNotificationService()
-
-    OrderEventConsumer(
-        rabbitChannel,
-        config.rabbit.exchange,
-        StockConfirmedEventHandler(orderService),
-        StockRejectedEventHandler(orderService),
-        PaymentSucceededEventHandler(orderService),
-        PaymentFailedEventHandler(orderService),
-        OrderStatusChangedEventHandler(orderRepository, notificationService),
-        this
-    ).start()
 
     routing {
-        healthz(dataSource, config, httpClient)
-        orderRoutes(orderService)
-        adminRoutes(orderService)
-    }
-}
-
-fun Route.healthz(dataSource: DataSource, config: Config, httpClient: HttpClient) {
-    get("/healthz") { call.respond(HttpStatusCode.OK) }
-    get("/healthz/ready") {
-        val dbHealthy = runCatching {
-            dataSource.hikari.connection.use { it.isValid(5) }
-        }.getOrDefault(false)
-
-        val paymentHealthy = runCatching {
-            httpClient.get("${config.payment.baseUrl}/healthz").status == HttpStatusCode.OK
-        }.getOrDefault(false)
-
-        val healthy = dbHealthy && paymentHealthy
-        val status = if (healthy) HttpStatusCode.OK else HttpStatusCode.ServiceUnavailable
-        call.respond(
-            status,
-            mapOf(
-                "database" to if (dbHealthy) "UP" else "DOWN",
-                "payment" to if (paymentHealthy) "UP" else "DOWN"
-            )
-        )
-    }
-}
-
-private fun migrate(dataSource: DataSource) {
-    Flyway.configure()
-        .dataSource(dataSource.hikari)
-        .load()
-        .migrate()
-}
-
-private suspend fun Application.security(config: Config) {
-    val openIdConfig = HttpClient(CIO).use { it.discover(config.auth.issuer) }
-    install(Authentication) {
-        jwt {
-            verifier(openIdConfig.jwksProvider(), config.auth.issuer)
-            validate { credential ->
-                if (!credential.payload.audience.contains(config.auth.audience)) {
-                    return@validate null
-                }
-                credential.payload
-            }
-        }
+        orderRoutes(module.orderService)
+        adminRoutes(module.orderService)
     }
 }
