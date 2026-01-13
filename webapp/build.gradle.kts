@@ -47,6 +47,8 @@ dependencies {
 
     testImplementation(project(":server-shared-test"))
     testImplementation(libs.testcontainers.redis)
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testImplementation("org.testcontainers:junit-jupiter:1.21.4")
 }
 
 tasks.withType<Test>().configureEach {
