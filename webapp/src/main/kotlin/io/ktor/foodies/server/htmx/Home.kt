@@ -83,7 +83,6 @@ fun Route.home() = get("/") {
                 }
             }
 
-            // Toast container for notifications
             div(classes = "toast-container") {
                 div { id = "toast" }
             }
@@ -91,10 +90,6 @@ fun Route.home() = get("/") {
     }
 }
 
-/**
- * Cart badge link that loads the item count via HTMX.
- * The badge count is loaded asynchronously to avoid blocking page load.
- */
 fun FlowContent.cartBadgeLink() {
     a(href = "/cart", classes = "cart-link") {
         id = "cart-badge"

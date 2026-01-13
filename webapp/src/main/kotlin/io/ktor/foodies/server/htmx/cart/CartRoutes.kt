@@ -6,16 +6,11 @@ import io.ktor.foodies.server.htmx.basket.BasketService
 import io.ktor.foodies.server.htmx.basket.CustomerBasket
 import io.ktor.foodies.server.htmx.respondHtmxFragment
 import io.ktor.foodies.server.security.UserSession
-import io.ktor.foodies.server.security.withSession
-import io.ktor.http.HttpStatusCode
+import io.ktor.foodies.server.security.withUserSession
 import io.ktor.server.application.Application
-import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.html.respondHtml
 import io.ktor.server.htmx.hx
 import io.ktor.server.request.receiveParameters
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
@@ -56,13 +51,11 @@ import kotlinx.html.title
 @OptIn(ExperimentalKtorApi::class)
 fun Application.cartRoutes(basketService: BasketService) {
     routing {
-        // Cart badge - returns just the badge HTML fragment
         hx {
             get("/cart/badge") {
                 val session = call.sessions.get<UserSession>()
                 val itemCount = if (session != null) {
-                    runCatching { basketService.getBasket(session.idToken).items.sumOf { it.quantity } }
-                        .getOrDefault(0)
+                    runCatching { basketService.getBasket(session.idToken).items.sumOf { it.quantity } }.getOrDefault(0)
                 } else {
                     0
                 }
@@ -70,7 +63,7 @@ fun Application.cartRoutes(basketService: BasketService) {
             }
         }
 
-        withSession {
+        withUserSession {
             get("/cart") {
                 val basket = basketService.getBasket(session().idToken)
                 call.respondHtml { cartPage(basket) }
@@ -92,7 +85,6 @@ fun Application.cartRoutes(basketService: BasketService) {
                     }
                 }
 
-                // Update item quantity
                 put("/cart/items/{itemId}") {
                     val session = session()
                     val itemId: String by call.parameters
@@ -107,7 +99,6 @@ fun Application.cartRoutes(basketService: BasketService) {
                     }
                 }
 
-                // Remove item from cart
                 delete("/cart/items/{itemId}") {
                     val session = session()
                     val itemId: String by call.parameters
@@ -121,7 +112,6 @@ fun Application.cartRoutes(basketService: BasketService) {
                     }
                 }
 
-                // Clear entire cart
                 delete("/cart") {
                     val session = session()
 
@@ -138,7 +128,6 @@ fun Application.cartRoutes(basketService: BasketService) {
     }
 }
 
-// Cart badge component (item count) for TagConsumer (HTMX fragments)
 private fun TagConsumer<*>.cartBadge(itemCount: Int) {
     a(href = "/cart", classes = "cart-link") {
         id = "cart-badge"
@@ -154,7 +143,6 @@ private fun TagConsumer<*>.cartBadge(itemCount: Int) {
     }
 }
 
-// Cart badge for FlowContent (inside HTML body)
 private fun FlowContent.cartBadgeFlow(itemCount: Int) {
     a(href = "/cart", classes = "cart-link") {
         id = "cart-badge"
@@ -170,7 +158,6 @@ private fun FlowContent.cartBadgeFlow(itemCount: Int) {
     }
 }
 
-// Cart badge with OOB swap for HTMX updates
 private fun TagConsumer<*>.cartBadgeOob(itemCount: Int) {
     a(href = "/cart", classes = "cart-link") {
         id = "cart-badge"
@@ -186,7 +173,6 @@ private fun TagConsumer<*>.cartBadgeOob(itemCount: Int) {
     }
 }
 
-// Success feedback after adding to cart
 private fun TagConsumer<*>.addToCartSuccess() {
     div(classes = "toast success") {
         id = "toast"
@@ -195,7 +181,6 @@ private fun TagConsumer<*>.addToCartSuccess() {
     }
 }
 
-// Full cart page HTML
 private fun HTML.cartPage(basket: CustomerBasket) {
     lang = "en"
     head {
@@ -244,7 +229,6 @@ private fun HTML.cartPage(basket: CustomerBasket) {
     }
 }
 
-// Cart items fragment for HTMX swap
 private fun TagConsumer<*>.cartItemsFragment(basket: CustomerBasket) {
     div(classes = "cart-items") {
         id = "cart-items"
@@ -258,7 +242,6 @@ private fun TagConsumer<*>.cartItemsFragment(basket: CustomerBasket) {
     }
 }
 
-// Empty cart state for TagConsumer
 private fun TagConsumer<*>.cartEmpty() {
     div(classes = "cart-empty") {
         h2 { +"Your cart is empty" }
@@ -267,7 +250,6 @@ private fun TagConsumer<*>.cartEmpty() {
     }
 }
 
-// Empty cart state for FlowContent
 private fun FlowContent.cartEmptyFlow() {
     div(classes = "cart-empty") {
         h2 { +"Your cart is empty" }
@@ -276,7 +258,6 @@ private fun FlowContent.cartEmptyFlow() {
     }
 }
 
-// Individual cart item card for TagConsumer
 private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
     div(classes = "cart-item") {
         id = "cart-item-${item.id}"
@@ -333,7 +314,6 @@ private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
     }
 }
 
-// Individual cart item card for FlowContent
 private fun FlowContent.cartItemCardFlow(item: BasketItem) {
     div(classes = "cart-item") {
         id = "cart-item-${item.id}"
@@ -390,7 +370,6 @@ private fun FlowContent.cartItemCardFlow(item: BasketItem) {
     }
 }
 
-// Cart summary (totals) for FlowContent
 private fun FlowContent.cartSummaryFlow(basket: CustomerBasket) {
     div(classes = "cart-summary") {
         id = "cart-summary"
@@ -425,7 +404,6 @@ private fun FlowContent.cartSummaryFlow(basket: CustomerBasket) {
     }
 }
 
-// Cart summary with OOB swap for TagConsumer
 private fun TagConsumer<*>.cartSummaryOob(basket: CustomerBasket) {
     div(classes = "cart-summary") {
         id = "cart-summary"

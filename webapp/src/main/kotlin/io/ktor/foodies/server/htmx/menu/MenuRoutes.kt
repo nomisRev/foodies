@@ -1,5 +1,6 @@
 package io.ktor.foodies.server.htmx.menu
 
+import io.ktor.foodies.server.getValue
 import io.ktor.foodies.server.htmx.MenuIntersectTrigger
 import io.ktor.foodies.server.htmx.respondHtmxFragment
 import io.ktor.foodies.server.security.UserSession
@@ -32,8 +33,8 @@ fun Application.menuRoutes(menuService: MenuService) {
     routing {
         hx {
             get("/menu") {
-                val offset = call.request.queryParameters.getOrFail<Int>("offset")
-                val limit = call.request.queryParameters.getOrFail<Int>("limit")
+                val offset: Int by call.parameters
+                val limit: Int by call.parameters
                 val items = menuService.menuItems(offset, limit)
                 val isLoggedIn = call.sessions.get<UserSession>() != null
                 call.respondHtmxFragment { buildMenuFragment(items, offset, limit, isLoggedIn) }
