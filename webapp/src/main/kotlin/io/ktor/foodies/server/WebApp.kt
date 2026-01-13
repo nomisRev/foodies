@@ -3,6 +3,7 @@ package io.ktor.foodies.server
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.healthcheck.http.EndpointHealthCheck
+import com.sksamuel.cohort.lettuce.RedisHealthCheck
 import com.sksamuel.cohort.threads.ThreadDeadlockHealthCheck
 import io.ktor.client.request.get
 import io.ktor.client.HttpClient
@@ -22,6 +23,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.netty.Netty
 import io.ktor.server.routing.routing
+import io.lettuce.core.RedisClient
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -34,7 +36,7 @@ fun main() {
         }
         monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
-        security(env.security, httpClient)
+        security(env, httpClient)
         app(env, httpClient)
     }.start(wait = true)
 }
@@ -53,6 +55,17 @@ fun Application.app(config: Config, httpClient: HttpClient) {
         healthcheck("/healthz/readiness", HealthCheckRegistry(Dispatchers.IO) {
             register("menu-service", EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") })
             register("basket-service", EndpointHealthCheck { it.get("${config.basket.baseUrl}/healthz/readiness") })
+
+            if (config.redis != null) {
+                val auth = if (config.redis.password.isNotBlank()) ":${config.redis.password}@" else ""
+                val client = RedisClient.create("redis://$auth${config.redis.host}:${config.redis.port}")
+                val connection = client.connect()
+                monitor.subscribe(ApplicationStopped) {
+                    connection.close()
+                    client.shutdown()
+                }
+                register("redis", RedisHealthCheck(connection))
+            }
         })
     }
 

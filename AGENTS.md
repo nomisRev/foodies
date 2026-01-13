@@ -1,3 +1,5 @@
 - Always use Gradle's Version Catalog, never hardcode dependencies in build.gradle.kts
 - The application uses `foodies.local` as the hostname, configured in `/etc/hosts` pointing to localhost
-- Do not use exceptions for control flow but use proper types and domain modelling.
+- Do not use exceptions for control flow but use proper types and domain modeling
+- To build Keycloak image use `docker build -t foodies-keycloak:latest -f keycloak/Dockerfile .` from the root dir
+- To run e2e tests, make sure 'k8s' is correctly deployed with the latest versions. Use ./gradlew publishToLocalRegistry && ./redeploy.sh

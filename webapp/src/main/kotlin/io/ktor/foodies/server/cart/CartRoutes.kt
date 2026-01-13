@@ -1,6 +1,6 @@
 package io.ktor.foodies.server.cart
 
-import io.ktor.foodies.server.UserSession
+import io.ktor.foodies.server.session.UserSession
 import io.ktor.foodies.server.basket.BasketItem
 import io.ktor.foodies.server.basket.BasketService
 import io.ktor.foodies.server.basket.CustomerBasket

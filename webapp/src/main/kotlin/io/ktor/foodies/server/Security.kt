@@ -6,11 +6,15 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.foodies.server.openid.OpenIdConfiguration
 import io.ktor.foodies.server.openid.discover
+import io.ktor.foodies.server.session.InMemorySessionStorage
+import io.ktor.foodies.server.session.RedisSessionStorage
+import io.ktor.foodies.server.session.UserSession
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.URLBuilder
 import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.install
 import io.ktor.server.application.log
 import io.ktor.server.auth.AuthenticationConfig
@@ -33,30 +37,44 @@ import io.ktor.server.sessions.get
 import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
+import io.lettuce.core.ExperimentalLettuceCoroutinesApi
+import io.lettuce.core.RedisClient
+import io.lettuce.core.api.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
-@Serializable
-data class UserSession(val idToken: String)
+@OptIn(ExperimentalLettuceCoroutinesApi::class)
+suspend fun Application.security(config: Config, httpClient: HttpClient) {
+    val securityConfig = config.security
+    val sessionStorage = if (config.redis != null) {
+        val auth = if (config.redis.password.isNotBlank()) ":${config.redis.password}@" else ""
+        val client = RedisClient.create("redis://$auth${config.redis.host}:${config.redis.port}")
+        val connection = client.connect()
+        monitor.subscribe(ApplicationStopped) {
+            connection.close()
+            client.shutdown()
+        }
+        RedisSessionStorage(connection.coroutines(), config.redis.ttlSeconds)
+    } else {
+        InMemorySessionStorage()
+    }
 
-suspend fun Application.security(config: Config.Security, httpClient: HttpClient) {
     install(Sessions) {
-        // TODO redis for distributed session, or sticky load balancing
-        cookie<UserSession>("USER_SESSION") {
+        cookie<UserSession>("USER_SESSION", sessionStorage) {
             cookie.secure = !this@security.developmentMode
             cookie.httpOnly = true
             cookie.extensions["SameSite"] = "lax"
         }
     }
 
-    val openIdConfig = httpClient.discover(config.issuer)
+    val openIdConfig = httpClient.discover(securityConfig.issuer)
     log.info("Loading $openIdConfig")
 
     authentication {
-        oauth(openIdConfig, config, httpClient)
-        jwt(openIdConfig, config)
+        oauth(openIdConfig, securityConfig, httpClient)
+        jwt(openIdConfig, securityConfig)
     }
 
     routing {
