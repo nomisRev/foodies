@@ -11,24 +11,49 @@ kotlin {
 }
 
 dependencies {
-    testImplementation(libs.playwright)
-    testImplementation(libs.arrow.core)
-    testImplementation(libs.arrow.fx.coroutines)
-    
-    // TestBalloon
-    testImplementation(libs.testballoon)
-
-    // Standard testing
-    testImplementation(libs.logback)
+    implementation(libs.playwright)
+    implementation(libs.bundles.testBalloon)
+    implementation(libs.bundles.arrow)
+    implementation(ktorLibs.client.core)
+    implementation(ktorLibs.client.cio)
+    implementation(libs.logback)
 }
 
-tasks.register<JavaExec>("installPlaywrightBrowsers") {
-    mainClass.set("com.microsoft.playwright.CLI")
-    classpath = sourceSets["test"].runtimeClasspath
-    args = listOf("install")
-}
-
-tasks.withType<Test>().configureEach {
+tasks.test {
     useJUnitPlatform()
-    testLogging { events(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED) }
+
+    // Playwright configuration
+    systemProperty("playwright.junit.enable-cache", "true")
+
+    // Set test timeouts
+    testLogging {
+        events("passed", "skipped", "failed")
+        showStandardStreams = true
+    }
+
+    // Ensure browsers are installed before running tests
+    dependsOn("installPlaywrightBrowsers")
+
+    // Pass command-line args to tests
+    // Usage: ./gradlew :e2e:test -Pargs="--headless=false --webappBaseUrl=http://localhost:8080"
+    val testArgs = project.findProperty("args") as? String
+    if (testArgs != null) {
+        testArgs.split(" ").forEach { arg ->
+            if (arg.startsWith("--")) {
+                val parts = arg.substring(2).split("=", limit = 2)
+                if (parts.size == 2) {
+                    systemProperty(parts[0], parts[1])
+                }
+            }
+        }
+    }
+}
+
+// Task to install Playwright browsers
+tasks.register<JavaExec>("installPlaywrightBrowsers") {
+    group = "playwright"
+    description = "Installs Playwright browsers"
+    mainClass.set("com.microsoft.playwright.CLI")
+    classpath = configurations.runtimeClasspath.get()
+    args = listOf("install", "chromium")
 }
