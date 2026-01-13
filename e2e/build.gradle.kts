@@ -12,8 +12,7 @@ kotlin {
 
 dependencies {
     implementation(libs.playwright)
-    implementation(libs.bundles.testBalloon)
-    implementation(libs.bundles.arrow)
+    implementation(libs.testballoon)
     implementation(ktorLibs.client.core)
     implementation(ktorLibs.client.cio)
     implementation(libs.logback)
