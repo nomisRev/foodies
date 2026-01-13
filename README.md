@@ -202,8 +202,10 @@ Services are configured via environment variables with sensible defaults. See ea
 | `DB_URL` | menu, profile | PostgreSQL connection string |
 | `DB_USERNAME` | menu, profile | Database username |
 | `DB_PASSWORD` | menu, profile | Database password |
-| `REDIS_HOST` | basket | Redis host |
-| `REDIS_PORT` | basket | Redis port |
+| `REDIS_HOST` | webapp, basket | Redis host |
+| `REDIS_PORT` | webapp, basket | Redis port |
+| `REDIS_PASSWORD` | webapp, basket | Redis password |
+| `SESSION_TTL_SECONDS` | webapp | Session TTL in seconds |
 | `RABBITMQ_HOST` | profile, basket | RabbitMQ host |
 | `RABBITMQ_PORT` | profile, basket | RabbitMQ port |
 | `AUTH_ISSUER` | webapp, basket | Keycloak issuer URL |
