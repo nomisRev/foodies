@@ -16,6 +16,7 @@ cohort = "2.8.2"
 lettuce = "6.5.5.RELEASE"
 redis-testcontainers = "2.2.4"
 kotlinx-coroutines = "1.10.2"
+playwright = "1.49.0"
 keycloak-testcontainers = "3.4.0"
 
 [libraries]
@@ -46,6 +47,7 @@ testcontainers-core = { module = "org.testcontainers:testcontainers", version.re
 testcontainers-redis = { module = "com.redis:testcontainers-redis", version.ref = "redis-testcontainers" }
 testcontainers-keycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloak-testcontainers" }
 kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinx-coroutines" }
+playwright = { module = "com.microsoft.playwright:playwright", version.ref = "playwright" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
