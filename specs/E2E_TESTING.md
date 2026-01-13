@@ -112,7 +112,8 @@ foodies/
 
 ## TestBalloon Fixture Pattern
 
-TestBalloon uses `TestSuite.Fixture<T>` for type-safe resource management with automatic cleanup. This eliminates global mutable state and ensures resources are properly closed after tests.
+TestBalloon uses `TestSuite.Fixture<T>` for type-safe resource management with automatic cleanup.
+This eliminates global mutable state and ensures resources are properly closed after tests.
 
 ### Fixture Creation
 
@@ -144,9 +145,9 @@ val authSetupSpec by testSuite {
     // Create fixtures
     val config = TestConfig.fromEnvironment()
     val playwright = playwrightFixture()
-    val browser = testFixture { with(playwright()) { browserFixture(config = config) } }
-    val context = testFixture { with(browser()) { authenticatedContextFixture(config) } }
-    val page = testFixture { with(context()) { pageFixture() } }
+    val browser = testFixture { playwright().browser(config = config) } }
+    val context = testFixture {  browser().authenticatedContextFixture(config) }
+    val page = testFixture { context().pageFixture() }
 
     test("My test") {
         // Access fixture value by calling it
@@ -159,7 +160,7 @@ val authSetupSpec by testSuite {
 ### Benefits
 
 - **No global state**: Each test suite creates its own fixtures
-- **Automatic cleanup**: Resources are closed via `closeWith`
+- **Automatic cleanup**: Non-AutoCloseable fixtures need to be closed via `closeWith`. AutoCloseable close automatically
 - **Type-safe**: Fixtures are properly typed with `TestSuite.Fixture<T>`
 - **Composable**: Fixtures can depend on other fixtures using context receivers
 - **Isolated**: Each test run has fresh resources

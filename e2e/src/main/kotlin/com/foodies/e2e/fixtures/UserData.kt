@@ -1,17 +1,21 @@
 package com.foodies.e2e.fixtures
 
-data class User(
-    val email: String,
+data class TestUser(
+    val username: String,
     val password: String,
-    val firstName: String,
-    val lastName: String
+    val email: String
 )
 
 object UserData {
-    val defaultUser = User(
-        email = "food_lover@gmail.com",
-        password = "password",
-        firstName = "Food",
-        lastName = "Lover"
+    val regular = TestUser(
+        username = System.getenv("TEST_USERNAME") ?: "food_lover",
+        password = System.getenv("TEST_PASSWORD") ?: "password",
+        email = "food_lover@gmail.com"
+    )
+
+    val admin = TestUser(
+        username = System.getenv("ADMIN_USERNAME") ?: "admin",
+        password = System.getenv("ADMIN_PASSWORD") ?: "admin_password",
+        email = "admin@foodies.com"
     )
 }
