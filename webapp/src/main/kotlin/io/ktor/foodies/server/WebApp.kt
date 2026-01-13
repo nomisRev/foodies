@@ -56,16 +56,15 @@ fun Application.app(config: Config, httpClient: HttpClient) {
             register("menu-service", EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") })
             register("basket-service", EndpointHealthCheck { it.get("${config.basket.baseUrl}/healthz/readiness") })
 
-            if (config.redis != null) {
-                val auth = if (config.redis.password.isNotBlank()) ":${config.redis.password}@" else ""
-                val client = RedisClient.create("redis://$auth${config.redis.host}:${config.redis.port}")
-                val connection = client.connect()
-                monitor.subscribe(ApplicationStopped) {
-                    connection.close()
-                    client.shutdown()
-                }
-                register("redis", RedisHealthCheck(connection))
+            val auth = if (config.redis.password.isNotBlank()) ":${config.redis.password}@" else ""
+            val client = RedisClient.create("redis://$auth${config.redis.host}:${config.redis.port}")
+            val connection = client.connect()
+            monitor.subscribe(ApplicationStopped) {
+                connection.close()
+                client.shutdown()
             }
+
+            register("redis", RedisHealthCheck(connection))
         })
     }
 
