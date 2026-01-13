@@ -35,6 +35,8 @@ e2e
 
 e2e/build/classes/kotlin/test/com/foodies/e2e:
 config
+fixtures
+utils
 
 e2e/build/classes/kotlin/test/com/foodies/e2e/config:
 PlaywrightFixtures$withPage$2$browser$1.class
@@ -46,6 +48,17 @@ PlaywrightFixtures$withPage$2$playwright$2.class
 PlaywrightFixtures$withPage$2.class
 PlaywrightFixtures.class
 TestConfig.class
+
+e2e/build/classes/kotlin/test/com/foodies/e2e/fixtures:
+MenuData.class
+MenuItem.class
+User.class
+UserData.class
+
+e2e/build/classes/kotlin/test/com/foodies/e2e/utils:
+ApiHelpers.class
+HtmxHelpers.class
+TestHelpers.class
 
 e2e/build/classes/kotlin/test/de:
 infix
@@ -264,10 +277,10 @@ setup
 utils
 
 e2e/src/test/kotlin/com/foodies/e2e/config:
-PlaywrightFixtures.kt
-TestConfig.kt
 
 e2e/src/test/kotlin/com/foodies/e2e/fixtures:
+MenuData.kt
+UserData.kt
 
 e2e/src/test/kotlin/com/foodies/e2e/htmx:
 auth
@@ -289,5 +302,8 @@ e2e/src/test/kotlin/com/foodies/e2e/htmx/profile:
 e2e/src/test/kotlin/com/foodies/e2e/setup:
 
 e2e/src/test/kotlin/com/foodies/e2e/utils:
+ApiHelpers.kt
+HtmxHelpers.kt
+TestHelpers.kt
 
 stderr=
