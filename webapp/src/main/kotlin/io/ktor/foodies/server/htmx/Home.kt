@@ -1,6 +1,6 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.server.htmx
 
-import io.ktor.foodies.server.session.UserSession
+import io.ktor.foodies.server.security.UserSession
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.Route

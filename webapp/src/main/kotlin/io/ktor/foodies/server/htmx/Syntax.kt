@@ -1,4 +1,4 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.server.htmx
 
 import io.ktor.http.ContentType
 import io.ktor.server.application.ApplicationCall
