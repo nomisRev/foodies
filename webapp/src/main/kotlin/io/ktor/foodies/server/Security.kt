@@ -47,19 +47,14 @@ import kotlinx.serialization.json.JsonIgnoreUnknownKeys
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 suspend fun Application.security(config: Config, httpClient: HttpClient) {
-    val securityConfig = config.security
-    val sessionStorage = if (config.redis != null) {
-        val auth = if (config.redis.password.isNotBlank()) ":${config.redis.password}@" else ""
-        val client = RedisClient.create("redis://$auth${config.redis.host}:${config.redis.port}")
-        val connection = client.connect()
-        monitor.subscribe(ApplicationStopped) {
-            connection.close()
-            client.shutdown()
-        }
-        RedisSessionStorage(connection.coroutines(), config.redis.ttlSeconds)
-    } else {
-        InMemorySessionStorage()
+    val auth = if (config.redis.password.isNotBlank()) ":${config.redis.password}@" else ""
+    val client = RedisClient.create("redis://$auth${config.redis.host}:${config.redis.port}")
+    val connection = client.connect()
+    monitor.subscribe(ApplicationStopped) {
+        connection.close()
+        client.shutdown()
     }
+    val sessionStorage = RedisSessionStorage(connection.coroutines(), config.redis.ttlSeconds)
 
     install(Sessions) {
         cookie<UserSession>("USER_SESSION", sessionStorage) {
@@ -69,12 +64,12 @@ suspend fun Application.security(config: Config, httpClient: HttpClient) {
         }
     }
 
-    val openIdConfig = httpClient.discover(securityConfig.issuer)
+    val openIdConfig = httpClient.discover(config.security.issuer)
     log.info("Loading $openIdConfig")
 
     authentication {
-        oauth(openIdConfig, securityConfig, httpClient)
-        jwt(openIdConfig, securityConfig)
+        oauth(openIdConfig, config.security, httpClient)
+        jwt(openIdConfig, config.security)
     }
 
     routing {
