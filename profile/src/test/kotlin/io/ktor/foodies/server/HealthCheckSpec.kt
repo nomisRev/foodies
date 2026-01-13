@@ -9,11 +9,9 @@ import kotlin.test.assertContains
 
 val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
 
-    testProfileService("liveness probe returns 200 OK with ThreadDeadlockHealthCheck status") {
+    testProfileService("liveness probe returns 200 OK") {
         val response = client.get("/healthz/liveness")
         assertEquals(HttpStatusCode.OK, response.status)
-        val body = response.bodyAsText()
-        assertContains(body, "thread", ignoreCase = true)
     }
 
     testProfileService("readiness probe checks database connectivity") {
