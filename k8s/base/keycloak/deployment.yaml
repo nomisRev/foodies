@@ -48,15 +48,30 @@ spec:
             - name: KC_HOSTNAME_ADMIN
               value: "http://$(FOODIES_HOST)/auth"
             - name: KC_HOSTNAME_STRICT
-              value: "true"
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: KC_HOSTNAME_STRICT
             - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC
-              value: "true"
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: KC_HOSTNAME_BACKCHANNEL_DYNAMIC
             - name: KC_HTTP_RELATIVE_PATH
-              value: "/auth"
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: KC_HTTP_RELATIVE_PATH
             - name: KC_HTTP_MANAGEMENT_RELATIVE_PATH
-              value: "/"
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: KC_HTTP_MANAGEMENT_RELATIVE_PATH
             - name: KC_PROXY_HEADERS
-              value: "xforwarded"
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: KC_PROXY_HEADERS
             - name: KC_BOOTSTRAP_ADMIN_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -75,13 +90,25 @@ spec:
                   name: foodies-config
                   key: KEYCLOAK_HTTP_PORT
             - name: KC_HEALTH_ENABLED
-              value: "true"
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: KC_HEALTH_ENABLED
             - name: KC_METRICS_ENABLED
-              value: "true"
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: KC_METRICS_ENABLED
             - name: RABBITMQ_HOST
-              value: rabbitmq
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: RABBITMQ_HOST
             - name: RABBITMQ_PORT
-              value: "5672"
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: RABBITMQ_PORT
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:

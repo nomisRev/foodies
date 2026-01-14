@@ -49,25 +49,52 @@ spec:
             failureThreshold: 3
           env:
             - name: HOST
-              value: "0.0.0.0"
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: HOST
             - name: PORT
-              value: "8080"
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: PORT
             - name: AUTH_ISSUER
-              value: http://keycloak:8000/auth/realms/foodies-keycloak
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: AUTH_ISSUER
             - name: AUTH_CLIENT_ID
-              value: foodies
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: AUTH_CLIENT_ID
             - name: AUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
                   name: webapp-auth
                   key: AUTH_CLIENT_SECRET
             - name: MENU_BASE_URL
-              value: http://menu:8082
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: MENU_BASE_URL
             - name: BASKET_BASE_URL
-              value: http://basket:8083
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: BASKET_BASE_URL
             - name: REDIS_HOST
-              value: redis
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: REDIS_HOST
             - name: REDIS_PORT
-              value: "6379"
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: REDIS_PORT
             - name: SESSION_TTL_SECONDS
-              value: "3600"
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: SESSION_TTL_SECONDS
