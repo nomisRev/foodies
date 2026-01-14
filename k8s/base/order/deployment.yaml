@@ -49,15 +49,30 @@ spec:
             failureThreshold: 3
           env:
             - name: HOST
-              value: "0.0.0.0"
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: HOST
             - name: PORT
-              value: "8084"
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: PORT
             - name: AUTH_ISSUER
-              value: "http://keycloak:8000/auth/realms/foodies-keycloak"
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: AUTH_ISSUER
             - name: AUTH_AUDIENCE
-              value: "foodies"
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: AUTH_AUDIENCE
             - name: DB_URL
-              value: jdbc:postgresql://order-postgres:5432/foodies-order-database
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: DB_URL
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -69,13 +84,25 @@ spec:
                   name: postgres-credentials
                   key: POSTGRES_PASSWORD
             - name: BASKET_BASE_URL
-              value: "http://basket:8083"
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: BASKET_BASE_URL
             - name: PAYMENT_BASE_URL
-              value: "http://payment:8085"
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: PAYMENT_BASE_URL
             - name: RABBITMQ_HOST
-              value: "rabbitmq"
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: RABBITMQ_HOST
             - name: RABBITMQ_PORT
-              value: "5672"
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: RABBITMQ_PORT
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -87,8 +114,17 @@ spec:
                   name: rabbitmq-credentials
                   key: RABBITMQ_PASSWORD
             - name: RABBITMQ_EXCHANGE
-              value: "foodies.events"
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: RABBITMQ_EXCHANGE
             - name: RABBITMQ_ROUTING_KEY
-              value: "order.created"
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: RABBITMQ_ROUTING_KEY
             - name: ORDER_GRACE_PERIOD_SECONDS
-              value: "60"
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: ORDER_GRACE_PERIOD_SECONDS

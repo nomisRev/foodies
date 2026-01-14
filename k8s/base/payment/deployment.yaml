@@ -49,11 +49,20 @@ spec:
             failureThreshold: 3
           env:
             - name: HOST
-              value: "0.0.0.0"
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-config
+                  key: HOST
             - name: PORT
-              value: "8085"
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-config
+                  key: PORT
             - name: DB_URL
-              value: jdbc:postgresql://payment-postgres:5432/foodies-payment-database
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-config
+                  key: DB_URL
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -65,9 +74,15 @@ spec:
                   name: postgres-credentials
                   key: POSTGRES_PASSWORD
             - name: RABBITMQ_HOST
-              value: "rabbitmq"
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-config
+                  key: RABBITMQ_HOST
             - name: RABBITMQ_PORT
-              value: "5672"
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-config
+                  key: RABBITMQ_PORT
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -79,10 +94,22 @@ spec:
                   name: rabbitmq-credentials
                   key: RABBITMQ_PASSWORD
             - name: RABBITMQ_CONSUME_QUEUE
-              value: "payment.stock-confirmed"
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-config
+                  key: RABBITMQ_CONSUME_QUEUE
             - name: RABBITMQ_PUBLISH_EXCHANGE
-              value: "foodies.events"
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-config
+                  key: RABBITMQ_PUBLISH_EXCHANGE
             - name: PAYMENT_ALWAYS_SUCCEED
-              value: "true"
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-config
+                  key: PAYMENT_ALWAYS_SUCCEED
             - name: PAYMENT_DELAY_MS
-              value: "100"
+              valueFrom:
+                configMapKeyRef:
+                  name: payment-config
+                  key: PAYMENT_DELAY_MS
