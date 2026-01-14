@@ -17,7 +17,7 @@
     - [x] Externalize `menu` service-specific configuration
     - [x] Externalize `basket` service-specific configuration
     - [x] Externalize `profile` service-specific configuration
-    - [ ] Externalize `order` service-specific configuration
-    - [ ] Externalize `payment` service-specific configuration
+    - [x] Externalize `order` service-specific configuration
+    - [x] Externalize `payment` service-specific configuration
     - [ ] Externalize `keycloak` service-specific configuration
     - [ ] Externalize `webapp` service-specific configuration
