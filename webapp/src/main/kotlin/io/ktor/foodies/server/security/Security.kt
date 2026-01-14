@@ -1,11 +1,13 @@
 package io.ktor.foodies.server.security
 
+import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.client.HttpClient
 import io.ktor.foodies.server.Config
 import io.ktor.foodies.server.openid.OpenIdConfiguration
 import io.ktor.foodies.server.openid.discover
 import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.URLBuilder
 import io.ktor.http.auth.HttpAuthHeader
@@ -34,10 +36,16 @@ import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
+import kotlinx.html.Entities
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class UserSession(val idToken: String)
+data class UserSession(
+    val idToken: String,
+    val accessToken: String,
+    val expiresIn: Long,
+    val refreshToken: String? = null
+)
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 suspend fun Application.security(
@@ -58,7 +66,7 @@ suspend fun Application.security(
 
     authentication {
         oauth(openIdConfig, config, httpClient)
-        jwt(openIdConfig, config)
+        jwt(JwkProviderBuilder(openIdConfig.jwksUri).build(), config.issuer)
     }
 
     routing {
@@ -66,12 +74,13 @@ suspend fun Application.security(
             get("/login") { }
 
             get("/oauth/callback") {
-                val idToken =
-                    call.authentication.principal<OAuthAccessTokenResponse.OAuth2>()?.extraParameters["id_token"]
+                val oauth2 =
+                    call.authentication.principal<OAuthAccessTokenResponse.OAuth2>()
+                val idToken = oauth2?.extraParameters["id_token"]
                 if (idToken == null) {
                     call.respond(Unauthorized)
                 } else {
-                    call.sessions.set(UserSession(idToken))
+                    call.sessions.set(UserSession(idToken, oauth2.accessToken, oauth2.expiresIn, oauth2.refreshToken))
                     call.respondRedirect("/")
                 }
             }
@@ -89,17 +98,13 @@ suspend fun Application.security(
     }
 }
 
-private fun AuthenticationConfig.jwt(openIdConfig: OpenIdConfiguration, config: Config.Security) {
-    jwt {
-        verifier(
-            JwkProviderBuilder(openIdConfig.jwksUri)
-                .cached(true)
-                .rateLimited(true)
-                .build(),
-            config.issuer
-        )
-        authHeader { call -> call.sessions.get<UserSession>()?.idToken?.let { HttpAuthHeader.Single("Bearer", it) } }
-        validate { credential -> credential.payload.extractUserInfo() }
+internal fun AuthenticationConfig.jwt(jwks: JwkProvider, issuer: String) = jwt {
+    verifier(jwks, issuer)
+    authHeader { call -> call.sessions.get<UserSession>()?.idToken?.let { HttpAuthHeader.Single("Bearer", it) } }
+    validate { _ -> sessions.get<UserSession>() }
+    challenge { _, _ ->
+        call.response.headers.append("HX-Redirect", "/login")
+        call.respond(Unauthorized)
     }
 }
 
@@ -107,28 +112,25 @@ private fun AuthenticationConfig.oauth(
     openIdConfig: OpenIdConfiguration,
     config: Config.Security,
     httpClient: HttpClient
-) {
-    oauth("oauth") {
-        urlProvider = {
-            val portSuffix = when {
-                request.origin.scheme == "http" && request.port() == 80 -> ""
-                request.origin.scheme == "https" && request.port() == 443 -> ""
-                else -> ":${request.port()}"
-            }
-            "${request.origin.scheme}://${request.host()}$portSuffix/oauth/callback"
+) = oauth("oauth") {
+    client = httpClient
+    urlProvider = {
+        val portSuffix = when {
+            request.origin.scheme == "http" && request.port() == 80 -> ""
+            request.origin.scheme == "https" && request.port() == 443 -> ""
+            else -> ":${request.port()}"
         }
-        providerLookup = {
-            OAuthServerSettings.OAuth2ServerSettings(
-                name = "foodies-oauth",
-                authorizeUrl = openIdConfig.authorizationEndpoint,
-                accessTokenUrl = openIdConfig.tokenEndpoint,
-                requestMethod = HttpMethod.Post,
-                clientId = config.clientId,
-                clientSecret = config.clientSecret,
-                defaultScopes = listOf("openid", "profile", "email"),
-            )
-        }
-
-        client = httpClient
+        "${request.origin.scheme}://${request.host()}$portSuffix/oauth/callback"
+    }
+    providerLookup = {
+        OAuthServerSettings.OAuth2ServerSettings(
+            name = "foodies-oauth",
+            authorizeUrl = openIdConfig.authorizationEndpoint,
+            accessTokenUrl = openIdConfig.tokenEndpoint,
+            requestMethod = HttpMethod.Post,
+            clientId = config.clientId,
+            clientSecret = config.clientSecret,
+            defaultScopes = listOf("openid", "profile", "email"),
+        )
     }
 }

@@ -30,9 +30,6 @@ fun main() {
 
 suspend fun Application.app(config: Config, module: WebAppModule) {
     install(ContentNegotiation) { json() }
-
-    security(config.security, module.httpClient, module.sessionStorage)
-
     install(Cohort) {
         verboseHealthCheckResponse = true
 
@@ -40,6 +37,8 @@ suspend fun Application.app(config: Config, module: WebAppModule) {
         healthcheck("/healthz/liveness", HealthCheckRegistry(Dispatchers.Default))
         healthcheck("/healthz/readiness", module.readinessCheck)
     }
+
+    security(config.security, module.httpClient, module.sessionStorage)
 
     menuRoutes(module.menuService)
     cartRoutes(module.basketService)
