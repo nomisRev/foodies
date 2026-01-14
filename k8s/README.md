@@ -75,45 +75,41 @@ docker build -t foodies-keycloak:local -f keycloak/Dockerfile .
 
 If you need to push to a registry, tag the image (e.g., `ghcr.io/your-org/foodies-keycloak:<tag>`) and update `image:` in `k8s/infrastructure/keycloak.yaml` accordingly.
 
-### 3. Deploy Infrastructure
+### 3. Deploy Everything with Kustomize
+
+The deployment now supports Kustomize for better management of resources and environment-specific overlays.
+
+#### Local Development (Dev Overlay)
 
 ```bash
-# Create namespace
-kubectl apply -f k8s/namespace.yaml
-
-# Deploy configmaps
-kubectl apply -f k8s/configmaps/
-
-# Deploy databases
-kubectl apply -f k8s/databases/
-
-# Deploy infrastructure (RabbitMQ, Keycloak)
-kubectl apply -f k8s/infrastructure/
-
-# Wait for infrastructure to be ready
-kubectl wait --for=condition=ready pod -l app=rabbitmq -n foodies --timeout=120s
-kubectl wait --for=condition=ready pod -l app=keycloak -n foodies --timeout=120s
+# Apply the dev overlay (includes all base resources)
+kubectl apply -k k8s/overlays/dev
 ```
 
-### 4. Deploy Services
+This will apply all resources including namespace, secrets, configmaps, databases, infrastructure, and services.
+
+#### Base Deployment
+
+If you want to apply the base configuration without any overlay:
 
 ```bash
-# Deploy all services
-kubectl apply -f k8s/services/
+kubectl apply -k k8s/base
+```
 
-# Wait for services to be ready
+### 4. Wait for resources to be ready
+
+```bash
+# Wait for infrastructure
+kubectl wait --for=condition=ready pod -l app=rabbitmq -n foodies --timeout=120s
+kubectl wait --for=condition=ready pod -l app=keycloak -n foodies --timeout=120s
+
+# Wait for services
 kubectl wait --for=condition=ready pod -l app=webapp -n foodies --timeout=120s
 kubectl wait --for=condition=ready pod -l app=menu -n foodies --timeout=120s
 kubectl wait --for=condition=ready pod -l app=profile -n foodies --timeout=120s
 ```
 
-### 5. Deploy LoadBalancer
-
-```bash
-kubectl apply -f k8s/ingress.yaml
-```
-
-### 6. Access the Application
+### 5. Access the Application
 
 Get the external IP of the LoadBalancer:
 
@@ -163,39 +159,31 @@ The deployment uses two ConfigMaps:
 
 ```
 k8s/
-├── namespace.yaml              # Namespace definition
-├── secrets/                    # Secret configurations
-│   ├── keycloak-admin.yaml    # Keycloak admin credentials
-│   ├── postgres-credentials.yaml  # PostgreSQL credentials
-│   ├── rabbitmq-credentials.yaml  # RabbitMQ credentials
-│   └── webapp-auth.yaml       # OAuth client secret
-├── configmaps/                 # ConfigMap definitions
-│   ├── foodies-config.yaml    # Application configuration
-│   └── keycloak-realm.yaml    # Keycloak realm import
-├── databases/                  # Database deployments
-│   ├── menu-postgres.yaml     # Menu service database
-│   └── profile-postgres.yaml  # Profile service database
-├── infrastructure/             # Infrastructure services
-│   ├── keycloak.yaml          # Keycloak deployment
-│   └── rabbitmq.yaml          # RabbitMQ deployment
-├── services/                   # Application services
-│   ├── menu.yaml              # Menu service
-│   ├── profile.yaml           # Profile service
-│   └── webapp.yaml            # Webapp service
-└── ingress.yaml               # LoadBalancer configuration
+├── base/                       # Base Kustomize configuration
+│   ├── kustomization.yaml     # Base kustomization
+│   ├── namespace.yaml         # Namespace definition
+│   ├── ingress.yaml           # Ingress configuration
+│   ├── basket/                # Basket service resources
+│   ├── keycloak/              # Keycloak infrastructure resources
+│   ├── menu/                  # Menu service resources
+│   ├── order/                 # Order service resources
+│   ├── payment/               # Payment service resources
+│   ├── profile/               # Profile service resources
+│   ├── rabbitmq/              # RabbitMQ infrastructure resources
+│   ├── redis/                 # Redis database resources
+│   ├── webapp/                # Web application resources
+│   ├── configmaps/            # ConfigMap source files (e.g. realm.json)
+│   └── secrets/               # Secret placeholders (if any)
+└── overlays/                  # Environment-specific overlays
+    ├── dev/                   # Development overlay
+    └── prod/                  # Production overlay
 ```
 
 ## Quick Deploy (All at Once)
 
 ```bash
-# Apply all manifests
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/secrets/
-kubectl apply -f k8s/configmaps/
-kubectl apply -f k8s/databases/
-kubectl apply -f k8s/infrastructure/
-kubectl apply -f k8s/services/
-kubectl apply -f k8s/ingress.yaml
+# Apply with Kustomize (dev overlay)
+kubectl apply -k k8s/overlays/dev
 ```
 
 **Remember**: build and load the custom Keycloak image (`foodies-keycloak:local`) before applying manifests.
@@ -312,12 +300,6 @@ kubectl port-forward -n foodies svc/webapp 8080:8080
 # Delete entire namespace and all resources
 kubectl delete namespace foodies
 
-# Or delete individual components
-kubectl delete -f k8s/ingress.yaml
-kubectl delete -f k8s/services/
-kubectl delete -f k8s/infrastructure/
-kubectl delete -f k8s/databases/
-kubectl delete -f k8s/configmaps/
-kubectl delete -f k8s/secrets/
-kubectl delete -f k8s/namespace.yaml
+# Or delete individual components using Kustomize
+kubectl delete -k k8s/overlays/dev
 ```
