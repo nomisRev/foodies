@@ -12,6 +12,7 @@
 - [x] Update `k8s/README.md` to reflect the current Kustomize structure and overlays
 - [ ] Implement ResourceQuota for the `foodies` namespace
 - [ ] Add PodDisruptionBudget for critical services (e.g., redis, rabbitmq)
+- [ ] Clean up obsolete YAML files from the project root (`full.yaml`, `base_before.yaml`, etc.)
 - [/] Externalize service-specific environment variables to `configMapGenerator` in each service's `kustomization.yaml`
     - [x] Externalize `menu` service-specific configuration
     - [x] Externalize `basket` service-specific configuration
