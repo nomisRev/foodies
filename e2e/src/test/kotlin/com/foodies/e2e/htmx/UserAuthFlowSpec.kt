@@ -1,5 +1,6 @@
 package com.foodies.e2e.htmx
 
+import com.foodies.e2e.AppBrowserType
 import com.foodies.e2e.config
 import com.foodies.e2e.context
 import com.foodies.e2e.e2eSuite
@@ -9,7 +10,7 @@ import com.microsoft.playwright.options.AriaRole
 import java.nio.file.Files
 import kotlin.test.assertTrue
 
-val authSetupSpec by e2eSuite {
+val authSetupSpec by e2eSuite(browserType = AppBrowserType.WEBKIT) {
     test("Keycloak Authentication - should authenticate user and save session state") {
         val p = page()
 
@@ -24,7 +25,7 @@ val authSetupSpec by e2eSuite {
 
         p.waitForURL("/")
 
-        assertTrue(p.getByText("Log out").isVisible)
+        assertTrue(p.getByText("Log out").isVisible, "Should show log out button after login")
 
         Files.createDirectories(config.storageStatePath.parent)
         context().storageState(BrowserContext.StorageStateOptions().setPath(config.storageStatePath))
