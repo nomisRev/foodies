@@ -21,25 +21,55 @@ spec:
               name: http
           env:
             - name: HOST
-              value: "0.0.0.0"
+              valueFrom:
+                configMapKeyRef:
+                  name: basket-config
+                  key: HOST
             - name: PORT
-              value: "8083"
+              valueFrom:
+                configMapKeyRef:
+                  name: basket-config
+                  key: PORT
             - name: AUTH_ISSUER
-              value: http://keycloak:8000/auth/realms/foodies-keycloak
+              valueFrom:
+                configMapKeyRef:
+                  name: basket-config
+                  key: AUTH_ISSUER
             - name: AUTH_AUDIENCE
-              value: account
+              valueFrom:
+                configMapKeyRef:
+                  name: basket-config
+                  key: AUTH_AUDIENCE
             - name: REDIS_HOST
-              value: redis
+              valueFrom:
+                configMapKeyRef:
+                  name: basket-config
+                  key: REDIS_HOST
             - name: REDIS_PORT
-              value: "6379"
+              valueFrom:
+                configMapKeyRef:
+                  name: basket-config
+                  key: REDIS_PORT
             - name: REDIS_PASSWORD
-              value: ""
+              valueFrom:
+                configMapKeyRef:
+                  name: basket-config
+                  key: REDIS_PASSWORD
             - name: MENU_SERVICE_URL
-              value: http://menu:8082
+              valueFrom:
+                configMapKeyRef:
+                  name: basket-config
+                  key: MENU_SERVICE_URL
             - name: RABBITMQ_HOST
-              value: rabbitmq
+              valueFrom:
+                configMapKeyRef:
+                  name: basket-config
+                  key: RABBITMQ_HOST
             - name: RABBITMQ_PORT
-              value: "5672"
+              valueFrom:
+                configMapKeyRef:
+                  name: basket-config
+                  key: RABBITMQ_PORT
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
