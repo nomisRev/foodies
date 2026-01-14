@@ -6,6 +6,7 @@ import io.ktor.foodies.server.htmx.basket.BasketService
 import io.ktor.foodies.server.htmx.basket.CustomerBasket
 import io.ktor.foodies.server.htmx.respondHtmxFragment
 import io.ktor.foodies.server.security.UserSession
+import io.ktor.foodies.server.security.userSession
 import io.ktor.foodies.server.security.withUserSession
 import io.ktor.server.application.Application
 import io.ktor.server.html.respondHtml
@@ -65,13 +66,13 @@ fun Application.cartRoutes(basketService: BasketService) {
 
         withUserSession {
             get("/cart") {
-                val basket = basketService.getBasket(session().idToken)
+                val basket = basketService.getBasket(userSession().idToken)
                 call.respondHtml { cartPage(basket) }
             }
 
             hx {
                 post("/cart/items") {
-                    val session = session()
+                    val session = userSession()
                     val form = call.receiveParameters()
                     val menuItemId: Long by form
                     val quantity: Int? by form
@@ -86,7 +87,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                 }
 
                 put("/cart/items/{itemId}") {
-                    val session = session()
+                    val session = userSession()
                     val itemId: String by call.parameters
                     val quantity: Int by call.receiveParameters()
 
@@ -100,7 +101,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                 }
 
                 delete("/cart/items/{itemId}") {
-                    val session = session()
+                    val session = userSession()
                     val itemId: String by call.parameters
 
                     val basket = basketService.removeItem(session.idToken, itemId)
@@ -113,7 +114,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                 }
 
                 delete("/cart") {
-                    val session = session()
+                    val session = userSession()
 
                     basketService.clearBasket(session.idToken)
 
