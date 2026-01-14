@@ -1,14 +1,13 @@
 #!/bin/bash
+set -e
 
-# Script to run june command 5 times with prompt from prompt.md
-
-set -e  # Exit on error
+ITERATIONS=${1:-5}
 
 TASK_CONTENT=$(cat prompt.md)
 
-for i in {1..5}; do
+for ((i=1; i<=ITERATIONS; i++)); do
     echo "========================================"
-    echo "Running iteration $i of 5"
+    echo "Running iteration $i of $ITERATIONS"
     echo "========================================"
 
     junie --task="$TASK_CONTENT"
@@ -18,4 +17,4 @@ for i in {1..5}; do
     echo ""
 done
 
-echo "All 5 iterations completed successfully!"
+echo "All $ITERATIONS iterations completed successfully!"

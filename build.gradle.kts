@@ -20,27 +20,3 @@ tasks.register<Exec>("kustomizeDev") {
         .withPropertyName("kubernetesManifests")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }
-
-fun getNextLocalVersion(): String {
-    val props = file("local.properties")
-    val current = if (props.exists()) {
-        java.util.Properties().apply { props.inputStream().use { load(it) } }
-            .getProperty("local.version", "0").toInt()
-    } else 0
-    val next = current + 1
-    props.writeText("local.version=$next")
-    return next.toString()
-}
-
-val publishToLocalRegistry by tasks.registering {
-    group = "docker"
-    doFirst { project.version = getNextLocalVersion() }
-}
-
-subprojects {
-    plugins.withId("io.ktor.plugin") {
-        tasks.named("publishImageToLocalRegistry") {
-            rootProject.tasks.named("publishToLocalRegistry").get().dependsOn(this)
-        }
-    }
-}

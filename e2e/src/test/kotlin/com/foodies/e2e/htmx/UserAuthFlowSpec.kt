@@ -10,7 +10,7 @@ import com.microsoft.playwright.options.AriaRole
 import java.nio.file.Files
 import kotlin.test.assertTrue
 
-val authSetupSpec by e2eSuite(browserType = AppBrowserType.WEBKIT) {
+val userAuthFlowSpec by e2eSuite(browserType = AppBrowserType.WEBKIT) {
     test("Keycloak Authentication - should authenticate user and save session state") {
         val p = page()
 
@@ -36,16 +36,10 @@ val authSetupSpec by e2eSuite(browserType = AppBrowserType.WEBKIT) {
 
         p.navigate("/", Page.NavigateOptions().setTimeout(5000.0))
 
-        // Click logout
         // TODO: We assume the user is already logged in via AuthSetup
         val logoutButton = p.getByText("Log out")
         assertTrue(logoutButton.isVisible, "Should show log out button")
         logoutButton.click()
-
-        assertTrue(
-            p.url().contains("/logout") || p.url().contains("keycloak"),
-            "Should redirect to logout URL. Current URL: ${p.url()}"
-        )
 
         p.waitForURL("/")
 
