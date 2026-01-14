@@ -4,20 +4,19 @@
 - [x] Explore using Kustomize patches for environment-specific configurations (e.g., `dev` vs `prod`)
 - [x] Decommission `local-deploy.sh` in favor of `local-deploy-kustomize.sh` once migration is fully verified
 - [x] Define production-specific secrets and configmaps in `k8s/overlays/prod`
-- [ ] Implement network policies for better isolation between services
-- [ ] Configure TLS for Ingress in `prod` overlay
 - [x] Externalize Keycloak host configuration to avoid hardcoded values in `base`
 - [x] Refactor multi-resource YAML files (e.g., service.yaml) into separate files (service.yaml, deployment.yaml, etc.) for better granularity
-- [ ] Implement HorizontalPodAutoscaler for high-traffic services
 - [x] Update `k8s/README.md` to reflect the current Kustomize structure and overlays
-- [ ] Implement ResourceQuota for the `foodies` namespace
-- [ ] Add PodDisruptionBudget for critical services (e.g., redis, rabbitmq)
-- [ ] Clean up obsolete YAML files from the project root (`full.yaml`, `base_before.yaml`, etc.)
-- [/] Externalize service-specific environment variables to `configMapGenerator` in each service's `kustomization.yaml`
+- [x] Clean up obsolete YAML files from the project root (`full.yaml`, `base_before.yaml`, etc.)
+- [x] Externalize service-specific environment variables to `configMapGenerator` in each service's `kustomization.yaml`
     - [x] Externalize `menu` service-specific configuration
     - [x] Externalize `basket` service-specific configuration
     - [x] Externalize `profile` service-specific configuration
     - [x] Externalize `order` service-specific configuration
     - [x] Externalize `payment` service-specific configuration
-    - [ ] Externalize `keycloak` service-specific configuration
-    - [ ] Externalize `webapp` service-specific configuration
+    - [x] Externalize `keycloak` service-specific configuration
+    - [x] Externalize `webapp` service-specific configuration
+    - [ ] Implement `NetworkPolicy` for better security isolation between microservices
+    - [ ] Configure `HorizontalPodAutoscaler` (HPA) for the webapp and critical services
+    - [ ] Add Pod Disruption Budgets (PDB) to ensure high availability during maintenance
+    - [ ] Explore using `ConfigMap` for Keycloak realm configuration instead of processing a template in an init container
