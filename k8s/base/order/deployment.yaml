@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: order
+  template:
+    metadata:
+      labels:
+        app: order
+    spec:
+      containers:
+        - name: order
+          image: foodies-order:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8084
+              name: http
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          startupProbe:
+            httpGet:
+              path: /healthz/startup
+              port: 8084
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz/liveness
+              port: 8084
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz/readiness
+              port: 8084
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: HOST
+              value: "0.0.0.0"
+            - name: PORT
+              value: "8084"
+            - name: AUTH_ISSUER
+              value: "http://keycloak:8000/auth/realms/foodies-keycloak"
+            - name: AUTH_AUDIENCE
+              value: "foodies"
+            - name: DB_URL
+              value: jdbc:postgresql://order-postgres:5432/foodies-order-database
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_USER
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres-credentials
+                  key: POSTGRES_PASSWORD
+            - name: BASKET_BASE_URL
+              value: "http://basket:8083"
+            - name: PAYMENT_BASE_URL
+              value: "http://payment:8085"
+            - name: RABBITMQ_HOST
+              value: "rabbitmq"
+            - name: RABBITMQ_PORT
+              value: "5672"
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rabbitmq-credentials
+                  key: RABBITMQ_PASSWORD
+            - name: RABBITMQ_EXCHANGE
+              value: "foodies.events"
+            - name: RABBITMQ_ROUTING_KEY
+              value: "order.created"
+            - name: ORDER_GRACE_PERIOD_SECONDS
+              value: "60"
