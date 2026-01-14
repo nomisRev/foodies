@@ -1,5 +1,8 @@
 - [x] Migrate `ConfigMap` and `Secret` resources to Kustomize generators (`configMapGenerator`, `secretGenerator`)
 - [x] Group resources in `k8s/base` by service/component for better organization
 - [x] Add resource limits/requests to all deployments in `base`
-- [ ] Explore using Kustomize patches for environment-specific configurations (e.g., `dev` vs `prod`)
-- [ ] Decommission `local-deploy.sh` in favor of `local-deploy-kustomize.sh` once migration is fully verified
+- [x] Explore using Kustomize patches for environment-specific configurations (e.g., `dev` vs `prod`)
+- [x] Decommission `local-deploy.sh` in favor of `local-deploy-kustomize.sh` once migration is fully verified
+- [ ] Define production-specific secrets and configmaps in `k8s/overlays/prod`
+- [ ] Implement network policies for better isolation between services
+- [x] Update `k8s/README.md` to reflect the current Kustomize structure and overlays
