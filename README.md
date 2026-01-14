@@ -218,13 +218,8 @@ Services are configured via environment variables with sensible defaults. See ea
 See [k8s/README.md](k8s/README.md) for detailed deployment instructions.
 
 ```bash
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/secrets/
-kubectl apply -f k8s/configmaps/
-kubectl apply -f k8s/databases/
-kubectl apply -f k8s/infrastructure/
-kubectl apply -f k8s/services/
-kubectl apply -f k8s/ingress.yaml
+# Apply development overlay
+kubectl apply -k k8s/overlays/dev
 ```
 
 ## Documentation
