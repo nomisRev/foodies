@@ -2,7 +2,6 @@ apiVersion: v1
 kind: Service
 metadata:
   name: menu
-  namespace: foodies
 spec:
   ports:
     - name: http
@@ -15,7 +14,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: menu
-  namespace: foodies
 spec:
   replicas: 2
   selector:
