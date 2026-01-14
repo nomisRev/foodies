@@ -51,10 +51,15 @@ spec:
           image: foodies-keycloak:local
           args: ["start-dev", "--import-realm"]
           env:
+            - name: FOODIES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: foodies-config
+                  key: FOODIES_HOST
             - name: KC_HOSTNAME
-              value: "http://foodies.local/auth"
+              value: "http://$(FOODIES_HOST)/auth"
             - name: KC_HOSTNAME_ADMIN
-              value: "http://foodies.local/auth"
+              value: "http://$(FOODIES_HOST)/auth"
             - name: KC_HOSTNAME_STRICT
               value: "true"
             - name: KC_HOSTNAME_BACKCHANNEL_DYNAMIC

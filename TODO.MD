@@ -6,6 +6,7 @@
 - [x] Define production-specific secrets and configmaps in `k8s/overlays/prod`
 - [ ] Implement network policies for better isolation between services
 - [ ] Configure TLS for Ingress in `prod` overlay
-- [ ] Externalize Keycloak host configuration to avoid hardcoded values in `base`
+- [x] Externalize Keycloak host configuration to avoid hardcoded values in `base`
+- [ ] Refactor multi-resource YAML files (e.g., service.yaml) into separate files (service.yaml, deployment.yaml, etc.) for better granularity
 - [ ] Implement HorizontalPodAutoscaler for high-traffic services
 - [x] Update `k8s/README.md` to reflect the current Kustomize structure and overlays
