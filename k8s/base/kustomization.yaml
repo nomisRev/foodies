@@ -1,0 +1,51 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: foodies
+
+resources:
+  - namespace.yaml
+  - ingress.yaml
+  - databases/menu-postgres.yaml
+  - databases/order-postgres.yaml
+  - databases/payment-postgres.yaml
+  - databases/profile-postgres.yaml
+  - databases/redis.yaml
+  - infrastructure/keycloak.yaml
+  - infrastructure/rabbitmq.yaml
+  - services/basket.yaml
+  - services/menu.yaml
+  - services/order.yaml
+  - services/payment.yaml
+  - services/profile.yaml
+  - services/webapp.yaml
+
+configMapGenerator:
+  - name: foodies-config
+    literals:
+      - FOODIES_HOST=foodies.local
+      - PROFILE_DB_NAME=foodies-profile-database
+      - MENU_DB_NAME=foodies-menu-database
+      - RABBITMQ_QUEUE=profile.registration
+      - BASKET_RABBITMQ_QUEUE=basket.order-created
+      - KEYCLOAK_HTTP_PORT=8000
+  - name: keycloak-realm
+    files:
+      - realm.json=configmaps/realm.json
+
+secretGenerator:
+  - name: keycloak-admin
+    literals:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+  - name: postgres-credentials
+    literals:
+      - POSTGRES_USER=foodies_admin
+      - POSTGRES_PASSWORD=foodies_password
+  - name: rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+  - name: webapp-auth
+    literals:
+      - AUTH_CLIENT_SECRET=foodies_client_secret
