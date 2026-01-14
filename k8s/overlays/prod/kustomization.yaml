@@ -4,6 +4,30 @@ kind: Kustomization
 resources:
   - ../../base
 
+configMapGenerator:
+  - name: foodies-config
+    behavior: merge
+    literals:
+      - FOODIES_HOST=foodies.com
+
+secretGenerator:
+  - name: keycloak-admin
+    behavior: merge
+    literals:
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=change-me-at-runtime
+  - name: postgres-credentials
+    behavior: merge
+    literals:
+      - POSTGRES_PASSWORD=change-me-at-runtime
+  - name: rabbitmq-credentials
+    behavior: merge
+    literals:
+      - RABBITMQ_PASSWORD=change-me-at-runtime
+  - name: webapp-auth
+    behavior: merge
+    literals:
+      - AUTH_CLIENT_SECRET=change-me-at-runtime
+
 patches:
   - target:
       kind: Deployment
@@ -19,3 +43,21 @@ patches:
       - op: replace
         path: /spec/rules/0/host
         value: foodies.com
+  - target:
+      kind: Deployment
+      name: keycloak
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: keycloak
+      spec:
+        template:
+          spec:
+            containers:
+            - name: keycloak
+              env:
+              - name: KC_HOSTNAME
+                value: "http://foodies.com/auth"
+              - name: KC_HOSTNAME_ADMIN
+                value: "http://foodies.com/auth"

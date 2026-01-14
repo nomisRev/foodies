@@ -3,6 +3,9 @@
 - [x] Add resource limits/requests to all deployments in `base`
 - [x] Explore using Kustomize patches for environment-specific configurations (e.g., `dev` vs `prod`)
 - [x] Decommission `local-deploy.sh` in favor of `local-deploy-kustomize.sh` once migration is fully verified
-- [ ] Define production-specific secrets and configmaps in `k8s/overlays/prod`
+- [x] Define production-specific secrets and configmaps in `k8s/overlays/prod`
 - [ ] Implement network policies for better isolation between services
+- [ ] Configure TLS for Ingress in `prod` overlay
+- [ ] Externalize Keycloak host configuration to avoid hardcoded values in `base`
+- [ ] Implement HorizontalPodAutoscaler for high-traffic services
 - [x] Update `k8s/README.md` to reflect the current Kustomize structure and overlays
