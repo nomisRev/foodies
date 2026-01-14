@@ -21,22 +21,21 @@
                         <option value="$PROJECT_DIR$"/>
                         <option value="$PROJECT_DIR$/basket"/>
                         <option value="$PROJECT_DIR$/buildSrc"/>
-                        <option value="$PROJECT_DIR$/e2e"/>
-                        <option value="$PROJECT_DIR$/keycloak-events"/>
-                        <option value="$PROJECT_DIR$/keycloak-rabbitmq-publisher"/>
-                        <option value="$PROJECT_DIR$/menu"/>
-                        <option value="$PROJECT_DIR$/order"/>
-                        <option value="$PROJECT_DIR$/payment"/>
-                        <option value="$PROJECT_DIR$/profile"/>
-                        <option value="$PROJECT_DIR$/rabbitmq-ext"/>
-                        <option value="$PROJECT_DIR$/server-shared"/>
-                        <option value="$PROJECT_DIR$/server-shared-test"/>
-                        <option value="$PROJECT_DIR$/webapp"/>
-                    </set>
-                </option>
-                <option name="resolveExternalAnnotations" value="true"/>
-            </GradleProjectSettings>
+                        <option value="$PROJECT_DIR$/keycloak-events" />
+            <option value="$PROJECT_DIR$/keycloak-rabbitmq-publisher" />
+            <option value="$PROJECT_DIR$/menu" />
+            <option value="$PROJECT_DIR$/order" />
+            <option value="$PROJECT_DIR$/payment" />
+            <option value="$PROJECT_DIR$/profile" />
+            <option value="$PROJECT_DIR$/rabbitmq-ext" />
+            <option value="$PROJECT_DIR$/server-shared" />
+            <option value="$PROJECT_DIR$/server-shared-test" />
+            <option value="$PROJECT_DIR$/webapp" />
+          </set>
         </option>
-        <option name="parallelModelFetch" value="true"/>
-    </component>
+        <option name="resolveExternalAnnotations" value="true" />
+      </GradleProjectSettings>
+    </option>
+    <option name="parallelModelFetch" value="true" />
+  </component>
 </project>
