@@ -16,6 +16,7 @@ cohort = "2.8.2"
 lettuce = "6.5.5.RELEASE"
 redis-testcontainers = "2.2.4"
 kotlinx-coroutines = "1.10.2"
+keycloak-testcontainers = "3.4.0"
 
 [libraries]
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -43,6 +44,7 @@ cohort-lettuce = { module = "com.sksamuel.cohort:cohort-lettuce", version.ref = 
 lettuce = { module = "io.lettuce:lettuce-core", version.ref = "lettuce" }
 testcontainers-core = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 testcontainers-redis = { module = "com.redis:testcontainers-redis", version.ref = "redis-testcontainers" }
+testcontainers-keycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloak-testcontainers" }
 kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinx-coroutines" }
 
 [plugins]
