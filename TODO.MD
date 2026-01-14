@@ -1,4 +1,4 @@
-- [ ] Migrate `ConfigMap` and `Secret` resources to Kustomize generators (`configMapGenerator`, `secretGenerator`)
+- [x] Migrate `ConfigMap` and `Secret` resources to Kustomize generators (`configMapGenerator`, `secretGenerator`)
 - [ ] Group resources in `k8s/base` by service/component for better organization
 - [ ] Add resource limits/requests to all deployments in `base`
 - [ ] Explore using Kustomize patches for environment-specific configurations (e.g., `dev` vs `prod`)
