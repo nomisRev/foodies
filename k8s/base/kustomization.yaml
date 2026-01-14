@@ -4,8 +4,8 @@ kind: Kustomization
 namespace: foodies
 
 resources:
-  - namespace.yaml
-  - ingress.yaml
+  - namespace
+  - ingress
   - basket
   - keycloak
   - menu

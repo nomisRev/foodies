@@ -16,7 +16,7 @@
     - [x] Externalize `payment` service-specific configuration
     - [x] Externalize `keycloak` service-specific configuration
     - [x] Externalize `webapp` service-specific configuration
-    - [ ] Implement `NetworkPolicy` for better security isolation between microservices
-    - [ ] Configure `HorizontalPodAutoscaler` (HPA) for the webapp and critical services
-    - [ ] Add Pod Disruption Budgets (PDB) to ensure high availability during maintenance
-    - [ ] Explore using `ConfigMap` for Keycloak realm configuration instead of processing a template in an init container
+- [ ] Implement `NetworkPolicy` for better security isolation between microservices
+- [ ] Configure `HorizontalPodAutoscaler` (HPA) for the webapp and critical services
+- [ ] Add Pod Disruption Budgets (PDB) to ensure high availability during maintenance
+- [ ] Explore using `ConfigMap` for Keycloak realm configuration instead of processing a template in an init container
