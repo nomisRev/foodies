@@ -5,3 +5,12 @@ resources:
   - service.yaml
   - deployment.yaml
   - database.yaml
+
+configMapGenerator:
+  - name: profile-config
+    literals:
+      - HOST=0.0.0.0
+      - PORT=8081
+      - DB_URL=jdbc:postgresql://profile-postgres:5432/foodies-profile-database
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
