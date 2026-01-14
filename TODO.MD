@@ -14,7 +14,7 @@
 - [ ] Add PodDisruptionBudget for critical services (e.g., redis, rabbitmq)
 - [/] Externalize service-specific environment variables to `configMapGenerator` in each service's `kustomization.yaml`
     - [x] Externalize `menu` service-specific configuration
-    - [ ] Externalize `basket` service-specific configuration
+    - [x] Externalize `basket` service-specific configuration
     - [ ] Externalize `profile` service-specific configuration
     - [ ] Externalize `order` service-specific configuration
     - [ ] Externalize `payment` service-specific configuration
