@@ -6,19 +6,15 @@ namespace: foodies
 resources:
   - namespace.yaml
   - ingress.yaml
-  - databases/menu-postgres.yaml
-  - databases/order-postgres.yaml
-  - databases/payment-postgres.yaml
-  - databases/profile-postgres.yaml
-  - databases/redis.yaml
-  - infrastructure/keycloak.yaml
-  - infrastructure/rabbitmq.yaml
-  - services/basket.yaml
-  - services/menu.yaml
-  - services/order.yaml
-  - services/payment.yaml
-  - services/profile.yaml
-  - services/webapp.yaml
+  - basket
+  - keycloak
+  - menu
+  - order
+  - payment
+  - profile
+  - rabbitmq
+  - redis
+  - webapp
 
 configMapGenerator:
   - name: foodies-config

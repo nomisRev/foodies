@@ -48,4 +48,4 @@ bin/
 PROMPT.MD
 TODO.MD
 /specs/
-./run-junie.sh
+specs/run-junie.sh
