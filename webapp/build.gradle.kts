@@ -47,6 +47,7 @@ dependencies {
 
     testImplementation(project(":server-shared-test"))
     testImplementation(libs.testcontainers.redis)
+    testImplementation(libs.testcontainers.keycloak)
 }
 
 tasks.withType<Test>().configureEach {
