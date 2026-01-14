@@ -49,11 +49,20 @@ spec:
             failureThreshold: 3
           env:
             - name: HOST
-              value: "0.0.0.0"
+              valueFrom:
+                configMapKeyRef:
+                  name: menu-config
+                  key: HOST
             - name: PORT
-              value: "8082"
+              valueFrom:
+                configMapKeyRef:
+                  name: menu-config
+                  key: PORT
             - name: DB_URL
-              value: jdbc:postgresql://menu-postgres:5432/foodies-menu-database
+              valueFrom:
+                configMapKeyRef:
+                  name: menu-config
+                  key: DB_URL
             - name: DB_USERNAME
               valueFrom:
                 secretKeyRef:
@@ -79,6 +88,12 @@ spec:
                   name: rabbitmq-credentials
                   key: RABBITMQ_PASSWORD
             - name: RABBITMQ_EXCHANGE
-              value: foodies.events
+              valueFrom:
+                configMapKeyRef:
+                  name: menu-config
+                  key: RABBITMQ_EXCHANGE
             - name: RABBITMQ_QUEUE
-              value: menu.stock-validation
+              valueFrom:
+                configMapKeyRef:
+                  name: menu-config
+                  key: RABBITMQ_QUEUE
