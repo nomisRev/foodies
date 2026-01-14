@@ -3,4 +3,5 @@ kind: Kustomization
 
 resources:
   - service.yaml
+  - deployment.yaml
   - database.yaml
