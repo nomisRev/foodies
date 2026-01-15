@@ -1,8 +1,5 @@
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.testballoon)
+    id("foodies.kotlin-conventions")
 }
 
 kotlin {
@@ -20,18 +17,7 @@ dependencies {
 }
 
 tasks.test {
-    useJUnitPlatform()
-
-    // Playwright configuration
     systemProperty("playwright.junit.enable-cache", "true")
-
-    // Set test timeouts
-    testLogging {
-        events("passed", "skipped", "failed")
-        showStandardStreams = true
-    }
-
-    // Ensure browsers are installed before running tests
     dependsOn("installPlaywrightBrowsers")
 
     // Pass command-line args to tests
@@ -49,7 +35,6 @@ tasks.test {
     }
 }
 
-// Task to install Playwright browsers
 tasks.register<JavaExec>("installPlaywrightBrowsers") {
     group = "playwright"
     description = "Installs Playwright browsers"
