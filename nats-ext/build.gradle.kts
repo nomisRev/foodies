@@ -9,6 +9,9 @@ dependencies {
     // NATS client
     api(libs.nats)
 
+    // Health checks
+    api(libs.cohort.ktor)
+
     // Serialization
     implementation(libs.serialization.json)
 
