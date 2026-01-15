@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - redis.yaml
   - deployment.yaml
+  - pvc.yaml
