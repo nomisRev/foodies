@@ -12,6 +12,8 @@ kotlin {
     compilerOptions { freeCompilerArgs.add("-Xcontext-parameters") }
 }
 
+project.version = "0.0.5"
+
 dependencies {
     compileOnly(libs.keycloak.core)
     compileOnly(libs.keycloak.services)
@@ -41,4 +43,14 @@ tasks.shadowJar {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     testLogging { events(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED) }
+}
+
+tasks.register<Exec>("publishImageToLocalRegistry") {
+    group = "docker"
+    description = "Builds the Keycloak Docker image with the RabbitMQ publisher plugin and pushes it to local registry"
+
+    dependsOn(tasks.shadowJar)
+
+    workingDir(rootProject.projectDir)
+    commandLine("docker", "build", "-t", "foodies-keycloak:${project.version}", "-f", "keycloak/Dockerfile", ".")
 }

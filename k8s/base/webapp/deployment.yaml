@@ -1,0 +1,100 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+        - name: webapp
+          image: foodies-webapp:0.0.3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          startupProbe:
+            httpGet:
+              path: /healthz/startup
+              port: 8080
+            periodSeconds: 2
+            timeoutSeconds: 3
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /healthz/liveness
+              port: 8080
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /healthz/readiness
+              port: 8080
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          env:
+            - name: HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: HOST
+            - name: PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: PORT
+            - name: AUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: AUTH_ISSUER
+            - name: AUTH_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: AUTH_CLIENT_ID
+            - name: AUTH_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: webapp-auth
+                  key: AUTH_CLIENT_SECRET
+            - name: MENU_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: MENU_BASE_URL
+            - name: BASKET_BASE_URL
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: BASKET_BASE_URL
+            - name: REDIS_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: REDIS_HOST
+            - name: REDIS_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: REDIS_PORT
+            - name: SESSION_TTL_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: SESSION_TTL_SECONDS

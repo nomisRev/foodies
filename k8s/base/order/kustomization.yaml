@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - service.yaml
+  - deployment.yaml
+  - database.yaml
+
+configMapGenerator:
+  - name: order-config
+    literals:
+      - HOST=0.0.0.0
+      - PORT=8084
+      - AUTH_ISSUER=http://keycloak:8000/auth/realms/foodies-keycloak
+      - AUTH_AUDIENCE=foodies
+      - DB_URL=jdbc:postgresql://order-postgres:5432/foodies-order-database
+      - BASKET_BASE_URL=http://basket:8083
+      - PAYMENT_BASE_URL=http://payment:8085
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_EXCHANGE=foodies.events
+      - RABBITMQ_ROUTING_KEY=order.created
+      - ORDER_GRACE_PERIOD_SECONDS=60

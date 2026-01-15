@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - service.yaml
+  - deployment.yaml
+  - database.yaml
+
+configMapGenerator:
+  - name: menu-config
+    literals:
+      - MENU_DB_NAME=foodies-menu-database
+      - HOST=0.0.0.0
+      - PORT=8082
+      - DB_URL=jdbc:postgresql://menu-postgres:5432/foodies-menu-database
+      - RABBITMQ_EXCHANGE=foodies.events
+      - RABBITMQ_QUEUE=menu.stock-validation
