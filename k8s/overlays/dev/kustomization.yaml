@@ -1,0 +1,30 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+images:
+  - name: foodies-keycloak
+    newTag: latest
+  - name: foodies-webapp
+    newTag: latest
+  - name: foodies-menu
+    newTag: latest
+  - name: foodies-profile
+    newTag: latest
+  - name: foodies-basket
+    newTag: latest
+  - name: foodies-order
+    newTag: latest
+  - name: foodies-payment
+    newTag: latest
+
+patches:
+  - target:
+      kind: PersistentVolumeClaim
+      name: redis-data
+    patch: |-
+      - op: replace
+        path: /spec/storageClassName
+        value: hostpath

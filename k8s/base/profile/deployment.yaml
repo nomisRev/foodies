@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: profile
-          image: foodies-profile:latest
+          image: foodies-profile:0.0.4
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8081

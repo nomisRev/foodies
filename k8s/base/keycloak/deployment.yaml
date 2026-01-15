@@ -35,7 +35,8 @@ spec:
               mountPath: /realm-import
       containers:
         - name: keycloak
-          image: foodies-keycloak:latest
+          image: foodies-keycloak:0.0.5
+          imagePullPolicy: IfNotPresent
           args: ["start-dev", "--import-realm"]
           env:
             - name: FOODIES_HOST

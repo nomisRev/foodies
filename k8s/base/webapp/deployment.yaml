@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: webapp
-          image: foodies-webapp:latest
+          image: foodies-webapp:0.0.3
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
