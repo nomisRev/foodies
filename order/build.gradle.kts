@@ -10,6 +10,7 @@ plugins {
 application {
     mainClass.set("io.ktor.foodies.order.OrderAppKt")
 }
+version = "0.0.1"
 
 kotlin {
     jvmToolchain(21)
