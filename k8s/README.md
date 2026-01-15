@@ -62,7 +62,7 @@ Or apply the YAML files in `k8s/secrets/` (after updating with your values).
 The Keycloak deployment now uses a custom image with the RabbitMQ event listener already installed.
 
 ```bash
-# Build the provider JAR (creates keycloak-rabbitmq-publisher--all.jar)
+# Build the provider JAR (creates keycloak-rabbitmq-publisher-all.jar)
 ./gradlew :keycloak-rabbitmq-publisher:build
 
 # Build the Keycloak image expected by the k8s manifest

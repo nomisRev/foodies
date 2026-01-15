@@ -27,7 +27,7 @@ dependencies {
 
 tasks {
     shadowJar {
-        archiveClassifier.set("-all")
+        archiveClassifier.set("all")
         mergeServiceFiles()
         dependencies {
             exclude(dependency("org.slf4j:slf4j-api"))
@@ -44,10 +44,9 @@ tasks {
         commandLine(
             "docker",
             "build",
-            "-t",
-            "foodies-keycloak:${project.version}",
-            "-f",
-            "keycloak/Dockerfile",
+            "--build-arg", "JAR_VERSION=${project.version}",
+            "-t", "foodies-keycloak:${project.version}",
+            "-f", "keycloak/Dockerfile",
             "."
         )
     }
