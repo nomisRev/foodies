@@ -35,12 +35,8 @@ spec:
               mountPath: /realm-import
       containers:
         - name: keycloak
-<<<<<<<< HEAD:k8s/base/keycloak/deployment.yaml
           image: foodies-keycloak:0.0.5
           imagePullPolicy: IfNotPresent
-========
-          image: foodies-keycloak:latest
->>>>>>>> 3f4c1f6 (Migrate Kubernetes manifests to Kustomize structure (base/overlays)):k8s/base/infrastructure/keycloak.yaml
           args: ["start-dev", "--import-realm"]
           env:
             - name: FOODIES_HOST
