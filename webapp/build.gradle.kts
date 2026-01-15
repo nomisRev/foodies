@@ -9,6 +9,8 @@ plugins {
 
 application { mainClass = "io.ktor.foodies.server.WebAppKt" }
 
+version = "0.0.3"
+
 kotlin {
     jvmToolchain(21)
     compilerOptions { freeCompilerArgs.add("-Xcontext-parameters") }

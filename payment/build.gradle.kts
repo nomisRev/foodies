@@ -10,7 +10,7 @@ plugins {
 application {
     mainClass.set("io.ktor.foodies.payment.PaymentAppKt")
 }
-
+version = "0.0.3"
 kotlin {
     jvmToolchain(21)
     compilerOptions { freeCompilerArgs.add("-Xcontext-parameters") }

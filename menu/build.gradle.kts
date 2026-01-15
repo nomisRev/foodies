@@ -8,6 +8,7 @@ plugins {
 }
 
 application { mainClass = "io.ktor.foodies.menu.AppKt" }
+version = "0.0.1"
 
 kotlin {
     jvmToolchain(21)
