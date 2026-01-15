@@ -58,6 +58,6 @@ fun Application.module(config: Config): WebAppModule {
         basketService = basketService,
         httpClient = httpClient,
         readinessCheck = readinessCheck,
-        sessionStorage = RedisSessionStorage(connection.coroutines())
+        sessionStorage = RedisSessionStorage(connection.coroutines(), config.redis.ttlSeconds)
     )
 }
