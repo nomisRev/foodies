@@ -52,7 +52,7 @@ private class TestJwkProvider : JwkProvider {
     val token = JWT.create()
         .withKeyId("test-key")
         .withIssuer("issuer")
-        .withAudience("audience")
+        .withAudience("foodies")
         .sign(Algorithm.RSA256(publicKey, privateKey))
 }
 
