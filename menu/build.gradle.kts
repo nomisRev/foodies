@@ -1,19 +1,11 @@
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(ktorLibs.plugins.ktor)
-    alias(libs.plugins.serialization)
-    alias(libs.plugins.testballoon)
+    id("foodies.kotlin-conventions")
+    id("io.ktor.plugin")
+    id("foodies.k8s-conventions")
 }
 
 application { mainClass = "io.ktor.foodies.menu.AppKt" }
 version = "0.0.1"
-
-kotlin {
-    jvmToolchain(21)
-    compilerOptions { freeCompilerArgs.add("-Xcontext-parameters") }
-}
 
 ktor {
     docker {
@@ -57,7 +49,3 @@ dependencies {
     testImplementation(ktorLibs.serialization.kotlinx.json)
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-    testLogging { events(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED) }
-}
