@@ -48,3 +48,5 @@ bin/
 PROMPT.MD
 TODO.MD
 /specs/
+.junie/
+buildSrc/build/
