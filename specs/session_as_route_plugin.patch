@@ -1,0 +1,276 @@
+Subject: [PATCH] Refactor k8s/base: move namespace and ingress to subdirectories
+---
+Index: webapp/src/main/kotlin/io/ktor/foodies/server/WebApp.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/webapp/src/main/kotlin/io/ktor/foodies/server/WebApp.kt b/webapp/src/main/kotlin/io/ktor/foodies/server/WebApp.kt
+--- a/webapp/src/main/kotlin/io/ktor/foodies/server/WebApp.kt	(revision c368a9d202cfb2420ff9893ed9e4d90a7c6e0d87)
++++ b/webapp/src/main/kotlin/io/ktor/foodies/server/WebApp.kt	(date 1768470848377)
+@@ -5,6 +5,7 @@
+ import io.ktor.foodies.server.htmx.cart.cartRoutes
+ import io.ktor.foodies.server.htmx.home
+ import io.ktor.foodies.server.htmx.menu.menuRoutes
++import io.ktor.foodies.server.security.UserSession
+ import io.ktor.foodies.server.security.security
+ import io.ktor.serialization.kotlinx.json.json
+ import io.ktor.server.application.Application
+@@ -15,7 +16,10 @@
+ import io.ktor.server.http.content.staticResources
+ import io.ktor.server.netty.Netty
+ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
++import io.ktor.server.routing.application
+ import io.ktor.server.routing.routing
++import io.ktor.server.sessions.Sessions
++import io.ktor.server.sessions.cookie
+ import kotlinx.coroutines.Dispatchers
+ 
+ fun main() {
+@@ -35,13 +39,20 @@
+         healthcheck("/healthz/readiness", module.readinessCheck)
+     }
+ 
+-    security(config.security, module.httpClient, module.sessionStorage)
+-
+-    menuRoutes(module.menuService)
+-    cartRoutes(module.basketService)
++    security(config.security, module.httpClient)
+ 
+     routing {
++        install(Sessions) {
++            cookie<UserSession>("USER_SESSION", module.sessionStorage) {
++                cookie.secure = !application.developmentMode
++                cookie.httpOnly = true
++                cookie.extensions["SameSite"] = "lax"
++            }
++        }
++
+         staticResources("/static", "static")
+         home()
++        menuRoutes(module.menuService)
++        cartRoutes(module.basketService)
+     }
+ }
+Index: webapp/src/main/kotlin/io/ktor/foodies/server/htmx/menu/MenuRoutes.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/webapp/src/main/kotlin/io/ktor/foodies/server/htmx/menu/MenuRoutes.kt b/webapp/src/main/kotlin/io/ktor/foodies/server/htmx/menu/MenuRoutes.kt
+--- a/webapp/src/main/kotlin/io/ktor/foodies/server/htmx/menu/MenuRoutes.kt	(revision c368a9d202cfb2420ff9893ed9e4d90a7c6e0d87)
++++ b/webapp/src/main/kotlin/io/ktor/foodies/server/htmx/menu/MenuRoutes.kt	(date 1768470774802)
+@@ -6,6 +6,7 @@
+ import io.ktor.foodies.server.security.UserSession
+ import io.ktor.server.application.Application
+ import io.ktor.server.htmx.hx
++import io.ktor.server.routing.Routing
+ import io.ktor.server.routing.get
+ import io.ktor.server.routing.routing
+ import io.ktor.server.sessions.get
+@@ -29,16 +30,14 @@
+ import kotlin.collections.set
+ 
+ @OptIn(ExperimentalKtorApi::class)
+-fun Application.menuRoutes(menuService: MenuService) {
+-    routing {
+-        hx {
+-            get("/menu") {
+-                val offset: Int by call.parameters
+-                val limit: Int by call.parameters
+-                val items = menuService.menuItems(offset, limit)
+-                val isLoggedIn = call.sessions.get<UserSession>() != null
+-                call.respondHtmxFragment { buildMenuFragment(items, offset, limit, isLoggedIn) }
+-            }
++fun Routing.menuRoutes(menuService: MenuService) {
++    hx {
++        get("/menu") {
++            val offset: Int by call.parameters
++            val limit: Int by call.parameters
++            val items = menuService.menuItems(offset, limit)
++            val isLoggedIn = call.sessions.get<UserSession>() != null
++            call.respondHtmxFragment { buildMenuFragment(items, offset, limit, isLoggedIn) }
+         }
+     }
+ }
+Index: webapp/src/main/kotlin/io/ktor/foodies/server/htmx/cart/CartRoutes.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/webapp/src/main/kotlin/io/ktor/foodies/server/htmx/cart/CartRoutes.kt b/webapp/src/main/kotlin/io/ktor/foodies/server/htmx/cart/CartRoutes.kt
+--- a/webapp/src/main/kotlin/io/ktor/foodies/server/htmx/cart/CartRoutes.kt	(revision c368a9d202cfb2420ff9893ed9e4d90a7c6e0d87)
++++ b/webapp/src/main/kotlin/io/ktor/foodies/server/htmx/cart/CartRoutes.kt	(date 1768470774789)
+@@ -12,6 +12,7 @@
+ import io.ktor.server.html.respondHtml
+ import io.ktor.server.htmx.hx
+ import io.ktor.server.request.receiveParameters
++import io.ktor.server.routing.Routing
+ import io.ktor.server.routing.delete
+ import io.ktor.server.routing.get
+ import io.ktor.server.routing.post
+@@ -50,79 +51,77 @@
+ import kotlinx.html.title
+ 
+ @OptIn(ExperimentalKtorApi::class)
+-fun Application.cartRoutes(basketService: BasketService) {
+-    routing {
+-        hx {
+-            get("/cart/badge") {
+-                val session = call.sessions.get<UserSession>()
+-                val itemCount = if (session != null) {
+-                    runCatching { basketService.getBasket(session.idToken).items.sumOf { it.quantity } }.getOrDefault(0)
+-                } else {
+-                    0
+-                }
+-                call.respondHtmxFragment { cartBadge(itemCount) }
+-            }
+-        }
++fun Routing.cartRoutes(basketService: BasketService) {
++    hx {
++        get("/cart/badge") {
++            val session = call.sessions.get<UserSession>()
++            val itemCount = if (session != null) {
++                runCatching { basketService.getBasket(session.idToken).items.sumOf { it.quantity } }.getOrDefault(0)
++            } else {
++                0
++            }
++            call.respondHtmxFragment { cartBadge(itemCount) }
++        }
++    }
+ 
+-        withUserSession {
+-            get("/cart") {
+-                val basket = basketService.getBasket(userSession().idToken)
+-                call.respondHtml { cartPage(basket) }
+-            }
++    withUserSession {
++        get("/cart") {
++            val basket = basketService.getBasket(userSession().idToken)
++            call.respondHtml { cartPage(basket) }
++        }
+ 
+-            hx {
+-                post("/cart/items") {
+-                    val session = userSession()
+-                    val form = call.receiveParameters()
+-                    val menuItemId: Long by form
+-                    val quantity: Int? by form
++        hx {
++            post("/cart/items") {
++                val session = userSession()
++                val form = call.receiveParameters()
++                val menuItemId: Long by form
++                val quantity: Int? by form
+ 
+-                    val basket = basketService.addItem(session.idToken, menuItemId, quantity ?: 1)
+-                    val itemCount = basket.items.sumOf { it.quantity }
++                val basket = basketService.addItem(session.idToken, menuItemId, quantity ?: 1)
++                val itemCount = basket.items.sumOf { it.quantity }
+ 
+-                    call.respondHtmxFragment {
+-                        cartBadgeOob(itemCount)
+-                        addToCartSuccess()
+-                    }
+-                }
++                call.respondHtmxFragment {
++                    cartBadgeOob(itemCount)
++                    addToCartSuccess()
++                }
++            }
+ 
+-                put("/cart/items/{itemId}") {
+-                    val session = userSession()
+-                    val itemId: String by call.parameters
+-                    val quantity: Int by call.receiveParameters()
++            put("/cart/items/{itemId}") {
++                val session = userSession()
++                val itemId: String by call.parameters
++                val quantity: Int by call.receiveParameters()
+ 
+-                    val basket = basketService.updateItemQuantity(session.idToken, itemId, quantity)
++                val basket = basketService.updateItemQuantity(session.idToken, itemId, quantity)
+ 
+-                    call.respondHtmxFragment {
+-                        cartItemsFragment(basket)
+-                        cartSummaryOob(basket)
+-                        cartBadgeOob(basket.items.sumOf { it.quantity })
+-                    }
+-                }
++                call.respondHtmxFragment {
++                    cartItemsFragment(basket)
++                    cartSummaryOob(basket)
++                    cartBadgeOob(basket.items.sumOf { it.quantity })
++                }
++            }
+ 
+-                delete("/cart/items/{itemId}") {
+-                    val session = userSession()
+-                    val itemId: String by call.parameters
++            delete("/cart/items/{itemId}") {
++                val session = userSession()
++                val itemId: String by call.parameters
+ 
+-                    val basket = basketService.removeItem(session.idToken, itemId)
++                val basket = basketService.removeItem(session.idToken, itemId)
+ 
+-                    call.respondHtmxFragment {
+-                        cartItemsFragment(basket)
+-                        cartSummaryOob(basket)
+-                        cartBadgeOob(basket.items.sumOf { it.quantity })
+-                    }
+-                }
++                call.respondHtmxFragment {
++                    cartItemsFragment(basket)
++                    cartSummaryOob(basket)
++                    cartBadgeOob(basket.items.sumOf { it.quantity })
++                }
++            }
+ 
+-                delete("/cart") {
+-                    val session = userSession()
++            delete("/cart") {
++                val session = userSession()
+ 
+-                    basketService.clearBasket(session.idToken)
++                basketService.clearBasket(session.idToken)
+ 
+-                    call.respondHtmxFragment {
+-                        cartItemsFragment(CustomerBasket(buyerId = "", items = emptyList()))
+-                        cartSummaryOob(CustomerBasket(buyerId = "", items = emptyList()))
+-                        cartBadgeOob(0)
+-                    }
++                call.respondHtmxFragment {
++                    cartItemsFragment(CustomerBasket(buyerId = "", items = emptyList()))
++                    cartSummaryOob(CustomerBasket(buyerId = "", items = emptyList()))
++                    cartBadgeOob(0)
+                 }
+             }
+         }
+Index: webapp/src/main/kotlin/io/ktor/foodies/server/security/Security.kt
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/webapp/src/main/kotlin/io/ktor/foodies/server/security/Security.kt b/webapp/src/main/kotlin/io/ktor/foodies/server/security/Security.kt
+--- a/webapp/src/main/kotlin/io/ktor/foodies/server/security/Security.kt	(revision c368a9d202cfb2420ff9893ed9e4d90a7c6e0d87)
++++ b/webapp/src/main/kotlin/io/ktor/foodies/server/security/Security.kt	(date 1768470848370)
+@@ -50,17 +50,8 @@
+ @OptIn(ExperimentalLettuceCoroutinesApi::class)
+ suspend fun Application.security(
+     config: Config.Security,
+-    httpClient: HttpClient,
+-    sessionStorage: SessionStorage
++    httpClient: HttpClient
+ ) {
+-    install(Sessions) {
+-        cookie<UserSession>("USER_SESSION", sessionStorage) {
+-            cookie.secure = !this@security.developmentMode
+-            cookie.httpOnly = true
+-            cookie.extensions["SameSite"] = "lax"
+-        }
+-    }
+-
+     val openIdConfig = httpClient.discover(config.issuer)
+     log.info("Loading $openIdConfig")
+ 

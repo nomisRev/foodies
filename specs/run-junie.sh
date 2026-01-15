@@ -1,0 +1,20 @@
+#!/bin/bash
+set -e
+
+ITERATIONS=${1:-5}
+
+TASK_CONTENT=$(cat prompt.md)
+
+for ((i=1; i<=ITERATIONS; i++)); do
+    echo "========================================"
+    echo "Running iteration $i of $ITERATIONS"
+    echo "========================================"
+
+    junie --task="$TASK_CONTENT"
+
+    echo ""
+    echo "Completed iteration $i"
+    echo ""
+done
+
+echo "All $ITERATIONS iterations completed successfully!"
