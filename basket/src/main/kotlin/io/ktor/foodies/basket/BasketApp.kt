@@ -6,6 +6,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.foodies.server.ValidationException
 import io.ktor.foodies.server.openid.discover
+import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -34,6 +35,8 @@ fun main() {
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun Application.app(module: BasketModule) {
+    openTelemetry(serviceName = "basket-service", serviceVersion = "1.0.0")
+
     install(ContentNegotiation) { json() }
 
     install(StatusPages) {

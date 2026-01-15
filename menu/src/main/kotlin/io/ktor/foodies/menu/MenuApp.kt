@@ -4,6 +4,7 @@ import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.HealthCheckRegistry.Companion.invoke
 import io.ktor.foodies.server.ValidationException
+import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -26,6 +27,8 @@ fun main() {
 }
 
 fun Application.app(module: MenuModule) {
+    openTelemetry(serviceName = "menu-service", serviceVersion = "1.0.0")
+
     install(ContentNegotiation) { json() }
 
     install(StatusPages) {

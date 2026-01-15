@@ -2,6 +2,7 @@ package io.ktor.foodies.payment
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
+import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
@@ -19,6 +20,8 @@ fun main() {
 }
 
 fun Application.app(module: PaymentModule) {
+    openTelemetry(serviceName = "payment-service", serviceVersion = "1.0.0")
+
     install(ContentNegotiation) { json() }
     install(Cohort) {
         verboseHealthCheckResponse = true
