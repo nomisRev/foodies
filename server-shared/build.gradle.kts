@@ -24,6 +24,11 @@ dependencies {
     implementation(libs.exposed.jdbc)
     implementation(libs.flyway.postgresql)
 
+    api(libs.otel.api)
+    api(libs.otel.sdk)
+    api(libs.otel.exporter.otlp)
+    api(libs.otel.ktor.server)
+
     testImplementation(project(":server-shared-test"))
     testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.testballoon)
