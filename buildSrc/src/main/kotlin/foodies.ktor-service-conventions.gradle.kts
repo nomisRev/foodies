@@ -4,6 +4,11 @@ import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.registering
 
+plugins {
+    id("io.ktor.plugin")
+    id("com.github.gmazzo.buildconfig")
+}
+
 tasks {
     named("publishImageToLocalRegistry") {
         dependsOn("classes")
@@ -40,4 +45,10 @@ tasks {
         dependsOn(localRestartService)
         dependsOn(localReadinessCheck)
     }
+}
+
+buildConfig {
+    useKotlinOutput { topLevelConstants = true }
+    packageName("io.ktor.foodies.${project.name}")
+    buildConfigField(String::class.java, "VERSION", provider { project.version.toString() })
 }

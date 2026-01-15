@@ -2,7 +2,6 @@ package io.ktor.foodies.menu
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import com.sksamuel.cohort.HealthCheckRegistry.Companion.invoke
 import io.ktor.foodies.server.ValidationException
 import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.http.HttpStatusCode
@@ -27,7 +26,7 @@ fun main() {
 }
 
 fun Application.app(module: MenuModule) {
-    openTelemetry(serviceName = "menu-service", serviceVersion = "1.0.0")
+    openTelemetry(name = "menu-service", version = VERSION)
 
     install(ContentNegotiation) { json() }
 

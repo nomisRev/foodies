@@ -3,6 +3,7 @@ package io.ktor.foodies.order
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
 import io.ktor.foodies.server.ValidationException
+import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -26,6 +27,7 @@ fun main() {
 }
 
 fun Application.app(module: OrderModule) {
+    openTelemetry(name = "order-service", version = VERSION)
     install(ContentNegotiation) { json() }
 
     install(StatusPages) {

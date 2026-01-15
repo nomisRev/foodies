@@ -25,4 +25,7 @@ dependencies {
 
     val ktorVersion = ktorLibs.findVersion("ktor").get().requiredVersion
     implementation("io.ktor.plugin:io.ktor.plugin.gradle.plugin:$ktorVersion")
+
+    val buildconfigVersion = libs.findVersion("buildconfig").get().requiredVersion
+    implementation("com.github.gmazzo.buildconfig:plugin:$buildconfigVersion")
 }

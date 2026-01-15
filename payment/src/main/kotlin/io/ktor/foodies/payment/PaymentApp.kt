@@ -20,7 +20,7 @@ fun main() {
 }
 
 fun Application.app(module: PaymentModule) {
-    openTelemetry(serviceName = "payment-service", serviceVersion = "1.0.0")
+    openTelemetry(name = "payment-service", version = VERSION)
 
     install(ContentNegotiation) { json() }
     install(Cohort) {

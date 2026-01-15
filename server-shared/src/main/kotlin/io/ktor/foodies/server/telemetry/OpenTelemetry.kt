@@ -18,16 +18,16 @@ import io.opentelemetry.semconv.ServiceAttributes
 
 
 fun Application.openTelemetry(
-    serviceName: String,
-    serviceVersion: String,
+    name: String,
+    version: String,
     otlpEndpoint: String = "http://localhost:4317",
     sampler: Sampler = Sampler.alwaysOn()
 ): OpenTelemetrySdk {
     val resource = Resource.getDefault().merge(
         Resource.create(
             Attributes.builder()
-                .put(ServiceAttributes.SERVICE_NAME, serviceName)
-                .put(ServiceAttributes.SERVICE_VERSION, serviceVersion)
+                .put(ServiceAttributes.SERVICE_NAME, name)
+                .put(ServiceAttributes.SERVICE_VERSION, version)
                 .build()
         )
     )

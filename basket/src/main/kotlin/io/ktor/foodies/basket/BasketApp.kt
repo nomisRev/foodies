@@ -2,17 +2,12 @@ package io.ktor.foodies.basket
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.foodies.server.ValidationException
-import io.ktor.foodies.server.openid.discover
 import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
-import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.getAs
 import io.ktor.server.engine.embeddedServer
@@ -35,7 +30,7 @@ fun main() {
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun Application.app(module: BasketModule) {
-    openTelemetry(serviceName = "basket-service", serviceVersion = "1.0.0")
+    openTelemetry(name = "basket-service", version = VERSION)
 
     install(ContentNegotiation) { json() }
 
