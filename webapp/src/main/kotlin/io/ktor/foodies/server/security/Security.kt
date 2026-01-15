@@ -38,6 +38,7 @@ import io.ktor.server.sessions.set
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import kotlinx.html.Entities
 import kotlinx.serialization.Serializable
+import java.net.URI
 
 @Serializable
 data class UserSession(
@@ -55,9 +56,11 @@ suspend fun Application.security(
 ) {
     install(Sessions) {
         cookie<UserSession>("USER_SESSION", sessionStorage) {
-            cookie.secure = !this@security.developmentMode
+            // Set secure=false for local development with HTTP
+            // In production with HTTPS, this should be true and use ForwardedHeaders plugin
+            cookie.secure = false
             cookie.httpOnly = true
-            cookie.extensions["SameSite"] = "lax"
+            cookie.extensions["SameSite"] = "Lax"
         }
     }
 
@@ -66,7 +69,7 @@ suspend fun Application.security(
 
     authentication {
         oauth(openIdConfig, config, httpClient)
-        jwt(JwkProviderBuilder(openIdConfig.jwksUri).build(), config.issuer)
+        jwt(JwkProviderBuilder(URI(openIdConfig.jwksUri).toURL()).build(), openIdConfig.issuer)
     }
 
     routing {
@@ -99,7 +102,10 @@ suspend fun Application.security(
 }
 
 internal fun AuthenticationConfig.jwt(jwks: JwkProvider, issuer: String) = jwt {
-    verifier(jwks, issuer)
+    verifier(jwks, issuer) {
+        acceptLeeway(3)
+        withAudience("foodies")
+    }
     authHeader { call -> call.sessions.get<UserSession>()?.idToken?.let { HttpAuthHeader.Single("Bearer", it) } }
     validate { _ -> sessions.get<UserSession>() }
     challenge { _, _ ->
