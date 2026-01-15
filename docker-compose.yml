@@ -55,18 +55,16 @@ services:
       - KC_HTTP_PORT=8000
       - KC_HEALTH_ENABLED=true
       - KC_METRICS_ENABLED=true
-      - RABBITMQ_HOST=${RABBITMQ_HOST:-rabbitmq}
-      - RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
-      - RABBITMQ_USERNAME=${RABBITMQ_USERNAME:-guest}
-      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD:-guest}
-      - RABBITMQ_QUEUE=${RABBITMQ_QUEUE:-profile.registration}
+      - NATS_SERVER=${NATS_SERVER:-nats://nats:4222}
+      - NATS_STREAM=${NATS_STREAM:-profile}
+      - NATS_SUBJECT=${NATS_SUBJECT:-profile.events}
     ports:
       - "8000:8000"
     volumes:
       - ./keycloak:/opt/keycloak/data/import/
-      - ./keycloak-rabbitmq-publisher/build/libs:/opt/keycloak/providers
+      - ./keycloak-nats-publisher/build/libs:/opt/keycloak/providers
     depends_on:
-      - rabbitmq
+      - nats
     command:
       - start-dev
       - --import-realm

@@ -16,6 +16,7 @@ include(":order")
 include(":rabbitmq-ext")
 include(":nats-ext")
 include(":keycloak-rabbitmq-publisher")
+include(":keycloak-nats-publisher")
 include(":keycloak-events")
 include(":payment")
 
