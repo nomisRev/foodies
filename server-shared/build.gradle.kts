@@ -1,14 +1,5 @@
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 plugins {
-    alias(libs.plugins.kotlin.jvm)
-    alias(libs.plugins.serialization)
-    alias(libs.plugins.testballoon)
-}
-
-kotlin {
-    jvmToolchain(21)
-    compilerOptions { freeCompilerArgs.add("-Xcontext-parameters") }
+    id("foodies.kotlin-conventions")
 }
 
 dependencies {
@@ -38,7 +29,3 @@ dependencies {
     testImplementation(libs.testballoon)
 }
 
-tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-    testLogging { events(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED) }
-}
