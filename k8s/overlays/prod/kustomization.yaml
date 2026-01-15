@@ -1,0 +1,45 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+configMapGenerator:
+  - name: foodies-config
+    behavior: merge
+    literals:
+      - FOODIES_HOST=foodies.com
+
+secretGenerator:
+  - name: keycloak-admin
+    behavior: merge
+    literals:
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=change-me-at-runtime
+  - name: postgres-credentials
+    behavior: merge
+    literals:
+      - POSTGRES_PASSWORD=change-me-at-runtime
+  - name: rabbitmq-credentials
+    behavior: merge
+    literals:
+      - RABBITMQ_PASSWORD=change-me-at-runtime
+  - name: webapp-auth
+    behavior: merge
+    literals:
+      - AUTH_CLIENT_SECRET=change-me-at-runtime
+
+patches:
+  - target:
+      kind: Deployment
+      name: webapp
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 3
+  - target:
+      kind: Ingress
+      name: foodies-ingress
+    patch: |-
+      - op: replace
+        path: /spec/rules/0/host
+        value: foodies.com

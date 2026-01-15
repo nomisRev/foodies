@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - service.yaml
+  - deployment.yaml
+
+configMapGenerator:
+  - name: basket-config
+    literals:
+      - HOST=0.0.0.0
+      - PORT=8083
+      - AUTH_ISSUER=http://keycloak:8000/auth/realms/foodies-keycloak
+      - AUTH_AUDIENCE=account
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - REDIS_PASSWORD=""
+      - MENU_SERVICE_URL=http://menu:8082
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672

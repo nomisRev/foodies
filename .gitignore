@@ -43,6 +43,8 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+# Project Specific
 PROMPT.MD
 TODO.MD
 /specs/
