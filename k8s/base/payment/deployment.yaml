@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: payment
-          image: foodies-payment:latest
+          image: foodies-payment:0.0.3
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8085
