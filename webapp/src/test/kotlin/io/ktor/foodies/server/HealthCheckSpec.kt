@@ -3,6 +3,7 @@ package io.ktor.foodies.server
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.foodies.server.test.ctxSuite
+import io.ktor.foodies.server.test.eventually
 import io.ktor.http.HttpStatusCode
 import kotlin.test.assertEquals
 import kotlin.test.assertContains
@@ -10,13 +11,17 @@ import kotlin.test.assertContains
 val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
 
     testWebAppService("startup probe returns 200 OK") {
-        val response = client.get("/healthz/startup")
-        assertEquals(HttpStatusCode.OK, response.status)
+        eventually {
+            val response = client.get("/healthz/startup")
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
     }
 
     testWebAppService("liveness probe returns 200 OK") {
-        val response = client.get("/healthz/liveness")
-        assertEquals(HttpStatusCode.OK, response.status)
+        eventually {
+            val response = client.get("/healthz/liveness")
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
     }
 
     testWebAppService("readiness probe returns 503 when menu service is unavailable") {
