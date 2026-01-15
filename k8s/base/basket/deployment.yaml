@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: basket
-          image: foodies-basket:latest
+          image: foodies-basket:0.0.6
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8083
