@@ -1,5 +1,3 @@
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 plugins {
     id("foodies.kotlin-conventions")
 }
