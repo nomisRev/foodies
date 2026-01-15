@@ -28,7 +28,7 @@
         "https://${FOODIES_HOST}"
       ],
       "attributes": {
-        "post.logout.redirect.uris": "http://${FOODIES_HOST}/*,https://${FOODIES_HOST}/*"
+        "post.logout.redirect.uris": "http://${FOODIES_HOST}/*"
       }
     }
   ],

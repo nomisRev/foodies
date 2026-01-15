@@ -7,11 +7,11 @@ import io.ktor.foodies.server.Config
 import io.ktor.foodies.server.openid.OpenIdConfiguration
 import io.ktor.foodies.server.openid.discover
 import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.URLBuilder
 import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
 import io.ktor.server.application.log
 import io.ktor.server.auth.AuthenticationConfig
@@ -36,7 +36,6 @@ import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
-import kotlinx.html.Entities
 import kotlinx.serialization.Serializable
 import java.net.URI
 
@@ -91,11 +90,10 @@ suspend fun Application.security(
 
         get("/logout") {
             val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/")
-            val redirect = "${call.request.origin.scheme}://${call.request.host()}:${call.request.port()}/"
             call.sessions.clear<UserSession>()
             call.respondRedirect(URLBuilder(openIdConfig.endSessionEndpoint).apply {
                 parameters.append("id_token_hint", session.idToken)
-                parameters.append("post_logout_redirect_uri", redirect)
+                parameters.append("post_logout_redirect_uri", call.requestUrl("/"))
             }.buildString())
         }
     }
@@ -120,14 +118,7 @@ private fun AuthenticationConfig.oauth(
     httpClient: HttpClient
 ) = oauth("oauth") {
     client = httpClient
-    urlProvider = {
-        val portSuffix = when {
-            request.origin.scheme == "http" && request.port() == 80 -> ""
-            request.origin.scheme == "https" && request.port() == 443 -> ""
-            else -> ":${request.port()}"
-        }
-        "${request.origin.scheme}://${request.host()}$portSuffix/oauth/callback"
-    }
+    urlProvider = { requestUrl("/oauth/callback") }
     providerLookup = {
         OAuthServerSettings.OAuth2ServerSettings(
             name = "foodies-oauth",
@@ -139,4 +130,13 @@ private fun AuthenticationConfig.oauth(
             defaultScopes = listOf("openid", "profile", "email"),
         )
     }
+}
+
+private fun ApplicationCall.requestUrl(callback: String): String {
+    val portSuffix = when {
+        request.origin.scheme == "http" && request.port() == 80 -> ""
+        request.origin.scheme == "https" && request.port() == 443 -> ""
+        else -> ":${request.port()}"
+    }
+    return "${request.origin.scheme}://${request.host()}$portSuffix$callback"
 }
