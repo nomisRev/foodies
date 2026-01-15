@@ -18,6 +18,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class ProfileModule(
     val consumers: List<Consumer>,
+    val startupCheck: HealthCheckRegistry,
     val readinessCheck: HealthCheckRegistry
 )
 
@@ -44,6 +45,11 @@ fun Application.module(config: Config): ProfileModule {
             profileRepository
         )
 
+    val startupCheck = HealthCheckRegistry(Dispatchers.IO) {
+        register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)
+        register(RabbitConnectionHealthCheck(connection), Duration.ZERO, 5.seconds)
+    }
+
     val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
         register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)
         register(RabbitConnectionHealthCheck(connection), Duration.ZERO, 5.seconds)
@@ -51,6 +57,7 @@ fun Application.module(config: Config): ProfileModule {
 
     return ProfileModule(
         consumers = listOf(newUserConsumer),
+        startupCheck = startupCheck,
         readinessCheck = readinessCheck
     )
 }

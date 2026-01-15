@@ -25,6 +25,7 @@ data class WebAppModule(
     val menuService: MenuService,
     val basketService: BasketService,
     val httpClient: HttpClient,
+    val startupCheck: HealthCheckRegistry,
     val readinessCheck: HealthCheckRegistry,
     val sessionStorage: SessionStorage
 )
@@ -47,6 +48,12 @@ fun Application.module(config: Config): WebAppModule {
         client.shutdown()
     }
 
+    val startupCheck = HealthCheckRegistry(Dispatchers.IO) {
+        register("menu-service", EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") })
+        register("basket-service", EndpointHealthCheck { it.get("${config.basket.baseUrl}/healthz/readiness") })
+        register("redis", RedisHealthCheck(connection))
+    }
+
     val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
         register("menu-service", EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") })
         register("basket-service", EndpointHealthCheck { it.get("${config.basket.baseUrl}/healthz/readiness") })
@@ -57,6 +64,7 @@ fun Application.module(config: Config): WebAppModule {
         menuService = menuService,
         basketService = basketService,
         httpClient = httpClient,
+        startupCheck = startupCheck,
         readinessCheck = readinessCheck,
         sessionStorage = RedisSessionStorage(connection.coroutines())
     )

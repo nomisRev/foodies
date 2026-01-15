@@ -27,6 +27,7 @@ class OrderModule(
     val orderService: DefaultOrderService,
     val eventConsumer: OrderEventConsumer,
     val eventPublisher: RabbitOrderEventPublisher,
+    val startupCheck: HealthCheckRegistry,
     val readinessCheck: HealthCheckRegistry
 )
 
@@ -91,6 +92,10 @@ fun Application.module(config: Config): OrderModule {
     )
     eventConsumer.start()
 
+    val startupCheck = HealthCheckRegistry(Dispatchers.IO) {
+        register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)
+    }
+
     val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
         register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)
     }
@@ -100,6 +105,7 @@ fun Application.module(config: Config): OrderModule {
         orderService = orderService,
         eventConsumer = eventConsumer,
         eventPublisher = eventPublisher,
+        startupCheck = startupCheck,
         readinessCheck = readinessCheck
     )
 }

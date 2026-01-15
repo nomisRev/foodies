@@ -27,6 +27,7 @@ import kotlin.time.Duration.Companion.seconds
 data class BasketModule(
     val basketService: BasketService,
     val consumers: List<Consumer>,
+    val startupCheck: HealthCheckRegistry,
     val readinessCheck: HealthCheckRegistry
 )
 
@@ -58,6 +59,11 @@ fun Application.module(config: Config): BasketModule {
         basketRepository
     )
 
+    val startupCheck = HealthCheckRegistry(Dispatchers.IO) {
+        register(RedisHealthCheck(redisCommands), Duration.ZERO, 5.seconds)
+        register("menu-service", EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") })
+    }
+
     val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
         register(RedisHealthCheck(redisCommands), Duration.ZERO, 5.seconds)
         register("menu-service", EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") })
@@ -66,6 +72,7 @@ fun Application.module(config: Config): BasketModule {
     return BasketModule(
         basketService = basketService,
         consumers = listOf(orderCreatedConsumer),
+        startupCheck = startupCheck,
         readinessCheck = readinessCheck
     )
 }

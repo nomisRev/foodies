@@ -16,6 +16,7 @@ import kotlin.time.Duration.Companion.seconds
 data class
 MenuModule(
     val menuService: MenuService,
+    val startupCheck: HealthCheckRegistry,
     val readinessCheck: HealthCheckRegistry
 )
 
@@ -57,6 +58,11 @@ fun Application.module(config: Config): MenuModule {
     )
     eventConsumer.start()
 
+    val startupCheck = HealthCheckRegistry(Dispatchers.Default) {
+        register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)
+        register(RabbitConnectionHealthCheck(rabbitConnection), Duration.ZERO, 5.seconds)
+    }
+
     val readinessCheck = HealthCheckRegistry(Dispatchers.Default) {
         register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)
         register(RabbitConnectionHealthCheck(rabbitConnection), Duration.ZERO, 5.seconds)
@@ -64,6 +70,7 @@ fun Application.module(config: Config): MenuModule {
 
     return MenuModule(
         menuService = menuService,
+        startupCheck = startupCheck,
         readinessCheck = readinessCheck
     )
 }

@@ -30,7 +30,7 @@ suspend fun Application.app(config: Config, module: WebAppModule) {
     install(Cohort) {
         verboseHealthCheckResponse = true
 
-        healthcheck("/healthz/startup", HealthCheckRegistry(Dispatchers.Default))
+        healthcheck("/healthz/startup", module.startupCheck)
         healthcheck("/healthz/liveness", HealthCheckRegistry(Dispatchers.Default))
         healthcheck("/healthz/readiness", module.readinessCheck)
     }

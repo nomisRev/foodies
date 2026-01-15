@@ -17,6 +17,7 @@ class PaymentModule(
     val paymentService: PaymentService,
     val eventConsumer: RabbitMQEventConsumer,
     val eventPublisher: RabbitMQEventPublisher,
+    val startupCheck: HealthCheckRegistry,
     val readinessCheck: HealthCheckRegistry
 )
 
@@ -42,6 +43,10 @@ fun Application.module(config: Config): PaymentModule {
 
     eventConsumer.start()
 
+    val startupCheck = HealthCheckRegistry(Dispatchers.IO) {
+        register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)
+    }
+
     val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
         register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)
     }
@@ -50,6 +55,7 @@ fun Application.module(config: Config): PaymentModule {
         paymentService = paymentService,
         eventConsumer = eventConsumer,
         eventPublisher = eventPublisher,
+        startupCheck = startupCheck,
         readinessCheck = readinessCheck
     )
 }
