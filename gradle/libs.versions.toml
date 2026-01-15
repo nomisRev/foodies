@@ -17,6 +17,7 @@ lettuce = "6.5.5.RELEASE"
 redis-testcontainers = "2.2.4"
 kotlinx-coroutines = "1.10.2"
 keycloak-testcontainers = "3.4.0"
+nats = "2.21.0"
 
 [libraries]
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -34,6 +35,7 @@ keycloak-server-spi = { module = "org.keycloak:keycloak-server-spi", version.ref
 keycloak-server-spi-private = { module = "org.keycloak:keycloak-server-spi-private", version.ref = "keycloak" }
 rabbitmq = { module = "com.rabbitmq:amqp-client", version.ref = "rabbitmq" }
 testcontainers-rabbitmq = { module = "org.testcontainers:rabbitmq", version.ref = "testcontainers" }
+nats = { module = "io.nats:jnats", version.ref = "nats" }
 serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialization" }
 serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialization" }
 cohort-ktor = { module = "com.sksamuel.cohort:cohort-ktor", version.ref = "cohort" }

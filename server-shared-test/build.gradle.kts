@@ -21,6 +21,7 @@ dependencies {
     api(libs.testcontainers.postgresql)
     api(libs.rabbitmq)
     api(libs.testcontainers.rabbitmq)
+    api(libs.nats)
     api(libs.testballoon)
 }
 

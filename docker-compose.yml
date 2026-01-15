@@ -30,6 +30,14 @@ services:
       - "5672:5672"
       - "15672:15672"
 
+  nats:
+    image: nats:2.11-alpine
+    container_name: foodies-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    command: ["-js"]
+
   redis:
     image: redis:7-alpine
     container_name: foodies-redis
