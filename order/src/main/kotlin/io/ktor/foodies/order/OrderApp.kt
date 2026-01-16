@@ -27,7 +27,6 @@ fun main() {
 }
 
 fun Application.app(module: OrderModule) {
-    openTelemetry(name = "order-service", version = VERSION)
     install(ContentNegotiation) { json() }
 
     install(StatusPages) {
