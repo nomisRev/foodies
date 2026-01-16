@@ -33,7 +33,7 @@ class OrderModule(
 )
 
 fun Application.module(config: Config, telemetry: OpenTelemetry): OrderModule {
-    val dataSource = dataSource(config.database)
+    val dataSource = dataSource(config.database, telemetry)
 
     Flyway.configure()
         .dataSource(dataSource.hikari)

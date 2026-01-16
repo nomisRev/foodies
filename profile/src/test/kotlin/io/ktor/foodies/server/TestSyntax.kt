@@ -11,6 +11,7 @@ import io.ktor.foodies.server.test.postgresContainer
 import io.ktor.foodies.server.test.rabbitContainer
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.testing.ApplicationTestBuilder
+import io.opentelemetry.api.OpenTelemetry
 
 data class ServiceContext(
     val postgreSQLContainer: TestSuite.Fixture<PostgreSQLContainer>,
@@ -55,7 +56,8 @@ fun TestSuite.testProfileService(
                             ctx.rabbitContainer().adminPassword,
                             "profile-queue"
                         )
-                    )
+                    ),
+                    OpenTelemetry.noop()
                 )
             )
         }

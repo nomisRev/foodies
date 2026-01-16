@@ -28,6 +28,8 @@ dependencies {
     api(libs.otel.sdk)
     api(libs.otel.exporter.otlp)
     api(libs.otel.ktor)
+    api(libs.otel.hikari)
+    api(libs.otel.jdbc)
 
     testImplementation(project(":server-shared-test"))
     testImplementation(ktorLibs.server.testHost)
