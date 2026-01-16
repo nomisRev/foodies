@@ -11,6 +11,7 @@ import io.ktor.foodies.server.consumers.userEventConsumer
 import io.ktor.foodies.server.profile.ExposedProfileRepository
 import io.ktor.foodies.user.event.UserEvent
 import io.ktor.server.application.Application
+import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 import org.flywaydb.core.Flyway
 import kotlin.time.Duration
@@ -21,8 +22,8 @@ class ProfileModule(
     val readinessCheck: HealthCheckRegistry
 )
 
-fun Application.module(config: Config): ProfileModule {
-    val dataSource = dataSource(config.dataSource)
+fun Application.module(config: Config, telemetry: OpenTelemetry): ProfileModule {
+    val dataSource = dataSource(config.dataSource, telemetry)
     Flyway.configure()
         .dataSource(dataSource.hikari)
         .load()

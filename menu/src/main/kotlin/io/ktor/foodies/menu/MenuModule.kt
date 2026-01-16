@@ -7,6 +7,7 @@ import io.ktor.foodies.menu.events.RabbitMenuEventPublisher
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.server.dataSource
 import io.ktor.server.application.Application
+import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 import io.ktor.server.application.ApplicationStopped
 import org.flywaydb.core.Flyway
@@ -19,8 +20,8 @@ MenuModule(
     val readinessCheck: HealthCheckRegistry
 )
 
-fun Application.module(config: Config): MenuModule {
-    val dataSource = dataSource(config.dataSource)
+fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
+    val dataSource = dataSource(config.dataSource, telemetry)
     Flyway.configure()
         .dataSource(dataSource.hikari)
         .load()
