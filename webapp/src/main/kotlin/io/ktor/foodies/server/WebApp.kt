@@ -6,8 +6,6 @@ import io.ktor.foodies.server.htmx.cart.cartRoutes
 import io.ktor.foodies.server.htmx.home
 import io.ktor.foodies.server.htmx.menu.menuRoutes
 import io.ktor.foodies.server.security.security
-import io.ktor.foodies.server.telemetry.openTelemetry
-import io.ktor.foodies.webapp.VERSION
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -28,7 +26,6 @@ fun main() {
 }
 
 suspend fun Application.app(config: Config, module: WebAppModule) {
-    openTelemetry(name = "webapp", version = VERSION)
     install(ContentNegotiation) { json() }
     install(Cohort) {
         verboseHealthCheckResponse = true

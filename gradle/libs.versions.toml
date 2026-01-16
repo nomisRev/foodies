@@ -54,7 +54,7 @@ otel-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "opent
 otel-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref = "opentelemetry" }
 
 otel-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp", version.ref = "opentelemetry" }
-otel-ktor-server = { module = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0", version = "2.23.0-alpha" }
+otel-ktor = { module = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0", version = "2.23.0-alpha" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
