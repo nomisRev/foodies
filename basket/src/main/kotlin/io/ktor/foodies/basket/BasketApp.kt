@@ -24,7 +24,8 @@ fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
         security(config)
-        app(module(config))
+        val openTelemetry = openTelemetry()
+        app(module(config, openTelemetry))
     }.start(wait = true)
 }
 

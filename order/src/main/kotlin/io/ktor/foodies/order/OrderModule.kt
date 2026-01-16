@@ -17,6 +17,7 @@ import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
+import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.coroutines.Dispatchers
 import org.flywaydb.core.Flyway
@@ -31,7 +32,7 @@ class OrderModule(
     val readinessCheck: HealthCheckRegistry
 )
 
-fun Application.module(config: Config): OrderModule {
+fun Application.module(config: Config, telemetry: OpenTelemetry): OrderModule {
     val dataSource = dataSource(config.database)
 
     Flyway.configure()
@@ -39,11 +40,10 @@ fun Application.module(config: Config): OrderModule {
         .load()
         .migrate()
 
-    val openTelemetry = openTelemetry()
     val httpClient = HttpClient(CIO) {
         install(ClientContentNegotiation) { json() }
         install(KtorClientTelemetry) {
-            setOpenTelemetry(openTelemetry)
+            setOpenTelemetry(telemetry)
         }
     }
 

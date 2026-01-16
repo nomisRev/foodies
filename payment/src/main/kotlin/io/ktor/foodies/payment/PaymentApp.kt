@@ -15,13 +15,12 @@ import kotlinx.coroutines.Dispatchers
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
+        openTelemetry()
         app(module(config))
     }.start(wait = true)
 }
 
 fun Application.app(module: PaymentModule) {
-    openTelemetry()
-
     install(ContentNegotiation) { json() }
     install(Cohort) {
         verboseHealthCheckResponse = true

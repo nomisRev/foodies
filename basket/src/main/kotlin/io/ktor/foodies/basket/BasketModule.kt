@@ -21,6 +21,7 @@ import io.ktor.server.application.ApplicationStopped
 import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines
+import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -33,12 +34,11 @@ data class BasketModule(
 )
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-fun Application.module(config: Config): BasketModule {
-    val openTelemetry = openTelemetry()
+fun Application.module(config: Config, telemetry: OpenTelemetry): BasketModule {
     val httpClient = HttpClient(CIO) {
         install(ContentNegotiation) { json() }
         install(KtorClientTelemetry) {
-            setOpenTelemetry(openTelemetry)
+            setOpenTelemetry(telemetry)
         }
     }
     monitor.subscribe(ApplicationStopped) { httpClient.close() }

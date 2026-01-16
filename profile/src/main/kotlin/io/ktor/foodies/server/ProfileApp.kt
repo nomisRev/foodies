@@ -15,13 +15,12 @@ import kotlinx.coroutines.flow.launchIn
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
+        openTelemetry()
         app(module(config))
     }.start(wait = true)
 }
 
 fun Application.app(module: ProfileModule) {
-    openTelemetry()
-
     module.consumers.forEach { it.process().launchIn(this) }
 
     install(Cohort) {

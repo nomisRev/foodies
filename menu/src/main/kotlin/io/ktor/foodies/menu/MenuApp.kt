@@ -16,18 +16,18 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
+import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
+        openTelemetry()
         app(module(config))
     }.start(wait = true)
 }
 
 fun Application.app(module: MenuModule) {
-    openTelemetry()
-
     install(ContentNegotiation) { json() }
 
     install(StatusPages) {
