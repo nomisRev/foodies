@@ -1,7 +1,6 @@
 plugins {
     id("foodies.kotlin-conventions")
-    id("io.ktor.plugin")
-    id("foodies.k8s-conventions")
+    id("foodies.ktor-service-conventions")
 }
 
 application { mainClass = "io.ktor.foodies.menu.AppKt" }

@@ -18,6 +18,7 @@ redis-testcontainers = "2.2.4"
 kotlinx-coroutines = "1.10.2"
 playwright = "1.49.0"
 keycloak-testcontainers = "3.4.0"
+opentelemetry = "1.47.0"
 
 [libraries]
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -47,6 +48,12 @@ testcontainers-redis = { module = "com.redis:testcontainers-redis", version.ref 
 testcontainers-keycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloak-testcontainers" }
 kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinx-coroutines" }
 playwright = { module = "com.microsoft.playwright:playwright", version.ref = "playwright" }
+
+otel-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "opentelemetry" }
+otel-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref = "opentelemetry" }
+
+otel-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp", version.ref = "opentelemetry" }
+otel-ktor = { module = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0", version = "2.23.0-alpha" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

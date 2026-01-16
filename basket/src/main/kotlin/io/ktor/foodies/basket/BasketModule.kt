@@ -14,11 +14,14 @@ import io.ktor.foodies.rabbitmq.RabbitConfig
 import io.ktor.foodies.rabbitmq.channel
 import io.ktor.foodies.rabbitmq.messages
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
+import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines
+import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -31,9 +34,12 @@ data class BasketModule(
 )
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-fun Application.module(config: Config): BasketModule {
+fun Application.module(config: Config, telemetry: OpenTelemetry): BasketModule {
     val httpClient = HttpClient(CIO) {
         install(ContentNegotiation) { json() }
+        install(KtorClientTelemetry) {
+            setOpenTelemetry(telemetry)
+        }
     }
     monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
