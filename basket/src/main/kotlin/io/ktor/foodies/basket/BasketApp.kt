@@ -30,8 +30,6 @@ fun main() {
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun Application.app(module: BasketModule) {
-    openTelemetry(name = "basket-service", version = VERSION)
-
     install(ContentNegotiation) { json() }
 
     install(StatusPages) {
