@@ -34,7 +34,7 @@ data class BasketModule(
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun Application.module(config: Config): BasketModule {
-    val openTelemetry = openTelemetry(name = "basket-service", version = VERSION)
+    val openTelemetry = openTelemetry()
     val httpClient = HttpClient(CIO) {
         install(ContentNegotiation) { json() }
         install(KtorClientTelemetry) {

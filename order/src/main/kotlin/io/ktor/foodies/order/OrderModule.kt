@@ -12,7 +12,6 @@ import io.ktor.foodies.order.repository.ExposedOrderRepository
 import io.ktor.foodies.order.service.*
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.rabbitmq.RabbitConfig as ExtRabbitConfig
-import io.ktor.foodies.server.DataSource
 import io.ktor.foodies.server.dataSource
 import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.serialization.kotlinx.json.json
@@ -40,7 +39,7 @@ fun Application.module(config: Config): OrderModule {
         .load()
         .migrate()
 
-    val openTelemetry = openTelemetry(name = "order-service", version = VERSION)
+    val openTelemetry = openTelemetry()
     val httpClient = HttpClient(CIO) {
         install(ClientContentNegotiation) { json() }
         install(KtorClientTelemetry) {

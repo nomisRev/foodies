@@ -3,53 +3,47 @@ package io.ktor.foodies.server.telemetry
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.install
-import io.opentelemetry.api.common.Attributes
+import io.ktor.server.application.log
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator
 import io.opentelemetry.context.propagation.ContextPropagators
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
 import io.opentelemetry.instrumentation.ktor.v3_0.KtorServerTelemetry
 import io.opentelemetry.sdk.OpenTelemetrySdk
-import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
 import io.opentelemetry.sdk.trace.export.SpanExporter
-import io.opentelemetry.sdk.trace.samplers.Sampler
-import io.opentelemetry.semconv.ServiceAttributes
+import java.util.concurrent.TimeUnit
 
-
-fun Application.openTelemetry(
-    name: String,
-    version: String,
-    otlpEndpoint: String = "http://localhost:4317",
-    sampler: Sampler = Sampler.alwaysOn()
-): OpenTelemetrySdk {
-    val resource = Resource.getDefault().merge(
-        Resource.create(
-            Attributes.builder()
-                .put(ServiceAttributes.SERVICE_NAME, name)
-                .put(ServiceAttributes.SERVICE_VERSION, version)
-                .build()
-        )
-    )
-
-    val spanExporter: SpanExporter = OtlpGrpcSpanExporter.builder().setEndpoint(otlpEndpoint).build()
+fun Application.openTelemetry(otlpEndpoint: String = "http://localhost:4317"): OpenTelemetrySdk {
+    val spanExporter: SpanExporter = OtlpGrpcSpanExporter.builder()
+        .setEndpoint(otlpEndpoint)
+        .build()
 
     val tracerProvider = SdkTracerProvider.builder()
-        .setResource(resource)
-        .setSampler(sampler)
         .addSpanProcessor(BatchSpanProcessor.builder(spanExporter).build())
         .build()
 
-    val propagators = ContextPropagators.create(W3CTraceContextPropagator.getInstance())
-
-    monitor.subscribe(ApplicationStopped) { tracerProvider.shutdown() }
-
     val openTelemetry = OpenTelemetrySdk.builder()
         .setTracerProvider(tracerProvider)
-        .setPropagators(propagators)
+        .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
         .buildAndRegisterGlobal()
+        .also { it.shutdownOnStop() }
 
     install(KtorServerTelemetry) { setOpenTelemetry(openTelemetry) }
 
     return openTelemetry
 }
+
+context(app: Application)
+private fun OpenTelemetrySdk.shutdownOnStop() =
+    app.monitor.subscribe(ApplicationStopped) {
+        // close() = shutdown().join(10, TimeUnit.SECONDS)
+        val result = shutdown().join(10, TimeUnit.SECONDS)
+        when {
+            !result.isDone -> app.log.info("OpenTelemetry shutdown timed out")
+            result.isSuccess -> app.log.info("OpenTelemetry shutdown completed successfully")
+            else -> result.failureThrowable?.let { error ->
+                app.log.info("OpenTelemetry shutdown failed with error", error)
+            } ?: app.log.info("OpenTelemetry shutdown failed without failureThrowable")
+        }
+    }

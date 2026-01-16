@@ -2,7 +2,6 @@ package io.ktor.foodies.server
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import io.ktor.foodies.profile.VERSION
 import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -21,7 +20,7 @@ fun main() {
 }
 
 fun Application.app(module: ProfileModule) {
-    openTelemetry(name = "profile-service", version = VERSION)
+    openTelemetry()
 
     module.consumers.forEach { it.process().launchIn(this) }
 

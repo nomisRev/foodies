@@ -19,7 +19,6 @@ kotlinx-coroutines = "1.10.2"
 playwright = "1.49.0"
 keycloak-testcontainers = "3.4.0"
 opentelemetry = "1.47.0"
-buildconfig = "6.0.7"
 
 [libraries]
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -62,4 +61,3 @@ kotlin-assert = { id = "org.jetbrains.kotlin.plugin.power-assert", version.ref =
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 testballoon = { id = "de.infix.testBalloon", version.ref = "testballoon" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
-buildconfig = { id = "com.github.gmazzo.buildconfig:plugin", version="buildconfig" }

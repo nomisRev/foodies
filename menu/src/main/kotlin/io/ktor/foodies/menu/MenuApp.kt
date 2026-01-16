@@ -26,7 +26,7 @@ fun main() {
 }
 
 fun Application.app(module: MenuModule) {
-    openTelemetry(name = "menu-service", version = VERSION)
+    openTelemetry()
 
     install(ContentNegotiation) { json() }
 

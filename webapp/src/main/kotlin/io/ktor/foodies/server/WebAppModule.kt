@@ -13,7 +13,6 @@ import io.ktor.foodies.server.htmx.menu.HttpMenuService
 import io.ktor.foodies.server.htmx.menu.MenuService
 import io.ktor.foodies.server.security.RedisSessionStorage
 import io.ktor.foodies.server.telemetry.openTelemetry
-import io.ktor.foodies.webapp.VERSION
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
@@ -34,7 +33,7 @@ data class WebAppModule(
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun Application.module(config: Config): WebAppModule {
-    val openTelemetry = openTelemetry(name = "webapp", version = VERSION)
+    val openTelemetry = openTelemetry()
     val httpClient = HttpClient(Apache5) {
         install(ContentNegotiation) { json() }
         install(KtorClientTelemetry) {
