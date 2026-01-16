@@ -12,11 +12,13 @@ import io.ktor.foodies.order.repository.ExposedOrderRepository
 import io.ktor.foodies.order.service.*
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.rabbitmq.RabbitConfig as ExtRabbitConfig
-import io.ktor.foodies.server.DataSource
 import io.ktor.foodies.server.dataSource
+import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
+import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.coroutines.Dispatchers
 import org.flywaydb.core.Flyway
 import kotlin.time.Duration
@@ -30,7 +32,7 @@ class OrderModule(
     val readinessCheck: HealthCheckRegistry
 )
 
-fun Application.module(config: Config): OrderModule {
+fun Application.module(config: Config, telemetry: OpenTelemetry): OrderModule {
     val dataSource = dataSource(config.database)
 
     Flyway.configure()
@@ -40,6 +42,9 @@ fun Application.module(config: Config): OrderModule {
 
     val httpClient = HttpClient(CIO) {
         install(ClientContentNegotiation) { json() }
+        install(KtorClientTelemetry) {
+            setOpenTelemetry(telemetry)
+        }
     }
 
     val basketClient = HttpBasketClient(httpClient, config.basket.baseUrl)

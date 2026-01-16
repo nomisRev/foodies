@@ -3,6 +3,7 @@ package io.ktor.foodies.order
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
 import io.ktor.foodies.server.ValidationException
+import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -21,7 +22,8 @@ fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
         security(config)
-        app(module(config))
+        val openTelemetry = openTelemetry()
+        app(module(config, openTelemetry))
     }.start(wait = true)
 }
 

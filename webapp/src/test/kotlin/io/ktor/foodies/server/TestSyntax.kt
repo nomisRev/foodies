@@ -13,6 +13,7 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.ktor.server.testing.ExternalServicesBuilder
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
+import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.future.await
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.MountableFile
@@ -78,6 +79,6 @@ fun TestSuite.testWebAppService(
             ttlSeconds = 3600
         )
     )
-    application { app(config, module(config)) }
+    application { app(config, module(config, OpenTelemetry.noop())) }
     block()
 }

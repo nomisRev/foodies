@@ -12,6 +12,7 @@ import io.ktor.foodies.server.htmx.basket.HttpBasketService
 import io.ktor.foodies.server.htmx.menu.HttpMenuService
 import io.ktor.foodies.server.htmx.menu.MenuService
 import io.ktor.foodies.server.security.RedisSessionStorage
+import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
@@ -19,6 +20,8 @@ import io.ktor.server.sessions.SessionStorage
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.coroutines
+import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.coroutines.Dispatchers
 
 data class WebAppModule(
@@ -30,9 +33,12 @@ data class WebAppModule(
 )
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-fun Application.module(config: Config): WebAppModule {
+fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
     val httpClient = HttpClient(Apache5) {
         install(ContentNegotiation) { json() }
+        install(KtorClientTelemetry) {
+            setOpenTelemetry(telemetry)
+        }
     }
     monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
