@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+spec:
+  template:
+    spec:
+      containers:
+        - name: keycloak
+          args: ["start-dev", "--import-realm"]
+          env:
+            - name: KEYCLOAK_IMPORT
+              value: /opt/keycloak/data/import/realm.json
+          volumeMounts:
+            - name: realm-import
+              mountPath: /opt/keycloak/data/import
+      volumes:
+        - name: realm-import
+          configMap:
+            name: keycloak-realm

@@ -4,37 +4,24 @@
   "registrationAllowed": true,
   "resetPasswordAllowed": true,
   "eventsEnabled": true,
-  "eventsListeners": [
-    "jboss-logging",
-    "profile-webhook"
-  ],
-  "enabledEventTypes": [
-    "REGISTER",
-    "DELETE_ACCOUNT",
-    "UPDATE_PROFILE"
-  ],
+  "eventsListeners": ["jboss-logging", "profile-webhook"],
+  "enabledEventTypes": ["REGISTER", "DELETE_ACCOUNT", "UPDATE_PROFILE"],
   "clients": [
     {
       "clientId": "foodies",
-      "enabled": true,
+      "directAccessGrantsEnabled": true,
       "publicClient": false,
       "secret": "foodies_client_secret",
-      "redirectUris": [
-        "http://${FOODIES_HOST}/oauth/callback",
-        "https://${FOODIES_HOST}/oauth/callback"
-      ],
-      "webOrigins": [
-        "http://${FOODIES_HOST}",
-        "https://${FOODIES_HOST}"
-      ],
+      "redirectUris": ["http://foodies.local/oauth/callback"],
+      "webOrigins": ["http://foodies.local"],
       "attributes": {
-        "post.logout.redirect.uris": "http://${FOODIES_HOST}/*"
+        "post.logout.redirect.uris": "http://foodies.local/"
       }
     }
   ],
   "users": [
     {
-      "username": "food_lover",
+      "username": "food3_lover",
       "enabled": true,
       "email": "food_lover@gmail.com",
       "firstName": "Food",
