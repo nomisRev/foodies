@@ -8,6 +8,7 @@ import io.ktor.foodies.payment.events.RabbitMQEventPublisher
 import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway
 import io.ktor.foodies.server.dataSource
 import io.ktor.server.application.*
+import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 import org.flywaydb.core.Flyway
 import kotlin.time.Duration
@@ -20,8 +21,8 @@ class PaymentModule(
     val readinessCheck: HealthCheckRegistry
 )
 
-fun Application.module(config: Config): PaymentModule {
-    val dataSource = dataSource(config.dataSource)
+fun Application.module(config: Config, telemetry: OpenTelemetry): PaymentModule {
+    val dataSource = dataSource(config.dataSource, telemetry)
 
     Flyway.configure()
         .dataSource(dataSource.hikari)

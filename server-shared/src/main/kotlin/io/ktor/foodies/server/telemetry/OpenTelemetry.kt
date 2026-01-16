@@ -6,9 +6,12 @@ import io.ktor.server.application.install
 import io.ktor.server.application.log
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator
 import io.opentelemetry.context.propagation.ContextPropagators
+import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
 import io.opentelemetry.instrumentation.ktor.v3_0.KtorServerTelemetry
 import io.opentelemetry.sdk.OpenTelemetrySdk
+import io.opentelemetry.sdk.metrics.SdkMeterProvider
+import io.opentelemetry.sdk.metrics.export.PeriodicMetricReader
 import io.opentelemetry.sdk.trace.SdkTracerProvider
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
 import io.opentelemetry.sdk.trace.export.SpanExporter
@@ -23,8 +26,17 @@ fun Application.openTelemetry(otlpEndpoint: String = "http://localhost:4317"): O
         .addSpanProcessor(BatchSpanProcessor.builder(spanExporter).build())
         .build()
 
+    val metricExporter = OtlpGrpcMetricExporter.builder()
+        .setEndpoint(otlpEndpoint)
+        .build()
+
+    val meterProvider = SdkMeterProvider.builder()
+        .registerMetricReader(PeriodicMetricReader.builder(metricExporter).build())
+        .build()
+
     val openTelemetry = OpenTelemetrySdk.builder()
         .setTracerProvider(tracerProvider)
+        .setMeterProvider(meterProvider)
         .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
         .buildAndRegisterGlobal()
         .also { it.shutdownOnStop() }
