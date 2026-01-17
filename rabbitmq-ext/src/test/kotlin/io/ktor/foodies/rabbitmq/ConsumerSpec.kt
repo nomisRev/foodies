@@ -172,4 +172,58 @@ val consumerSpec by testSuite {
             assertNull(result, "Message should have been discarded after nack (requeue=false)")
         }
     }
+
+    test("consumeMessage - acknowledges message on success") {
+        val queueName = "consumeMessage.test.success"
+        val payload = TestPayload(id = "consume-success", value = 1)
+        val body = Json.encodeToString(TestPayload.serializer(), payload)
+
+        rabbit().channel { channel ->
+            channel.queueDeclare(queueName, true, false, false, null)
+            channel.basicPublish("", queueName, null, body.toByteArray())
+        }
+
+        rabbit().channel { channel ->
+            val messagesFlow = channel.messages<TestPayload>(queueName)
+            messagesFlow.consumeMessage {
+                assertEquals("consume-success", it.id)
+            }.first()
+        }
+
+        rabbit().channel { channel ->
+            val messagesFlow = channel.messages<TestPayload>(queueName)
+            val result = withTimeoutOrNull(2.seconds) {
+                messagesFlow.first()
+            }
+            assertNull(result, "Message should have been acknowledged by consumeMessage")
+        }
+    }
+
+    test("consumeMessage - nacks message on error") {
+        val queueName = "consumeMessage.test.error"
+        val payload = TestPayload(id = "consume-error", value = 1)
+        val body = Json.encodeToString(TestPayload.serializer(), payload)
+
+        rabbit().channel { channel ->
+            channel.queueDeclare(queueName, true, false, false, null)
+            channel.basicPublish("", queueName, null, body.toByteArray())
+        }
+
+        rabbit().channel { channel ->
+            val messagesFlow = channel.messages<TestPayload>(queueName)
+            runCatching {
+                messagesFlow.consumeMessage {
+                    throw RuntimeException("Processing failed")
+                }.first()
+            }
+        }
+
+        rabbit().channel { channel ->
+            val messagesFlow = channel.messages<TestPayload>(queueName)
+            val result = withTimeoutOrNull(2.seconds) {
+                messagesFlow.first()
+            }
+            assertNull(result, "Message should have been nack'd by consumeMessage")
+        }
+    }
 }
