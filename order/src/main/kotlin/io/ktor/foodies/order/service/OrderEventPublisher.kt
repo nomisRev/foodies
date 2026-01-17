@@ -7,7 +7,8 @@ import io.ktor.foodies.order.domain.OrderCreatedEvent
 import io.ktor.foodies.order.domain.OrderStockConfirmedEvent
 import io.ktor.foodies.order.domain.OrderStatusChangedEvent
 import io.ktor.foodies.order.domain.StockReturnedEvent
-import kotlinx.serialization.encodeToString
+import io.ktor.foodies.rabbitmq.Publisher
+import io.ktor.foodies.rabbitmq.publish
 import kotlinx.serialization.json.Json
 
 interface OrderEventPublisher {
@@ -22,22 +23,14 @@ interface OrderEventPublisher {
 class RabbitOrderEventPublisher(
     private val channel: Channel,
     private val exchange: String,
-    private val orderCreatedRoutingKey: String,
-    private val orderCancelledRoutingKey: String,
+    private val publisher: Publisher,
     private val orderStatusChangedRoutingKey: String,
     private val orderStockConfirmedRoutingKey: String,
     private val orderAwaitingValidationRoutingKey: String,
     private val stockReturnedRoutingKey: String,
 ) : OrderEventPublisher {
-    override suspend fun publish(event: OrderCreatedEvent) {
-        val message = Json.encodeToString(event)
-        channel.basicPublish(exchange, orderCreatedRoutingKey, null, message.toByteArray())
-    }
-
-    override suspend fun publish(event: OrderCancelledEvent) {
-        val message = Json.encodeToString(event)
-        channel.basicPublish(exchange, orderCancelledRoutingKey, null, message.toByteArray())
-    }
+    override suspend fun publish(event: OrderCreatedEvent) = publisher.publish(event)
+    override suspend fun publish(event: OrderCancelledEvent) = publisher.publish(event)
 
     override suspend fun publish(event: OrderStatusChangedEvent) {
         val message = Json.encodeToString(event)

@@ -1,5 +1,6 @@
 package io.ktor.foodies.order.domain
 
+import io.ktor.foodies.rabbitmq.HasRoutingKey
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
@@ -12,7 +13,9 @@ data class OrderCreatedEvent(
     val totalPrice: SerializableBigDecimal,
     val currency: String,
     val createdAt: Instant
-)
+) : HasRoutingKey {
+    override val key: String = "order.created"
+}
 
 @Serializable
 data class OrderItemSnapshot(
@@ -27,7 +30,9 @@ data class OrderCancelledEvent(
     val buyerId: String,
     val reason: String,
     val cancelledAt: Instant,
-)
+) : HasRoutingKey {
+    override val key: String = "order.cancelled"
+}
 
 @Serializable
 data class OrderStatusChangedEvent(
