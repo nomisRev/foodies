@@ -3,11 +3,7 @@ kind: Kustomization
 
 resources:
   - ../../base
-
-configMapGenerator:
-  - name: keycloak-realm
-    files:
-      - realm.json
+  - keycloak-config-job.yaml
 
 images:
   - name: foodies-keycloak
