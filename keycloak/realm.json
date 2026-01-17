@@ -5,7 +5,7 @@
   "resetPasswordAllowed": true,
   "eventsEnabled": true,
   "eventsListeners": ["jboss-logging", "profile-webhook"],
-  "enabledEventTypes": ["REGISTER"],
+  "enabledEventTypes": ["REGISTER", "UPDATE_PROFILE", "DELETE_ACCOUNT"],
   "clients": [
     {
       "clientId": "foodies",

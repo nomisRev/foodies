@@ -22,12 +22,14 @@ internal class ProfileWebhookEventListener(
     override fun onEvent(event: AdminEvent?, includeRepresentation: Boolean) = Unit
 
     override fun onEvent(event: Event?) {
-        val event = event?.toUserEvent() ?: return
-        val message = Json.encodeToString(UserEvent.serializer(), event)
+        logger.debugf("Received event: %s", event?.type)
+        val userEvent = event?.toUserEvent() ?: return
+        logger.debugf("Publishing user event: %s for subject %s", userEvent::class.simpleName, userEvent.subject)
+        val message = Json.encodeToString(UserEvent.serializer(), userEvent)
 
         runCatching { channel.basicPublish("", rabbitConfig.queue, null, message.toByteArray()) }.onFailure {
             logger.error(
-                "Failed to forward registration event to profile queue ${rabbitConfig.queue} for userId=${event.subject}",
+                "Failed to forward registration event to profile queue ${rabbitConfig.queue} for userId=${userEvent.subject}",
                 it
             )
         }
