@@ -68,7 +68,7 @@ suspend fun Application.security(
 
     authentication {
         oauth(openIdConfig, config, httpClient)
-        jwt(JwkProviderBuilder(URI(openIdConfig.jwksUri).toURL()).build(), openIdConfig.issuer)
+        jwt(openIdConfig.jwks(), openIdConfig.issuer)
     }
 
     routing {

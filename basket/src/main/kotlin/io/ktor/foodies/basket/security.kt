@@ -20,7 +20,7 @@ suspend fun Application.security(config: Config) {
     }.use { it.discover(config.auth.issuer) }
     install(Authentication) {
         jwt {
-            verifier(openIdConfig.jwksProvider(), config.auth.issuer)
+            verifier(openIdConfig.jwks(), config.auth.issuer)
             validate { credential ->
 // TODO: Setup proper audience in keycloak
 //                 Validate audience if configured
