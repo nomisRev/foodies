@@ -53,6 +53,8 @@ dependencies {
     implementation(project(":server-shared"))
     implementation(project(":keycloak-events"))
     implementation(project(":rabbitmq-ext"))
+    implementation(project(":events-common"))
+    implementation(project(":events-payment"))
 
     // Logging
     implementation(libs.logback)

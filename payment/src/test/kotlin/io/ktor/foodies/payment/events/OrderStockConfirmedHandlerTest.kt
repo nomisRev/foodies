@@ -1,6 +1,9 @@
 package io.ktor.foodies.payment.events
 
 import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.events.common.*
+import io.ktor.foodies.events.payment.OrderPaymentFailedEvent
+import io.ktor.foodies.events.payment.OrderPaymentSucceededEvent
 import io.ktor.foodies.payment.*
 import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway
 import java.math.BigDecimal

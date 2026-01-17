@@ -1,6 +1,7 @@
 package io.ktor.foodies.payment
 
 import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.events.common.*
 import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway
 import java.math.BigDecimal
 import java.util.concurrent.ConcurrentHashMap

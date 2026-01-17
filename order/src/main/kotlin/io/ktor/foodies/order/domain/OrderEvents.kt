@@ -1,5 +1,9 @@
 package io.ktor.foodies.order.domain
 
+import io.ktor.foodies.events.common.CardBrand
+import io.ktor.foodies.events.common.PaymentFailureCode
+import io.ktor.foodies.events.common.PaymentMethodInfo
+import io.ktor.foodies.events.common.PaymentMethodType
 import io.ktor.foodies.rabbitmq.HasRoutingKey
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlin.time.Instant
@@ -80,24 +84,6 @@ data class StockConfirmedEvent(
 }
 
 @Serializable
-enum class PaymentMethodType {
-    CREDIT_CARD,
-    DEBIT_CARD,
-    DIGITAL_WALLET,
-    BANK_TRANSFER
-}
-
-@Serializable
-data class PaymentMethodInfo(
-    val type: PaymentMethodType,
-    val cardLastFour: String?,
-    val cardBrand: CardBrand?,
-    val cardHolderName: String?,
-    val expirationMonth: Int?,
-    val expirationYear: Int?
-)
-
-@Serializable
 data class OrderStockConfirmedEvent(
     val eventId: String,
     val orderId: Long,
@@ -127,38 +113,3 @@ data class RejectedItem(
     val availableQuantity: Int,
 )
 
-@Serializable
-data class OrderPaymentSucceededEvent(
-    val eventId: String,
-    val orderId: Long,
-    val paymentId: Long,
-    val transactionId: String,
-    val amount: SerializableBigDecimal,
-    val currency: String,
-    val processedAt: Instant,
-) : HasRoutingKey {
-    override val key: String = "payment.succeeded"
-}
-
-@Serializable
-enum class PaymentFailureCode {
-    INSUFFICIENT_FUNDS,
-    CARD_DECLINED,
-    CARD_EXPIRED,
-    INVALID_CARD,
-    FRAUD_SUSPECTED,
-    GATEWAY_ERROR,
-    TIMEOUT,
-    UNKNOWN
-}
-
-@Serializable
-data class OrderPaymentFailedEvent(
-    val eventId: String,
-    val orderId: Long,
-    val failureReason: String,
-    val failureCode: PaymentFailureCode,
-    val occurredAt: Instant,
-) : HasRoutingKey {
-    override val key: String = "payment.failed"
-}

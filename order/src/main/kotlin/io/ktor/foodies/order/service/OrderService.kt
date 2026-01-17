@@ -1,5 +1,9 @@
 package io.ktor.foodies.order.service
 
+import io.ktor.foodies.events.common.CardBrand
+import io.ktor.foodies.events.common.PaymentFailureCode
+import io.ktor.foodies.events.common.PaymentMethodInfo
+import io.ktor.foodies.events.common.PaymentMethodType
 import io.ktor.foodies.order.client.BasketClient
 import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.order.repository.OrderRepository

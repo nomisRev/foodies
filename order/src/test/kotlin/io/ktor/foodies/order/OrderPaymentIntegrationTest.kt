@@ -1,6 +1,10 @@
 package io.ktor.foodies.order
 
 import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.events.common.CardBrand
+import io.ktor.foodies.events.common.PaymentFailureCode
+import io.ktor.foodies.events.payment.OrderPaymentFailedEvent
+import io.ktor.foodies.events.payment.OrderPaymentSucceededEvent
 import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.order.events.handlers.PaymentFailedEventHandler
 import io.ktor.foodies.order.events.handlers.PaymentSucceededEventHandler

@@ -1,5 +1,7 @@
 package io.ktor.foodies.payment.events
 
+import io.ktor.foodies.events.payment.OrderPaymentFailedEvent
+import io.ktor.foodies.events.payment.OrderPaymentSucceededEvent
 import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.publish
 

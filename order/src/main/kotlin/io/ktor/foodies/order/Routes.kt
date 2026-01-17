@@ -1,7 +1,7 @@
 package io.ktor.foodies.order
 
+import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.order.domain.CancelOrderRequest
-import io.ktor.foodies.order.domain.CardBrand
 import io.ktor.foodies.order.domain.CardBrandResponse
 import io.ktor.foodies.order.domain.CreateOrderRequest
 import io.ktor.foodies.order.domain.OrderStatus

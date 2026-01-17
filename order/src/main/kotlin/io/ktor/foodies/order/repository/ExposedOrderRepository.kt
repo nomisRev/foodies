@@ -1,5 +1,6 @@
 package io.ktor.foodies.order.repository
 
+import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.order.database.OrderHistory
 import io.ktor.foodies.order.database.OrderItems
 import io.ktor.foodies.order.database.Orders

@@ -1,5 +1,6 @@
 package io.ktor.foodies.order.domain
 
+import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable

@@ -1,6 +1,7 @@
 package io.ktor.foodies.payment
 
 import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.events.common.*
 import io.ktor.foodies.payment.gateway.ChargeRequest
 import io.ktor.foodies.payment.gateway.GatewayResult
 import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway
