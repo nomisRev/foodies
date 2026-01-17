@@ -59,8 +59,6 @@ private class InMemoryEventPublisher : EventPublisher {
     override suspend fun publish(event: OrderPaymentFailedEvent) {
         publishedEvents.add(event)
     }
-
-    override fun close() {}
 }
 
 private data class TestContext(

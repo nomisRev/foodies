@@ -10,6 +10,7 @@ import io.ktor.foodies.order.events.orderEventConsumers
 import io.ktor.foodies.order.events.handlers.*
 import io.ktor.foodies.order.repository.ExposedOrderRepository
 import io.ktor.foodies.order.service.*
+import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
@@ -21,6 +22,7 @@ import io.opentelemetry.api.OpenTelemetry
 import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.Json
 import org.flywaydb.core.Flyway
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -62,14 +64,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): OrderModule {
     }
 
     val eventPublisher = RabbitOrderEventPublisher(
-        rabbitChannel,
-        config.rabbit.exchange,
-        config.rabbit.routingKey,
-        "order.cancelled",
-        "order.status-changed",
-        "order.stock-confirmed",
-        "order.awaiting-validation",
-        "order.stock-returned"
+        Publisher(rabbitChannel, config.rabbit.exchange, Json)
     )
     val orderRepository = ExposedOrderRepository(dataSource.database)
     val orderService = DefaultOrderService(orderRepository, basketClient, eventPublisher)

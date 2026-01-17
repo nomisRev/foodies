@@ -50,19 +50,11 @@ interface RabbitMQSubscriber {
     /**
      * Creates a Flow of messages using an explicit serializer.
      *
-     * Parallel (unordered) processing example:
+     * Example:
      * ```kotlin
-     * channel.messages(serializer<MyEvent>(), "my-queue")
-     *     .buffer(1000) // default is 64
-     *     .flatMapMerge(concurrency = 16 /* default */) { event: Message<MyEvent> ->
-     *         flowOf {
-     *            try {
-     *                process(event.value)
-     *                event.ack()
-     *            } catch(e: Exception) {
-     *                event.nack()
-     *            }
-     *         }
+     * subscriber.subscribe<MyEvent>("my-queue")
+     *     .consumeMessage { event ->
+     *         process(event)
      *     }.collect()
      * ```
      *

@@ -5,6 +5,7 @@ import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
 import io.ktor.foodies.menu.events.RabbitMenuEventPublisher
 import io.ktor.foodies.menu.events.orderAwaitingValidationConsumer
 import io.ktor.foodies.menu.events.stockReturnedConsumer
+import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
@@ -14,6 +15,7 @@ import io.ktor.server.application.ApplicationStopped
 import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.json.Json
 import org.flywaydb.core.Flyway
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -40,7 +42,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
 
     val rabbitChannel = rabbitConnection.createChannel()
     rabbitChannel.exchangeDeclare(config.rabbit.exchange, "topic", true)
-    val eventPublisher = RabbitMenuEventPublisher(rabbitChannel, config.rabbit.exchange)
+    val eventPublisher = RabbitMenuEventPublisher(Publisher(rabbitChannel, config.rabbit.exchange, Json))
     monitor.subscribe(ApplicationStopped) {
         runCatching { rabbitChannel.close() }
         runCatching { rabbitConnection.close() }

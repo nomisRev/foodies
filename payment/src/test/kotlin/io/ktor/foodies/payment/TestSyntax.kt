@@ -10,6 +10,7 @@ import io.ktor.foodies.payment.events.OrderStockConfirmedEvent
 import io.ktor.foodies.payment.events.RabbitMQEventPublisher
 import io.ktor.foodies.payment.events.orderStockConfirmedEventConsumer
 import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway
+import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.rabbitmq.subscribe
@@ -19,6 +20,7 @@ import io.ktor.foodies.server.test.rabbitContainer
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.json.Json
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -97,7 +99,9 @@ fun TestSuite.testPaymentService(
             rabbitConfig.password
         )
         val connection = connectionFactory.newConnection()
-        val eventPublisher = RabbitMQEventPublisher(connection, rabbitConfig)
+        val channel = connection.createChannel()
+        channel.exchangeDeclare(rabbitConfig.publishExchange, "topic", true)
+        val eventPublisher = RabbitMQEventPublisher(Publisher(channel, rabbitConfig.publishExchange, Json))
         val subscriber = RabbitMQSubscriber(connection, rabbitConfig.publishExchange)
         val consumer = orderStockConfirmedEventConsumer(
             subscriber.subscribe<OrderStockConfirmedEvent>(rabbitConfig.consumeQueue),
