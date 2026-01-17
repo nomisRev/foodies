@@ -3,19 +3,12 @@ plugins {
 }
 
 dependencies {
-    // Ktor Server (for Application context and lifecycle)
     implementation(ktorLibs.server.core)
-
-    // RabbitMQ client
     api(libs.rabbitmq)
-
-    // Serialization
-    implementation(libs.serialization.json)
-
-    // Logging
+    api(libs.cohort.api)
+    api(libs.serialization.json)
     implementation(libs.logback)
 
-    // Testing
     testImplementation(project(":server-shared-test"))
 }
 

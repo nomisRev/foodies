@@ -29,7 +29,6 @@ dependencies {
     implementation(libs.exposed.jdbc)
     implementation(libs.flyway.postgresql)
 
-    implementation(libs.cohort.rabbit)
     api(libs.cohort.ktor)
     api(libs.cohort.hikari)
 

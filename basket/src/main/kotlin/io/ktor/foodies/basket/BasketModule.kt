@@ -10,11 +10,10 @@ import io.ktor.client.request.get
 import io.ktor.foodies.basket.events.OrderCreatedEvent
 import io.ktor.foodies.basket.events.orderCreatedEventConsumer
 import io.ktor.foodies.rabbitmq.Consumer
-import io.ktor.foodies.rabbitmq.RabbitConfig
-import io.ktor.foodies.rabbitmq.channel
-import io.ktor.foodies.rabbitmq.messages
+import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
+import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
-import io.ktor.foodies.server.telemetry.openTelemetry
+import io.ktor.foodies.rabbitmq.subscribe
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
@@ -51,22 +50,21 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): BasketModule {
     val basketRepository = RedisBasketRepository(redisCommands.coroutines())
     val basketService = BasketServiceImpl(basketRepository, menuClient)
 
-    val rabbitConfig = RabbitConfig(
-        host = config.rabbit.host,
-        port = config.rabbit.port,
-        username = config.rabbit.username,
-        password = config.rabbit.password
-    )
-    val connectionFactory = rabbitConnectionFactory(rabbitConfig)
+    val connectionFactory =
+        rabbitConnectionFactory(config.rabbit.host, config.rabbit.port, config.rabbit.username, config.rabbit.password)
+    val connection = connectionFactory.newConnection("basket-service")
+    monitor.subscribe(ApplicationStopped) { connection.close() }
+
+    val subscriber = RabbitMQSubscriber(connection, "foodies")
     val orderCreatedConsumer = orderCreatedEventConsumer(
-        connectionFactory.channel(config.rabbit.queue, "basket-service")
-            .messages<OrderCreatedEvent>(config.rabbit.queue),
+        subscriber.subscribe<OrderCreatedEvent>(config.rabbit.queue),
         basketRepository
     )
 
     val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
         register(RedisHealthCheck(redisCommands), Duration.ZERO, 5.seconds)
         register("menu-service", EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") })
+        register(RabbitConnectionHealthCheck(connection), Duration.ZERO, 5.seconds)
     }
 
     return BasketModule(

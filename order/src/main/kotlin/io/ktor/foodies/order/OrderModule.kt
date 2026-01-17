@@ -13,7 +13,6 @@ import io.ktor.foodies.order.service.*
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.rabbitmq.RabbitConfig as ExtRabbitConfig
 import io.ktor.foodies.server.dataSource
-import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
@@ -49,17 +48,10 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): OrderModule {
 
     val basketClient = HttpBasketClient(httpClient, config.basket.baseUrl)
 
-    val rabbitFactory = rabbitConnectionFactory(
-        ExtRabbitConfig(
-            config.rabbit.host,
-            config.rabbit.port,
-            config.rabbit.username,
-            config.rabbit.password
-        )
-    )
+    val rabbitFactory =
+        rabbitConnectionFactory(config.rabbit.host, config.rabbit.port, config.rabbit.username, config.rabbit.password)
     val rabbitConnection = rabbitFactory.newConnection()
     val rabbitChannel = rabbitConnection.createChannel()
-    rabbitChannel.exchangeDeclare(config.rabbit.exchange, "topic", true)
 
     monitor.subscribe(ApplicationStopped) {
         runCatching { rabbitChannel.close() }

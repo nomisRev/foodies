@@ -44,7 +44,7 @@ class Message<A>(
      * Negatively acknowledges the message without requeuing.
      * The message will be discarded or sent to a dead-letter queue if configured.
      */
-    fun nack(): Unit = channel.basicNack(delivery.envelope.deliveryTag, false, false)
+    fun nack(): Unit = channel.basicNack(delivery.envelope.deliveryTag, false, true)
 }
 
 /**
@@ -63,14 +63,7 @@ class Message<A>(
 inline fun <reified A> Channel.messages(queueName: String): Flow<Message<A>> =
     messages(serializer(), queueName)
 
-/**
- * Creates a Flow of messages using an explicit serializer.
- *
- * @param A The type to deserialize messages into
- * @param serializer The kotlinx.serialization serializer to use
- * @param queueName The name of the queue to consume from
- * @return A Flow of deserialized messages
- */
+
 fun <A> Channel.messages(serializer: KSerializer<A>, queueName: String): Flow<Message<A>> =
     channelFlow {
         val deliverCallback = DeliverCallback { _, delivery ->
