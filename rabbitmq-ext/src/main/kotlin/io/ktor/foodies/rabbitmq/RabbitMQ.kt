@@ -20,6 +20,8 @@ import kotlinx.serialization.serializer
 import org.slf4j.LoggerFactory
 import java.io.IOException
 
+private val logger = LoggerFactory.getLogger("io.ktor.foodies.rabbitmq.RabbitMQ")
+
 /**
  * Configuration for RabbitMQ connection.
  */
@@ -72,7 +74,9 @@ interface RabbitMQSubscriber {
     fun <A> subscribe(
         serializer: KSerializer<A>,
         queueName: String,
-        configure: Channel.(exchange: String) -> Unit = {}
+        configure: Channel.(exchange: String) -> Unit = { exchange ->
+            queueDeclare(queueName, true, false, false, null)
+        }
     ): Flow<Message<A>>
 }
 
@@ -87,11 +91,13 @@ fun <A, B> Flow<Message<A>>.consumeMessage(block: suspend (message: A) -> B): Fl
     map { message ->
         runCatching {
             block(message.value).also { message.ack() }
-        }.onFailure { message.nack() }.getOrThrow()
+        }.onFailure {
+            logger.error("Error while processing message: ${message.value}", it)
+            message.nack()
+        }.getOrThrow()
     }
 
 private class RabbitMQ(private val connection: Connection, private val exchange: String) : RabbitMQSubscriber {
-    private val logger = LoggerFactory.getLogger(RabbitMQ::class.java)
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun <A> subscribe(
@@ -99,7 +105,7 @@ private class RabbitMQ(private val connection: Connection, private val exchange:
         queueName: String,
         configure: Channel.(exchange: String) -> Unit
     ): Flow<Message<A>> = channelFlow {
-        val channel = connection.createChannel()
+        val channel = connection.createChannel().apply { configure(exchange) }
         val deliverCallback = DeliverCallback { _, delivery ->
             runCatching {
                 Json.decodeFromString(serializer, delivery.body.decodeToString())
@@ -109,7 +115,10 @@ private class RabbitMQ(private val connection: Connection, private val exchange:
                  * Since it is a Java SDK it expects blocking for backpressure.
                  */
                 { payload -> trySendBlocking(Message(payload, delivery, channel)) },
-                { error -> close(error) }
+                { error ->
+                    channel.basicNack(delivery.envelope.deliveryTag, false, true)
+                    close(error)
+                }
             )
         }
         val cancelCallback = CancelCallback {
