@@ -20,5 +20,5 @@ class Message<A>(val value: A, private val delivery: Delivery, private val chann
      * Negatively acknowledges the message without requeuing.
      * The message will be discarded or sent to a dead-letter queue if configured.
      */
-    fun nack(): Unit = channel.basicNack(delivery.envelope.deliveryTag, false, false)
+    fun nack(): Unit = channel.basicNack(delivery.envelope.deliveryTag, false, true)
 }

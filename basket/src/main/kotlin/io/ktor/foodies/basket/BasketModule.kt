@@ -9,6 +9,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.foodies.basket.events.OrderCreatedEvent
 import io.ktor.foodies.basket.events.orderCreatedEventConsumer
+import io.ktor.foodies.rabbitmq.Consumer
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
