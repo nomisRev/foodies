@@ -3,7 +3,7 @@ package io.ktor.foodies.order.events
 import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.order.events.handlers.*
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
-import io.ktor.foodies.rabbitmq.consumeMessage
+import io.ktor.foodies.rabbitmq.parConsumeMessage
 import io.ktor.foodies.rabbitmq.subscribe
 import kotlinx.coroutines.flow.Flow
 
@@ -22,7 +22,7 @@ fun orderEventConsumers(
         subscriber.subscribe<StockConfirmedEvent>(queueName) {
             queueDeclare(queueName, true, false, false, null)
             queueBind(queueName, exchange, routingKey)
-        }.consumeMessage { stockConfirmedHandler.handle(it) }
+        }.parConsumeMessage { stockConfirmedHandler.handle(it) }
     },
     run {
         val queueName = "order.stock-rejected"
@@ -30,7 +30,7 @@ fun orderEventConsumers(
         subscriber.subscribe<StockRejectedEvent>(queueName) {
             queueDeclare(queueName, true, false, false, null)
             queueBind(queueName, exchange, routingKey)
-        }.consumeMessage { stockRejectedHandler.handle(it) }
+        }.parConsumeMessage { stockRejectedHandler.handle(it) }
     },
     run {
         val queueName = "order.payment-succeeded"
@@ -38,7 +38,7 @@ fun orderEventConsumers(
         subscriber.subscribe<OrderPaymentSucceededEvent>(queueName) {
             queueDeclare(queueName, true, false, false, null)
             queueBind(queueName, exchange, routingKey)
-        }.consumeMessage { paymentSucceededHandler.handle(it) }
+        }.parConsumeMessage { paymentSucceededHandler.handle(it) }
     },
     run {
         val queueName = "order.payment-failed"
@@ -46,7 +46,7 @@ fun orderEventConsumers(
         subscriber.subscribe<OrderPaymentFailedEvent>(queueName) {
             queueDeclare(queueName, true, false, false, null)
             queueBind(queueName, exchange, routingKey)
-        }.consumeMessage { paymentFailedHandler.handle(it) }
+        }.parConsumeMessage { paymentFailedHandler.handle(it) }
     },
     run {
         val queueName = "order.notifications"
@@ -54,6 +54,6 @@ fun orderEventConsumers(
         subscriber.subscribe<OrderStatusChangedEvent>(queueName) {
             queueDeclare(queueName, true, false, false, null)
             queueBind(queueName, exchange, routingKey)
-        }.consumeMessage { orderStatusChangedHandler.handle(it) }
+        }.parConsumeMessage { orderStatusChangedHandler.handle(it) }
     }
 )

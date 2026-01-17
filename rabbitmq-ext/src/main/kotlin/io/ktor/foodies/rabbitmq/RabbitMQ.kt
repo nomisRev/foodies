@@ -6,13 +6,15 @@ import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 import com.rabbitmq.client.DeliverCallback
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
+import kotlinx.coroutines.flow.DEFAULT_CONCURRENCY
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.channelFlow
-import kotlinx.coroutines.flow.flatMapConcat
+import kotlinx.coroutines.flow.flatMapMerge
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
@@ -79,18 +81,22 @@ inline fun <reified A> RabbitMQSubscriber.subscribe(
     }
 ): Flow<Message<A>> = subscribe(serializer<A>(), queueName, configure)
 
-fun <A, B> Flow<Message<A>>.consumeMessage(block: suspend (message: A) -> B): Flow<B> =
-    map { message ->
+@OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
+fun <A, B> Flow<Message<A>>.parConsumeMessage(
+    concurrency: Int = DEFAULT_CONCURRENCY,
+    block: suspend (message: A) -> B
+): Flow<B> = flatMapMerge(concurrency) { message ->
+    suspend {
         runCatching {
             block(message.value).also { message.ack() }
         }.onFailure {
             logger.error("Error while processing message: ${message.value}", it)
             message.nack()
         }.getOrThrow()
-    }
+    }.asFlow()
+}
 
 private class RabbitMQ(private val connection: Connection, private val exchange: String) : RabbitMQSubscriber {
-
     @OptIn(ExperimentalCoroutinesApi::class)
     override fun <A> subscribe(
         serializer: KSerializer<A>,

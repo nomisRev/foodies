@@ -6,11 +6,10 @@ import io.ktor.foodies.payment.PaymentService
 import io.ktor.foodies.payment.PaymentStatus
 import io.ktor.foodies.payment.ProcessPaymentRequest
 import io.ktor.foodies.rabbitmq.Message
-import io.ktor.foodies.rabbitmq.consumeMessage
+import io.ktor.foodies.rabbitmq.parConsumeMessage
 import java.util.UUID
 import kotlin.time.Clock
 import kotlinx.coroutines.flow.Flow
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 private val logger = LoggerFactory.getLogger("OrderStockConfirmedEventHandler")
@@ -19,7 +18,7 @@ fun orderStockConfirmedEventConsumer(
     orderEvents: Flow<Message<OrderStockConfirmedEvent>>,
     paymentService: PaymentService,
     eventPublisher: EventPublisher
-) = orderEvents.consumeMessage { event ->
+) = orderEvents.parConsumeMessage { event ->
     logger.info("Processing payment for order ${event.orderId}")
     event.handle(paymentService, eventPublisher)
 }

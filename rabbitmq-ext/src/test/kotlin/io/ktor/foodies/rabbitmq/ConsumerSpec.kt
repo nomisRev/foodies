@@ -3,7 +3,6 @@ package io.ktor.foodies.rabbitmq
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.rabbitContainer
-import jdk.internal.net.http.common.Log.channel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -183,7 +182,7 @@ val consumerSpec by testSuite {
 
         rabbit().newConnection().use { connection ->
             val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
-            messagesFlow.consumeMessage {
+            messagesFlow.parConsumeMessage {
                 assertEquals("consume-success", it.id)
             }.first()
         }
@@ -210,7 +209,7 @@ val consumerSpec by testSuite {
         rabbit().newConnection().use { connection ->
             val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
             runCatching {
-                messagesFlow.consumeMessage {
+                messagesFlow.parConsumeMessage {
                     throw RuntimeException("Processing failed")
                 }.first()
             }

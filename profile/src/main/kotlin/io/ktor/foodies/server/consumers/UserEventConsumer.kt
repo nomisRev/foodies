@@ -1,7 +1,7 @@
 package io.ktor.foodies.server.consumers
 
 import io.ktor.foodies.rabbitmq.Message
-import io.ktor.foodies.rabbitmq.consumeMessage
+import io.ktor.foodies.rabbitmq.parConsumeMessage
 import io.ktor.foodies.server.profile.ProfileRepository
 import io.ktor.foodies.user.event.UserEvent
 import kotlinx.coroutines.flow.Flow
@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger("NewUserConsumer")
 
 fun userEventConsumer(newUsers: Flow<Message<UserEvent>>, profileRepository: ProfileRepository) =
-    newUsers.consumeMessage { event ->
+    newUsers.parConsumeMessage { event ->
         when (event) {
             is UserEvent.Registration -> {
                 // Ignores already existing users, consuming a message must be idempotent

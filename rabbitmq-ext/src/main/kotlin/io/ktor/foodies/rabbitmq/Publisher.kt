@@ -6,8 +6,9 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.StringFormat
 import kotlinx.serialization.serializer
 
-fun Publisher(channel: Channel, exchange: String, format: StringFormat): Publisher =
-    PublisherImpl(channel, exchange, format)
+interface HasRoutingKey {
+    val key: String
+}
 
 interface Publisher {
     fun <A : HasRoutingKey> publish(
@@ -17,14 +18,11 @@ interface Publisher {
     )
 }
 
-inline fun <reified A : HasRoutingKey> Publisher.publish(
-    message: A,
-    props: AMQP.BasicProperties? = null,
-) = publish(serializer<A>(), message, props)
+inline fun <reified A : HasRoutingKey> Publisher.publish(message: A, props: AMQP.BasicProperties? = null, ) =
+    publish(serializer<A>(), message, props)
 
-interface HasRoutingKey {
-    val key: String
-}
+fun Publisher(channel: Channel, exchange: String, format: StringFormat): Publisher =
+    PublisherImpl(channel, exchange, format)
 
 private class PublisherImpl(
     private val channel: Channel,
