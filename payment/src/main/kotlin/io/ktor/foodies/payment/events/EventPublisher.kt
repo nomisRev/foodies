@@ -2,7 +2,6 @@ package io.ktor.foodies.payment.events
 
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
-import com.rabbitmq.client.ConnectionFactory
 import io.ktor.foodies.payment.RabbitConfig
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -15,25 +14,17 @@ interface EventPublisher {
 }
 
 class RabbitMQEventPublisher(
+    private val connection: Connection,
     private val config: RabbitConfig
 ) : EventPublisher {
     private val logger = LoggerFactory.getLogger(javaClass)
-    private val factory = ConnectionFactory().apply {
-        host = config.host
-        port = config.port
-        username = config.username
-        password = config.password
-    }
-
-    private var connection: Connection? = null
     private var channel: Channel? = null
 
     private fun ensureChannel(): Channel {
         val currentChannel = channel
         if (currentChannel?.isOpen == true) return currentChannel
 
-        val conn = connection?.takeIf { it.isOpen } ?: factory.newConnection().also { connection = it }
-        return conn.createChannel().apply {
+        return connection.createChannel().apply {
             exchangeDeclare(config.publishExchange, "topic", true)
             channel = this
         }
@@ -60,6 +51,5 @@ class RabbitMQEventPublisher(
 
     override fun close() {
         runCatching { channel?.close() }
-        runCatching { connection?.close() }
     }
 }

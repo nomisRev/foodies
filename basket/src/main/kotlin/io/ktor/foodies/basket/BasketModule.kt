@@ -9,7 +9,6 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.foodies.basket.events.OrderCreatedEvent
 import io.ktor.foodies.basket.events.orderCreatedEventConsumer
-import io.ktor.foodies.rabbitmq.Consumer
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
@@ -22,13 +21,14 @@ import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines
 import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 data class BasketModule(
     val basketService: BasketService,
-    val consumers: List<Consumer>,
+    val consumers: List<Flow<Unit>>,
     val readinessCheck: HealthCheckRegistry
 )
 
@@ -56,6 +56,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): BasketModule {
     monitor.subscribe(ApplicationStopped) { connection.close() }
 
     val subscriber = RabbitMQSubscriber(connection, "foodies")
+
     val orderCreatedConsumer = orderCreatedEventConsumer(
         subscriber.subscribe<OrderCreatedEvent>(config.rabbit.queue),
         basketRepository

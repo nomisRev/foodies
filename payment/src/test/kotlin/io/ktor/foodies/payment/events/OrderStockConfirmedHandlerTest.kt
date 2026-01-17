@@ -65,8 +65,8 @@ private class InMemoryEventPublisher : EventPublisher {
 
 private data class TestContext(
     val repository: InMemoryPaymentRepository,
+    val service: PaymentService,
     val publisher: InMemoryEventPublisher,
-    val handler: OrderStockConfirmedEventHandler
 )
 
 private fun createTestContext(alwaysSucceed: Boolean): TestContext {
@@ -74,15 +74,14 @@ private fun createTestContext(alwaysSucceed: Boolean): TestContext {
     val gateway = SimulatedPaymentGateway(PaymentGatewayConfig(alwaysSucceed = alwaysSucceed, processingDelayMs = 0))
     val service = PaymentServiceImpl(repository, gateway)
     val publisher = InMemoryEventPublisher()
-    val handler = OrderStockConfirmedEventHandler(service, publisher)
-    return TestContext(repository, publisher, handler)
+    return TestContext(repository, service, publisher)
 }
 
 val orderStockConfirmedHandlerSpec by testSuite {
     test("successful payment flow") {
         val ctx = createTestContext(alwaysSucceed = true)
 
-        val event = OrderStockConfirmedEvent(
+        OrderStockConfirmedEvent(
             eventId = "evt-1",
             orderId = 1L,
             buyerId = "user-1",
@@ -97,9 +96,7 @@ val orderStockConfirmedHandlerSpec by testSuite {
                 expirationYear = 2025
             ),
             occurredAt = Instant.parse("2024-01-01T00:00:00Z")
-        )
-
-        ctx.handler.handle(event)
+        ).handle(ctx.service, ctx.publisher)
 
         assertEquals(1, ctx.publisher.publishedEvents.size)
         assertTrue(ctx.publisher.publishedEvents[0] is OrderPaymentSucceededEvent)
@@ -110,7 +107,7 @@ val orderStockConfirmedHandlerSpec by testSuite {
     test("failed payment flow") {
         val ctx = createTestContext(alwaysSucceed = false)
 
-        val event = OrderStockConfirmedEvent(
+        OrderStockConfirmedEvent(
             eventId = "evt-2",
             orderId = 2L,
             buyerId = "user-1",
@@ -125,9 +122,7 @@ val orderStockConfirmedHandlerSpec by testSuite {
                 expirationYear = 2025
             ),
             occurredAt = Instant.parse("2024-01-01T00:00:00Z")
-        )
-
-        ctx.handler.handle(event)
+        ).handle(ctx.service, ctx.publisher)
 
         assertEquals(1, ctx.publisher.publishedEvents.size)
         assertTrue(ctx.publisher.publishedEvents[0] is OrderPaymentFailedEvent)
@@ -156,9 +151,8 @@ val orderStockConfirmedHandlerSpec by testSuite {
             occurredAt = Instant.parse("2024-01-01T00:00:00Z")
         )
 
-        // Handle twice
-        ctx.handler.handle(event)
-        ctx.handler.handle(event)
+        event.handle(ctx.service, ctx.publisher)
+        event.handle(ctx.service, ctx.publisher)
 
         assertEquals(2, ctx.publisher.publishedEvents.size)
         assertTrue(ctx.publisher.publishedEvents[0] is OrderPaymentSucceededEvent)

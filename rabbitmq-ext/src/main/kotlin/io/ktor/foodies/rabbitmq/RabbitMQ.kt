@@ -132,9 +132,6 @@ private class RabbitMQ(private val connection: Connection, private val exchange:
             channel.close()
             throw e
         }
-        awaitClose {
-            channel.basicCancel(consumerTag)
-            channel.close()
-        }
+        awaitClose { channel.basicCancel(consumerTag) }
     }
 }

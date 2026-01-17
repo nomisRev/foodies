@@ -2,7 +2,6 @@ package io.ktor.foodies.server
 
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
-import io.ktor.foodies.rabbitmq.Consumer
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
@@ -14,12 +13,13 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import org.flywaydb.core.Flyway
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class ProfileModule(
-    val consumers: List<Consumer>,
+    val consumers: List<Flow<Unit>>,
     val readinessCheck: HealthCheckRegistry
 )
 
@@ -46,8 +46,5 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): ProfileModule 
         register(RabbitConnectionHealthCheck(connection), Duration.ZERO, 5.seconds)
     }
 
-    return ProfileModule(
-        consumers = listOf(newUserConsumer),
-        readinessCheck = readinessCheck
-    )
+    return ProfileModule(consumers = listOf(newUserConsumer), readinessCheck = readinessCheck)
 }

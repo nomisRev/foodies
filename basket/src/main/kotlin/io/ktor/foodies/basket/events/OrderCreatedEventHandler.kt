@@ -1,7 +1,6 @@
 package io.ktor.foodies.basket.events
 
 import io.ktor.foodies.basket.BasketRepository
-import io.ktor.foodies.rabbitmq.Consumer
 import io.ktor.foodies.rabbitmq.Message
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -18,20 +17,18 @@ private val logger = LoggerFactory.getLogger("OrderCreatedEventHandler")
 fun orderCreatedEventConsumer(
     orderEvents: Flow<Message<OrderCreatedEvent>>,
     basketRepository: BasketRepository
-) = Consumer {
-    orderEvents.map { message ->
-        try {
-            val event = message.value
-            basketRepository.deleteBasket(event.buyerId)
-            logger.info("Cleared basket for user ${event.buyerId} after order ${event.orderId}")
-            message.ack()
-        } catch (e: Exception) {
-            logger.error("Failed to process OrderCreatedEvent", e)
-            message.nack()
-        }
-    }.retry { e ->
-        delay(1000) // TODO: Introduce proper resilience schedule
-        logger.error("Failed to process OrderCreatedEvent, retrying", e)
-        true // Retry and continue processing forever
+): Flow<Unit> = orderEvents.map { message ->
+    try {
+        val event = message.value
+        basketRepository.deleteBasket(event.buyerId)
+        logger.info("Cleared basket for user ${event.buyerId} after order ${event.orderId}")
+        message.ack()
+    } catch (e: Exception) {
+        logger.error("Failed to process OrderCreatedEvent", e)
+        message.nack()
     }
+}.retry { e ->
+    delay(1000) // TODO: Introduce proper resilience schedule
+    logger.error("Failed to process OrderCreatedEvent, retrying", e)
+    true // Retry and continue processing forever
 }

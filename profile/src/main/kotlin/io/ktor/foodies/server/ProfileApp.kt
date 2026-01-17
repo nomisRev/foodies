@@ -21,7 +21,7 @@ fun main() {
 }
 
 fun Application.app(module: ProfileModule) {
-    module.consumers.forEach { it.process().launchIn(this) }
+    module.consumers.forEach { it.launchIn(this) }
 
     install(Cohort) {
         verboseHealthCheckResponse = true

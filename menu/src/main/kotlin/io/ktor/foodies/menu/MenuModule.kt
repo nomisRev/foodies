@@ -3,22 +3,24 @@ package io.ktor.foodies.menu
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
 import io.ktor.foodies.menu.events.RabbitMenuEventPublisher
-import io.ktor.foodies.menu.events.processOrderAwaitingValidationConsumer
-import io.ktor.foodies.menu.events.processStockReturnedConsumer
+import io.ktor.foodies.menu.events.orderAwaitingValidationConsumer
+import io.ktor.foodies.menu.events.stockReturnedConsumer
+import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.server.dataSource
 import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopped
 import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
-import io.ktor.server.application.ApplicationStopped
-import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.Flow
 import org.flywaydb.core.Flyway
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 data class MenuModule(
     val menuService: MenuService,
+    val consumers: List<Flow<Unit>>,
     val readinessCheck: HealthCheckRegistry
 )
 
@@ -45,8 +47,11 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
     }
 
     val subscriber = RabbitMQSubscriber(rabbitConnection, config.rabbit.exchange)
-    subscriber.processOrderAwaitingValidationConsumer(config.rabbit.queue, menuService, eventPublisher).launchIn(this)
-    subscriber.processStockReturnedConsumer("menu.stock-returned", menuService).launchIn(this)
+
+    val consumers = listOf(
+        orderAwaitingValidationConsumer(subscriber, config.rabbit.queue, menuService, eventPublisher),
+        stockReturnedConsumer(subscriber, "menu.stock-returned", menuService)
+    )
 
     val readinessCheck = HealthCheckRegistry(Dispatchers.Default) {
         register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)
@@ -55,6 +60,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
 
     return MenuModule(
         menuService = menuService,
+        consumers = consumers,
         readinessCheck = readinessCheck
     )
 }

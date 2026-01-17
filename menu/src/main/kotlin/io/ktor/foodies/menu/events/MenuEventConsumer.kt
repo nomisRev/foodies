@@ -5,17 +5,16 @@ import io.ktor.foodies.menu.StockValidationResult
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.consumeMessage
 import io.ktor.foodies.rabbitmq.subscribe
-import kotlinx.coroutines.flow.Flow
 import org.slf4j.LoggerFactory
-import kotlin.jvm.java
 
 private val logger = LoggerFactory.getLogger(RabbitMQSubscriber::class.java)
 
-fun RabbitMQSubscriber.processOrderAwaitingValidationConsumer(
+fun orderAwaitingValidationConsumer(
+    subscriber: RabbitMQSubscriber,
     queueName: String,
     menuService: MenuService,
     eventPublisher: MenuEventPublisher
-) = subscribe<OrderAwaitingValidationEvent>(queueName) { exchange ->
+) = subscriber.subscribe<OrderAwaitingValidationEvent>(queueName) { exchange ->
     queueDeclare(queueName, true, false, false, null)
     queueBind(queueName, exchange, "order.awaiting-validation")
 }.consumeMessage { event ->
@@ -39,8 +38,11 @@ fun RabbitMQSubscriber.processOrderAwaitingValidationConsumer(
     }
 }
 
-fun RabbitMQSubscriber.processStockReturnedConsumer(queueName: String, menuService: MenuService): Flow<Unit> =
-    subscribe<OrderAwaitingValidationEvent>(queueName) { exchange ->
+fun stockReturnedConsumer(
+    subscriber: RabbitMQSubscriber,
+    queueName: String,
+    menuService: MenuService
+) = subscriber.subscribe<OrderAwaitingValidationEvent>(queueName) { exchange ->
     queueDeclare(queueName, true, false, false, null)
     queueBind(queueName, exchange, "order.stock-returned")
 }.consumeMessage { event ->
