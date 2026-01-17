@@ -17,7 +17,7 @@ import kotlin.test.assertFailsWith
  * This is non-trivial and is postponed for a proper intergration test of the entire system.
  * Contributions welcome!
  */
-val userRegistrationEvent by ctxSuite(context = { rabbitContext() }) {
+val toUserEventSpec by ctxSuite(context = { rabbitContext() }) {
     testListener("publishes NewUserEvent to RabbitMQ when REGISTER event is received") { queueName, listener ->
         val event = Event().apply {
             type = EventType.REGISTER
