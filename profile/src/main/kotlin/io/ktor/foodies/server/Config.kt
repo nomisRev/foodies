@@ -9,6 +9,7 @@ data class Config(
     val port: Int,
     @SerialName("data_source") val dataSource: DataSource.Config,
     val rabbit: Rabbit,
+    val telemetry: Telemetry,
 ) {
     @Serializable
     data class Rabbit(
@@ -17,5 +18,10 @@ data class Config(
         val username: String,
         val password: String,
         val queue: String,
+    )
+
+    @Serializable
+    data class Telemetry(
+        @SerialName("otlp_endpoint") val otlpEndpoint: String,
     )
 }

@@ -22,7 +22,7 @@ import kotlinx.coroutines.Dispatchers
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
-        val openTelemetry = openTelemetry()
+        val openTelemetry = openTelemetry(config.telemetry.otlpEndpoint)
         app(config, module(config, openTelemetry))
     }.start(wait = true)
 }

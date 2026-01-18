@@ -21,3 +21,5 @@ config:
     routingKey: "$RABBITMQ_ROUTING_KEY:order.created"
   order:
     gracePeriodSeconds: "$ORDER_GRACE_PERIOD_SECONDS:60"
+  telemetry:
+    otlp_endpoint: "$OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317"

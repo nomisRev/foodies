@@ -59,7 +59,8 @@ fun TestSuite.testMenuService(
                             ctx.rabbitContainer().amqpPort,
                             ctx.rabbitContainer().adminUsername,
                             ctx.rabbitContainer().adminPassword,
-                        )
+                        ),
+                        telemetry = Config.Telemetry(otlpEndpoint = "http://localhost:4317")
                     ),
                     OpenTelemetry.noop()
                 )

@@ -11,7 +11,13 @@ data class Config(
     val redis: RedisConfig,
     val menu: MenuConfig,
     val rabbit: RabbitConfig,
-)
+    val telemetry: Telemetry,
+) {
+    @Serializable
+    data class Telemetry(
+        @SerialName("otlp_endpoint") val otlpEndpoint: String,
+    )
+}
 
 @Serializable
 data class AuthConfig(
