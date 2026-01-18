@@ -77,14 +77,14 @@ tasks {
         )
     }
 
-//    register("localDeployK8s") {
-//        group = "deployment"
-//        description = "Restarts the service and awaits its availability"
-//
-//        mustRunAfter(":kustomizeDev")
-//        dependsOn(localRestartService)
-//        dependsOn(localReadinessCheck)
-//    }
+    register("localDeployK8s") {
+        group = "deployment"
+        description = "Restarts the service and awaits its availability"
+
+        mustRunAfter(":kustomizeDev")
+        dependsOn(localRestartService)
+        dependsOn(localReadinessCheck)
+    }
 
     withType<Test>().configureEach {
         dependsOn(publishImageToLocalRegistry)
