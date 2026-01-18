@@ -23,7 +23,37 @@ jobs:
           distribution: 'zulu'
           java-version: '24'
 
-      - run: ./gradlew build
+      - run: ./gradlew build -x :keycloak-rabitmq-publisher:test
+
+      - name: (Fail-only) Upload reports
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: reports
+          path: |
+            **/build/reports/**
+
+      - name: Publish Test Report
+        uses: mikepenz/action-junit-report@v6
+        if: failure()
+        with:
+          report_paths: '**/build/test-results/**/TEST-*.xml'
+          check_name: 'Test Report'
+
+  playwright:
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.57.0-noble
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'zulu'
+          java-version: '24'
+
+      - run: ./gradlew :keycloak-rabitmq-publisher:test
 
       - name: (Fail-only) Upload reports
         if: failure()
