@@ -39,6 +39,6 @@ tasks.register<JavaExec>("installPlaywrightBrowsers") {
     group = "playwright"
     description = "Installs Playwright browsers"
     mainClass.set("com.microsoft.playwright.CLI")
-    classpath = configurations.runtimeClasspath.get()
-    args = listOf("install", "chromium")
+    classpath = sourceSets["test"].runtimeClasspath
+    args = listOf("install", "chromium", "--with-deps")
 }

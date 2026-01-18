@@ -72,7 +72,7 @@ fun e2eSuite(
             AppBrowserType.CHROMIUM -> playwright().chromium()
             AppBrowserType.FIREFOX -> playwright().firefox()
             AppBrowserType.WEBKIT -> playwright().webkit()
-        }.launch(BrowserType.LaunchOptions().setHeadless(false))
+        }.launch(BrowserType.LaunchOptions().setHeadless(true))
     }
 
     val page = testFixture { browser().newPage() }

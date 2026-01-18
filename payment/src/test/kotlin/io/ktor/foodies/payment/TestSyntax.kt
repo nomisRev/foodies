@@ -6,19 +6,21 @@ import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import com.sksamuel.cohort.HealthCheckRegistry
-import io.ktor.foodies.payment.events.OrderStockConfirmedEventHandler
-import io.ktor.foodies.payment.events.RabbitMQEventConsumer
+import io.ktor.foodies.payment.events.OrderStockConfirmedEvent
 import io.ktor.foodies.payment.events.RabbitMQEventPublisher
+import io.ktor.foodies.payment.events.orderStockConfirmedEventConsumer
 import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway
+import io.ktor.foodies.rabbitmq.Publisher
+import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
+import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
+import io.ktor.foodies.rabbitmq.subscribe
 import io.ktor.foodies.server.test.PostgreSQLContainer
 import io.ktor.foodies.server.test.RabbitContainer
 import io.ktor.foodies.server.test.rabbitContainer
 import io.ktor.foodies.server.test.testApplication
-import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.application.install
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.json.Json
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
 
@@ -89,14 +91,27 @@ fun TestSuite.testPaymentService(
             consumeQueue = "test.order.stock.confirmed",
             publishExchange = "test.payment.events"
         )
-        val eventPublisher = RabbitMQEventPublisher(rabbitConfig)
-        val consumer = RabbitMQEventConsumer(
-            rabbitConfig,
-            OrderStockConfirmedEventHandler(paymentService, eventPublisher)
+
+        val connectionFactory = rabbitConnectionFactory(
+            rabbitConfig.host,
+            rabbitConfig.port,
+            rabbitConfig.username,
+            rabbitConfig.password
         )
+        val connection = connectionFactory.newConnection()
+        val channel = connection.createChannel()
+        channel.exchangeDeclare(rabbitConfig.publishExchange, "topic", true)
+        val eventPublisher = RabbitMQEventPublisher(Publisher(channel, rabbitConfig.publishExchange, Json))
+        val subscriber = RabbitMQSubscriber(connection, rabbitConfig.publishExchange)
+        val consumer = orderStockConfirmedEventConsumer(
+            subscriber.subscribe<OrderStockConfirmedEvent>(rabbitConfig.consumeQueue),
+            paymentService,
+            eventPublisher
+        )
+
         val module = PaymentModule(
             paymentService = paymentService,
-            eventConsumer = consumer,
+            consumers = listOf(consumer),
             eventPublisher = eventPublisher,
             readinessCheck = HealthCheckRegistry(Dispatchers.IO)
         )
