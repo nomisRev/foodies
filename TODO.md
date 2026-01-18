@@ -40,14 +40,14 @@
 
 ### 4. Deploy Prometheus
 - [x] Create `k8s/base/prometheus/` directory structure
-- [ ] Create `k8s/base/prometheus/configmap.yaml`
-  - Configure scrape configs for OpenTelemetry Collector
-  - Configure scrape configs for application metrics
-  - Set retention and storage settings
-- [ ] Create `k8s/base/prometheus/deployment.yaml`
-  - Use official Prometheus image
-  - Mount ConfigMap as configuration
-  - Configure persistent volume for data
+- [x] Create `k8s/base/prometheus/configmap.yaml`
+  - [x] Configure scrape configs for OpenTelemetry Collector
+  - [x] Configure scrape configs for application metrics
+  - [x] Set retention and storage settings
+- [x] Create `k8s/base/prometheus/deployment.yaml`
+  - [x] Use official Prometheus image
+  - [x] Mount ConfigMap as configuration
+  - [x] Configure persistent volume for data
 - [x] Create `k8s/base/prometheus/service.yaml`
   - [x] Expose Prometheus UI port 9090
 - [x] Create `k8s/base/prometheus/kustomization.yaml`
