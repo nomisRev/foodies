@@ -17,9 +17,9 @@
   - [x] Mount ConfigMap as volume
   - [x] Expose ports 4317 (gRPC), 4318 (HTTP), 8888 (metrics), 8889 (Prometheus)
 - [x] Create `k8s/base/otel-collector/service.yaml`
-  - Expose OTLP gRPC port 4317
-  - Expose OTLP HTTP port 4318
-  - Expose Prometheus metrics port 8889
+  - [x] Expose OTLP gRPC port 4317
+  - [x] Expose OTLP HTTP port 4318
+  - [x] Expose Prometheus metrics port 8889
 - [x] Create `k8s/base/otel-collector/kustomization.yaml`
 
 ## Jaeger Deployment
@@ -80,7 +80,7 @@
 ## Documentation
 
 ### 8. Update Documentation
-- [ ] Document how to access Jaeger UI
+- [x] Document how to access Jaeger UI
 - [ ] Document how to access Prometheus UI
 - [ ] Document how to query traces and metrics
 - [ ] Add troubleshooting section for common issues
