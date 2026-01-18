@@ -55,7 +55,8 @@ fun TestSuite.testProfileService(
                             ctx.rabbitContainer().adminUsername,
                             ctx.rabbitContainer().adminPassword,
                             "profile-queue"
-                        )
+                        ),
+                        telemetry = Config.Telemetry("http://localhost:4317")
                     ),
                     OpenTelemetry.noop()
                 )

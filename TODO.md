@@ -436,7 +436,7 @@ After making these changes:
 
 | Service | Config.kt | App.kt | application.yaml | K8s Deployment |
 |---------|-----------|--------|------------------|----------------|
-| Profile | [ ] | [ ] | [ ] | [ ] |
+| Profile | ✓ | ✓ | ✓ | ✓ |
 | Basket  | [ ] | [ ] | [ ] | [ ] |
 | Menu    | [ ] | [ ] | [ ] | [ ] |
 | Order   | [ ] | [ ] | [ ] | [ ] |
