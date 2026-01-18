@@ -1,6 +1,7 @@
 package io.ktor.foodies.order
 
 import io.ktor.foodies.server.DataSource
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -13,6 +14,7 @@ data class Config(
     val payment: PaymentServiceConfig,
     val rabbit: RabbitConfig,
     val order: OrderConfig,
+    val telemetry: Telemetry,
 )
 
 @Serializable
@@ -44,4 +46,9 @@ data class RabbitConfig(
     val password: String,
     val exchange: String,
     val routingKey: String,
+)
+
+@Serializable
+data class Telemetry(
+    @SerialName("otlp_endpoint") val otlpEndpoint: String,
 )
