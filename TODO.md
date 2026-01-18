@@ -48,10 +48,10 @@
   - Use official Prometheus image
   - Mount ConfigMap as configuration
   - Configure persistent volume for data
-- [ ] Create `k8s/base/prometheus/service.yaml`
-  - Expose Prometheus UI port 9090
+- [x] Create `k8s/base/prometheus/service.yaml`
+  - [x] Expose Prometheus UI port 9090
 - [x] Create `k8s/base/prometheus/kustomization.yaml`
-- [ ] Add Prometheus UI to Ingress configuration for external access
+- [x] Add Prometheus UI to Ingress configuration for external access
 
 ## Integration
 
