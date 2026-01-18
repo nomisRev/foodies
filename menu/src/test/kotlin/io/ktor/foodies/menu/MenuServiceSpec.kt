@@ -21,8 +21,8 @@ val menuServiceSpec by testSuite {
     testSuite(
         "tests",
         testConfig = TestConfig.aroundEachTest { test ->
-            test()
             transaction(dataSource().database) { MenuItemsTable.deleteAll() }
+            test()
         }) {
         test("list applies defaults and clamps pagination") {
             val created = (0 until 60).map {
