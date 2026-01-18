@@ -84,6 +84,16 @@ tasks {
 
     withType<Test>().configureEach {
         dependsOn(publishImageToLocalRegistry)
+        dependsOn("installPlaywrightBrowsers")
         systemProperty("keycloak.image", imageTag)
+        systemProperty("headless", project.findProperty("headless") ?: "true")
     }
+}
+
+tasks.register<JavaExec>("installPlaywrightBrowsers") {
+    group = "playwright"
+    description = "Installs Playwright browsers"
+    mainClass.set("com.microsoft.playwright.CLI")
+    classpath = sourceSets["test"].runtimeClasspath
+    args = listOf("install", "chromium", "--with-deps")
 }
