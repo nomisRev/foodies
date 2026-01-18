@@ -135,6 +135,10 @@ Then access at `http://localhost:8080`.
 
 Or update the `FOODIES_HOST` value in [k8s/configmaps/foodies-config.yaml](fleet-file://mmglq7uf96d8i197ro8d/Users/simonvergauwen/Developer/foodies/k8s/configmaps/foodies-config.yaml?type=file&root=%252F) to match your environment.
 
+### 6. Monitoring and Tracing
+
+- **Jaeger UI**: http://foodies.local/jaeger (distributed tracing)
+
 ## Configuration
 
 ### ConfigMaps
