@@ -4,12 +4,15 @@ import com.foodies.e2e.e2eSuite
 import com.foodies.e2e.keycloak
 import com.foodies.e2e.page
 import com.foodies.e2e.rabbit
+import de.infix.testBalloon.framework.core.TestConfig
+import de.infix.testBalloon.framework.core.testScope
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.eventually
 import kotlin.test.assertNotNull
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
-val keyCloakSpec by e2eSuite {
+val keyCloakSpec by e2eSuite(testConfig = TestConfig.testScope(true, timeout = 3.minutes)) {
     test("should publish REGISTER event to RabbitMQ") {
         val authServerUrl = keycloak().authServerUrl
         assertNotNull(authServerUrl)

@@ -39,7 +39,7 @@ fun Application.app(module: BasketModule) {
         }
     }
 
-    module.consumers.forEach { it.process().launchIn(this) }
+    module.consumers.forEach { it.launchIn(this) }
 
     routing {
         install(Cohort) {

@@ -2,6 +2,7 @@ package io.ktor.foodies.payment.events
 
 import io.ktor.foodies.payment.PaymentFailureCode
 import io.ktor.foodies.payment.PaymentMethodInfo
+import io.ktor.foodies.rabbitmq.HasRoutingKey
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
@@ -15,7 +16,9 @@ data class OrderStockConfirmedEvent(
     val currency: String,
     val paymentMethod: PaymentMethodInfo,
     val occurredAt: Instant
-)
+) : HasRoutingKey {
+    override val key: String = "order.stock-confirmed"
+}
 
 @Serializable
 data class OrderPaymentSucceededEvent(
@@ -26,7 +29,9 @@ data class OrderPaymentSucceededEvent(
     val amount: SerializableBigDecimal,
     val currency: String,
     val processedAt: Instant
-)
+) : HasRoutingKey {
+    override val key: String = "payment.succeeded"
+}
 
 @Serializable
 data class OrderPaymentFailedEvent(
@@ -35,4 +40,6 @@ data class OrderPaymentFailedEvent(
     val failureReason: String,
     val failureCode: PaymentFailureCode,
     val occurredAt: Instant
-)
+) : HasRoutingKey {
+    override val key: String = "payment.failed"
+}

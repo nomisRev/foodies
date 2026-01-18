@@ -17,6 +17,7 @@ import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respond
 import io.ktor.server.routing.routing
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.launchIn
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
@@ -29,6 +30,8 @@ fun main() {
 
 fun Application.app(module: OrderModule) {
     install(ContentNegotiation) { json() }
+
+    module.consumers.forEach { it.launchIn(this) }
 
     install(StatusPages) {
         exception<ValidationException> { call, cause ->

@@ -52,6 +52,7 @@ class DefaultOrderService(
     fun setGracePeriodService(service: GracePeriodService) {
         this.gracePeriodService = service
     }
+
     override suspend fun createOrder(
         requestId: UUID,
         buyerId: String,
@@ -60,10 +61,7 @@ class DefaultOrderService(
         request: CreateOrderRequest,
         token: String
     ): Order {
-        val existingOrder = orderRepository.findByRequestId(requestId.toString())
-        if (existingOrder != null) {
-            return existingOrder
-        }
+        orderRepository.findByRequestId(requestId.toString())?.let { return it }
 
         val address = request.validate()
         val basket = basketClient.getBasket(buyerId, token) ?: throw IllegalArgumentException("Basket not found")
@@ -120,13 +118,11 @@ class DefaultOrderService(
         buyerId: String?
     ): PaginatedOrders = orderRepository.findAll(offset, limit, status, buyerId)
 
-    override suspend fun getOrder(id: Long, buyerId: String): GetOrderResult {
-        val order = orderRepository.findById(id) ?: return GetOrderResult.NotFound
-        if (order.buyerId != buyerId) {
-            return GetOrderResult.Forbidden
-        }
-        return GetOrderResult.Success(order)
-    }
+    override suspend fun getOrder(id: Long, buyerId: String): GetOrderResult =
+        orderRepository.findById(id)?.let { order ->
+            if (order.buyerId != buyerId) GetOrderResult.Forbidden
+            else GetOrderResult.Success(order)
+        } ?: GetOrderResult.NotFound
 
     override suspend fun cancelOrder(requestId: UUID, id: Long, buyerId: String, reason: String): Order {
         val order = when (val result = getOrder(id, buyerId)) {
@@ -136,7 +132,12 @@ class DefaultOrderService(
         }
         if (order.status == OrderStatus.Cancelled) return order
 
-        if (order.status !in listOf(OrderStatus.Submitted, OrderStatus.AwaitingValidation, OrderStatus.StockConfirmed)) {
+        if (order.status !in listOf(
+                OrderStatus.Submitted,
+                OrderStatus.AwaitingValidation,
+                OrderStatus.StockConfirmed
+            )
+        ) {
             throw IllegalArgumentException("Cannot cancel order in ${order.status} status")
         }
 
@@ -180,259 +181,273 @@ class DefaultOrderService(
         return updatedOrder
     }
 
-    override suspend fun transitionToAwaitingValidation(id: Long): Order? {
-        val order = orderRepository.findById(id) ?: return null
-        if (order.status != OrderStatus.Submitted) {
-            return order // Already transitioned or cancelled
+    override suspend fun transitionToAwaitingValidation(id: Long): Order? =
+        orderRepository.findById(id)?.let { order ->
+            if (order.status != OrderStatus.Submitted) {
+                return@let order // Already transitioned or cancelled
+            }
+
+            val oldStatus = order.status
+            val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+            orderRepository.update(order.copy(status = OrderStatus.AwaitingValidation, updatedAt = now)).also { updatedOrder ->
+                val awaitingValidationEvent = OrderAwaitingValidationEvent(
+                    orderId = updatedOrder.id,
+                    buyerId = updatedOrder.buyerId,
+                    items = updatedOrder.items.map { StockValidationItem(it.menuItemId, it.quantity) }
+                )
+                eventPublisher.publish(awaitingValidationEvent)
+
+                val statusChangedEvent = OrderStatusChangedEvent(
+                    orderId = updatedOrder.id,
+                    buyerId = updatedOrder.buyerId,
+                    oldStatus = oldStatus,
+                    newStatus = OrderStatus.AwaitingValidation,
+                    totalPrice = updatedOrder.totalPrice,
+                    currency = updatedOrder.currency,
+                    description = "Order moved to AwaitingValidation after grace period",
+                    changedAt = now
+                )
+                eventPublisher.publish(statusChangedEvent)
+            }
         }
 
-        val oldStatus = order.status
-        val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val updatedOrder = orderRepository.update(order.copy(status = OrderStatus.AwaitingValidation, updatedAt = now))
+    override suspend fun shipOrder(requestId: UUID, id: Long): Order? =
+        orderRepository.findById(id)?.let { order ->
+            if (order.status == OrderStatus.Shipped) return@let order
+            if (order.status != OrderStatus.Paid) {
+                throw IllegalArgumentException("Order must be Paid to be shipped. Current status: ${order.status}")
+            }
 
-        val awaitingValidationEvent = OrderAwaitingValidationEvent(
-            orderId = updatedOrder.id,
-            buyerId = updatedOrder.buyerId,
-            items = updatedOrder.items.map { StockValidationItem(it.menuItemId, it.quantity) }
-        )
-        eventPublisher.publish(awaitingValidationEvent)
-
-        val statusChangedEvent = OrderStatusChangedEvent(
-            orderId = updatedOrder.id,
-            buyerId = updatedOrder.buyerId,
-            oldStatus = oldStatus,
-            newStatus = OrderStatus.AwaitingValidation,
-            totalPrice = updatedOrder.totalPrice,
-            currency = updatedOrder.currency,
-            description = "Order moved to AwaitingValidation after grace period",
-            changedAt = now
-        )
-        eventPublisher.publish(statusChangedEvent)
-
-        return updatedOrder
-    }
-
-    override suspend fun shipOrder(requestId: UUID, id: Long): Order? {
-        val order = orderRepository.findById(id) ?: return null
-        if (order.status == OrderStatus.Shipped) return order
-        if (order.status != OrderStatus.Paid) {
-            throw IllegalArgumentException("Order must be Paid to be shipped. Current status: ${order.status}")
+            val oldStatus = order.status
+            val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+            orderRepository.update(
+                order.copy(
+                    status = OrderStatus.Shipped,
+                    description = "Order shipped",
+                    updatedAt = now
+                )
+            ).also { updatedOrder ->
+                val event = OrderStatusChangedEvent(
+                    orderId = updatedOrder.id,
+                    buyerId = updatedOrder.buyerId,
+                    oldStatus = oldStatus,
+                    newStatus = OrderStatus.Shipped,
+                    totalPrice = updatedOrder.totalPrice,
+                    currency = updatedOrder.currency,
+                    description = "Order shipped",
+                    changedAt = now
+                )
+                eventPublisher.publish(event)
+            }
         }
 
-        val oldStatus = order.status
-        val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val shippedOrder = order.copy(
-            status = OrderStatus.Shipped,
-            description = "Order shipped",
-            updatedAt = now
-        )
-        val updatedOrder = orderRepository.update(shippedOrder)
+    override suspend fun setStockConfirmed(id: Long): Order? =
+        orderRepository.findById(id)?.let { order ->
+            if (order.status != OrderStatus.AwaitingValidation) {
+                throw IllegalArgumentException("Order must be AwaitingValidation to be stock confirmed. Current status: ${order.status}")
+            }
 
-        val event = OrderStatusChangedEvent(
-            orderId = updatedOrder.id,
-            buyerId = updatedOrder.buyerId,
-            oldStatus = oldStatus,
-            newStatus = OrderStatus.Shipped,
-            totalPrice = updatedOrder.totalPrice,
-            currency = updatedOrder.currency,
-            description = "Order shipped",
-            changedAt = now
-        )
-        eventPublisher.publish(event)
-        return updatedOrder
-    }
-    
-    override suspend fun setStockConfirmed(id: Long): Order? {
-        val order = orderRepository.findById(id) ?: return null
-        if (order.status != OrderStatus.AwaitingValidation) {
-            throw IllegalArgumentException("Order must be AwaitingValidation to be stock confirmed. Current status: ${order.status}")
+            val oldStatus = order.status
+            val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+            orderRepository.update(order.copy(status = OrderStatus.StockConfirmed, updatedAt = now)).also { updatedOrder ->
+                val event = OrderStatusChangedEvent(
+                    orderId = updatedOrder.id,
+                    buyerId = updatedOrder.buyerId,
+                    oldStatus = oldStatus,
+                    newStatus = OrderStatus.StockConfirmed,
+                    totalPrice = updatedOrder.totalPrice,
+                    currency = updatedOrder.currency,
+                    description = "Stock confirmed by menu service",
+                    changedAt = now
+                )
+                eventPublisher.publish(event)
+
+                // Publish OrderStockConfirmedEvent for Payment service
+                val stockConfirmedEvent = OrderStockConfirmedEvent(
+                    eventId = UUID.randomUUID().toString(),
+                    orderId = updatedOrder.id,
+                    buyerId = updatedOrder.buyerId,
+                    totalAmount = updatedOrder.totalPrice,
+                    currency = updatedOrder.currency,
+                    paymentMethod = updatedOrder.paymentMethod?.toPaymentMethodInfo()
+                        ?: throw IllegalStateException("Payment method missing for order ${updatedOrder.id}"),
+                    occurredAt = now
+                )
+                eventPublisher.publish(stockConfirmedEvent)
+            }
         }
 
-        val oldStatus = order.status
-        val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val updatedOrder = orderRepository.update(order.copy(status = OrderStatus.StockConfirmed, updatedAt = now))
+    override suspend fun processStockRejection(id: Long, rejectedItems: List<RejectedItem>): Order? =
+        orderRepository.findById(id)?.let { order ->
+            if (order.status != OrderStatus.AwaitingValidation) {
+                throw IllegalArgumentException("Order must be AwaitingValidation to be processed for stock rejection. Current status: ${order.status}")
+            }
 
-        val event = OrderStatusChangedEvent(
-            orderId = updatedOrder.id,
-            buyerId = updatedOrder.buyerId,
-            oldStatus = oldStatus,
-            newStatus = OrderStatus.StockConfirmed,
-            totalPrice = updatedOrder.totalPrice,
-            currency = updatedOrder.currency,
-            description = "Stock confirmed by menu service",
-            changedAt = now
-        )
-        eventPublisher.publish(event)
+            val oldStatus = order.status
+            val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
 
-        // Publish OrderStockConfirmedEvent for Payment service
-        val stockConfirmedEvent = OrderStockConfirmedEvent(
-            eventId = UUID.randomUUID().toString(),
-            orderId = updatedOrder.id,
-            buyerId = updatedOrder.buyerId,
-            totalAmount = updatedOrder.totalPrice,
-            currency = updatedOrder.currency,
-            paymentMethod = updatedOrder.paymentMethod?.toPaymentMethodInfo() ?: throw IllegalStateException("Payment method missing for order ${updatedOrder.id}"),
-            occurredAt = now
-        )
-        eventPublisher.publish(stockConfirmedEvent)
-
-        return updatedOrder
-    }
-
-    override suspend fun processStockRejection(id: Long, rejectedItems: List<RejectedItem>): Order? {
-        val order = orderRepository.findById(id) ?: return null
-        if (order.status != OrderStatus.AwaitingValidation) {
-            throw IllegalArgumentException("Order must be AwaitingValidation to be processed for stock rejection. Current status: ${order.status}")
-        }
-
-        val oldStatus = order.status
-        val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-
-        val updatedItems = order.items.mapNotNull { item ->
-            val rejection = rejectedItems.find { it.menuItemId == item.menuItemId }
-            if (rejection != null) {
-                if (rejection.availableQuantity > 0) {
-                    item.copy(quantity = rejection.availableQuantity)
+            val updatedItems = order.items.mapNotNull { item ->
+                val rejection = rejectedItems.find { it.menuItemId == item.menuItemId }
+                if (rejection != null) {
+                    if (rejection.availableQuantity > 0) {
+                        item.copy(quantity = rejection.availableQuantity)
+                    } else {
+                        null
+                    }
                 } else {
-                    null
+                    item
+                }
+            }
+
+            if (updatedItems.isEmpty()) {
+                val reason = "Stock rejected for items: " + rejectedItems.joinToString(", ") {
+                    "${it.menuItemName} (Requested: ${it.requestedQuantity}, Available: ${it.availableQuantity})"
+                }
+                orderRepository.update(
+                    order.copy(
+                        status = OrderStatus.Cancelled,
+                        description = reason,
+                        updatedAt = now
+                    )
+                ).also { updatedOrder ->
+                    eventPublisher.publish(
+                        OrderCancelledEvent(
+                            orderId = updatedOrder.id,
+                            buyerId = updatedOrder.buyerId,
+                            reason = reason,
+                            cancelledAt = now
+                        )
+                    )
+
+                    eventPublisher.publish(
+                        OrderStatusChangedEvent(
+                            orderId = updatedOrder.id,
+                            buyerId = updatedOrder.buyerId,
+                            oldStatus = oldStatus,
+                            newStatus = OrderStatus.Cancelled,
+                            totalPrice = updatedOrder.totalPrice,
+                            currency = updatedOrder.currency,
+                            description = reason,
+                            changedAt = now
+                        )
+                    )
                 }
             } else {
-                item
+                val newTotalPrice = updatedItems.sumOf { it.unitPrice * it.quantity.toBigDecimal() }
+                val description = if (updatedItems.size < order.items.size || updatedItems.any {
+                        it.quantity < (order.items.find { old -> old.menuItemId == it.menuItemId }?.quantity ?: it.quantity)
+                    }) {
+                    "Order partially fulfilled due to stock availability"
+                } else {
+                    "Stock confirmed"
+                }
+
+                orderRepository.update(
+                    order.copy(
+                        status = OrderStatus.StockConfirmed,
+                        items = updatedItems,
+                        totalPrice = newTotalPrice,
+                        description = description,
+                        updatedAt = now
+                    )
+                ).also { updatedOrder ->
+                    eventPublisher.publish(
+                        OrderStatusChangedEvent(
+                            orderId = updatedOrder.id,
+                            buyerId = updatedOrder.buyerId,
+                            oldStatus = oldStatus,
+                            newStatus = OrderStatus.StockConfirmed,
+                            totalPrice = updatedOrder.totalPrice,
+                            currency = updatedOrder.currency,
+                            description = description,
+                            changedAt = now
+                        )
+                    )
+
+                    // Publish OrderStockConfirmedEvent for Payment service
+                    val stockConfirmedEvent = OrderStockConfirmedEvent(
+                        eventId = UUID.randomUUID().toString(),
+                        orderId = updatedOrder.id,
+                        buyerId = updatedOrder.buyerId,
+                        totalAmount = updatedOrder.totalPrice,
+                        currency = updatedOrder.currency,
+                        paymentMethod = updatedOrder.paymentMethod?.toPaymentMethodInfo()
+                            ?: throw IllegalStateException("Payment method missing for order ${updatedOrder.id}"),
+                        occurredAt = now
+                    )
+                    eventPublisher.publish(stockConfirmedEvent)
+                }
             }
         }
 
-        if (updatedItems.isEmpty()) {
-            val reason = "Stock rejected for items: " + rejectedItems.joinToString(", ") {
-                "${it.menuItemName} (Requested: ${it.requestedQuantity}, Available: ${it.availableQuantity})"
-            }
-            val updatedOrder = orderRepository.update(order.copy(status = OrderStatus.Cancelled, description = reason, updatedAt = now))
-
-            eventPublisher.publish(OrderCancelledEvent(
-                orderId = updatedOrder.id,
-                buyerId = updatedOrder.buyerId,
-                reason = reason,
-                cancelledAt = now
-            ))
-
-            eventPublisher.publish(OrderStatusChangedEvent(
-                orderId = updatedOrder.id,
-                buyerId = updatedOrder.buyerId,
-                oldStatus = oldStatus,
-                newStatus = OrderStatus.Cancelled,
-                totalPrice = updatedOrder.totalPrice,
-                currency = updatedOrder.currency,
-                description = reason,
-                changedAt = now
-            ))
-
-            return updatedOrder
-        } else {
-            val newTotalPrice = updatedItems.sumOf { it.unitPrice * it.quantity.toBigDecimal() }
-            val description = if (updatedItems.size < order.items.size || updatedItems.any { it.quantity < (order.items.find { old -> old.menuItemId == it.menuItemId }?.quantity ?: it.quantity) }) {
-                "Order partially fulfilled due to stock availability"
-            } else {
-                "Stock confirmed"
+    override suspend fun setPaid(id: Long): Order? =
+        orderRepository.findById(id)?.let { order ->
+            if (order.status != OrderStatus.StockConfirmed) {
+                throw IllegalArgumentException("Order must be StockConfirmed to be paid. Current status: ${order.status}")
             }
 
-            val updatedOrder = orderRepository.update(order.copy(
-                status = OrderStatus.StockConfirmed,
-                items = updatedItems,
-                totalPrice = newTotalPrice,
-                description = description,
-                updatedAt = now
-            ))
-
-            eventPublisher.publish(OrderStatusChangedEvent(
-                orderId = updatedOrder.id,
-                buyerId = updatedOrder.buyerId,
-                oldStatus = oldStatus,
-                newStatus = OrderStatus.StockConfirmed,
-                totalPrice = updatedOrder.totalPrice,
-                currency = updatedOrder.currency,
-                description = description,
-                changedAt = now
-            ))
-
-            // Publish OrderStockConfirmedEvent for Payment service
-            val stockConfirmedEvent = OrderStockConfirmedEvent(
-                eventId = UUID.randomUUID().toString(),
-                orderId = updatedOrder.id,
-                buyerId = updatedOrder.buyerId,
-                totalAmount = updatedOrder.totalPrice,
-                currency = updatedOrder.currency,
-                paymentMethod = updatedOrder.paymentMethod?.toPaymentMethodInfo() ?: throw IllegalStateException("Payment method missing for order ${updatedOrder.id}"),
-                occurredAt = now
-            )
-            eventPublisher.publish(stockConfirmedEvent)
-
-            return updatedOrder
-        }
-    }
-
-    override suspend fun setPaid(id: Long): Order? {
-        val order = orderRepository.findById(id) ?: return null
-        if (order.status != OrderStatus.StockConfirmed) {
-            throw IllegalArgumentException("Order must be StockConfirmed to be paid. Current status: ${order.status}")
+            val oldStatus = order.status
+            val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+            orderRepository.update(order.copy(status = OrderStatus.Paid, updatedAt = now)).also { updatedOrder ->
+                val event = OrderStatusChangedEvent(
+                    orderId = updatedOrder.id,
+                    buyerId = updatedOrder.buyerId,
+                    oldStatus = oldStatus,
+                    newStatus = OrderStatus.Paid,
+                    totalPrice = updatedOrder.totalPrice,
+                    currency = updatedOrder.currency,
+                    description = "Payment succeeded",
+                    changedAt = now
+                )
+                eventPublisher.publish(event)
+            }
         }
 
-        val oldStatus = order.status
-        val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val updatedOrder = orderRepository.update(order.copy(status = OrderStatus.Paid, updatedAt = now))
+    override suspend fun cancelOrderDueToPaymentFailure(id: Long, reason: String, code: PaymentFailureCode): Order? =
+        orderRepository.findById(id)?.let { order ->
+            if (order.status != OrderStatus.StockConfirmed) {
+                throw IllegalArgumentException("Order must be StockConfirmed to be cancelled due to payment failure. Current status: ${order.status}")
+            }
 
-        val event = OrderStatusChangedEvent(
-            orderId = updatedOrder.id,
-            buyerId = updatedOrder.buyerId,
-            oldStatus = oldStatus,
-            newStatus = OrderStatus.Paid,
-            totalPrice = updatedOrder.totalPrice,
-            currency = updatedOrder.currency,
-            description = "Payment succeeded",
-            changedAt = now
-        )
-        eventPublisher.publish(event)
-        return updatedOrder
-    }
+            val oldStatus = order.status
+            val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+            val fullReason = "Payment failed ($code): $reason"
+            orderRepository.update(
+                order.copy(
+                    status = OrderStatus.Cancelled,
+                    description = fullReason,
+                    updatedAt = now
+                )
+            ).also { updatedOrder ->
+                val cancelledEvent = OrderCancelledEvent(
+                    orderId = updatedOrder.id,
+                    buyerId = updatedOrder.buyerId,
+                    reason = fullReason,
+                    cancelledAt = now
+                )
+                eventPublisher.publish(cancelledEvent)
 
-    override suspend fun cancelOrderDueToPaymentFailure(id: Long, reason: String, code: PaymentFailureCode): Order? {
-        val order = orderRepository.findById(id) ?: return null
-        if (order.status != OrderStatus.StockConfirmed) {
-            throw IllegalArgumentException("Order must be StockConfirmed to be cancelled due to payment failure. Current status: ${order.status}")
+                if (oldStatus == OrderStatus.AwaitingValidation || oldStatus == OrderStatus.StockConfirmed) {
+                    val stockReturnedEvent = StockReturnedEvent(
+                        orderId = updatedOrder.id,
+                        items = updatedOrder.items.map { StockValidationItem(it.menuItemId, it.quantity) }
+                    )
+                    eventPublisher.publish(stockReturnedEvent)
+                }
+
+                val statusChangedEvent = OrderStatusChangedEvent(
+                    orderId = updatedOrder.id,
+                    buyerId = updatedOrder.buyerId,
+                    oldStatus = oldStatus,
+                    newStatus = OrderStatus.Cancelled,
+                    totalPrice = updatedOrder.totalPrice,
+                    currency = updatedOrder.currency,
+                    description = fullReason,
+                    changedAt = now
+                )
+                eventPublisher.publish(statusChangedEvent)
+            }
         }
-
-        val oldStatus = order.status
-        val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-        val fullReason = "Payment failed ($code): $reason"
-        val updatedOrder = orderRepository.update(order.copy(status = OrderStatus.Cancelled, description = fullReason, updatedAt = now))
-
-        val cancelledEvent = OrderCancelledEvent(
-            orderId = updatedOrder.id,
-            buyerId = updatedOrder.buyerId,
-            reason = fullReason,
-            cancelledAt = now
-        )
-        eventPublisher.publish(cancelledEvent)
-
-        if (oldStatus == OrderStatus.AwaitingValidation || oldStatus == OrderStatus.StockConfirmed) {
-            val stockReturnedEvent = StockReturnedEvent(
-                orderId = updatedOrder.id,
-                items = updatedOrder.items.map { StockValidationItem(it.menuItemId, it.quantity) }
-            )
-            eventPublisher.publish(stockReturnedEvent)
-        }
-
-        val statusChangedEvent = OrderStatusChangedEvent(
-            orderId = updatedOrder.id,
-            buyerId = updatedOrder.buyerId,
-            oldStatus = oldStatus,
-            newStatus = OrderStatus.Cancelled,
-            totalPrice = updatedOrder.totalPrice,
-            currency = updatedOrder.currency,
-            description = fullReason,
-            changedAt = now
-        )
-        eventPublisher.publish(statusChangedEvent)
-        return updatedOrder
-    }
 
     private fun CreateOrderRequest.validate(): Address = validate {
         paymentDetails.cardNumber.validate({ it.length in 13..19 }) { "Card number must be 13-19 digits" }

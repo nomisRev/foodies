@@ -1,5 +1,6 @@
 package io.ktor.foodies.menu.events
 
+import io.ktor.foodies.rabbitmq.HasRoutingKey
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
@@ -8,7 +9,9 @@ data class OrderAwaitingValidationEvent(
     val orderId: Long,
     val buyerId: String,
     val items: List<StockValidationItem>,
-)
+) : HasRoutingKey {
+    override val key: String = "order.awaiting-validation"
+}
 
 @Serializable
 data class StockValidationItem(
@@ -20,14 +23,18 @@ data class StockValidationItem(
 data class StockConfirmedEvent(
     val orderId: Long,
     val confirmedAt: Instant,
-)
+) : HasRoutingKey {
+    override val key: String = "stock.confirmed"
+}
 
 @Serializable
 data class StockRejectedEvent(
     val orderId: Long,
     val rejectedItems: List<RejectedItem>,
     val rejectedAt: Instant,
-)
+) : HasRoutingKey {
+    override val key: String = "stock.rejected"
+}
 
 @Serializable
 data class RejectedItem(
@@ -41,4 +48,6 @@ data class RejectedItem(
 data class StockReturnedEvent(
     val orderId: Long,
     val items: List<StockValidationItem>,
-)
+) : HasRoutingKey {
+    override val key: String = "order.stock-returned"
+}

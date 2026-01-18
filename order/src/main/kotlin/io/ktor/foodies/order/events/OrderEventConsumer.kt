@@ -1,131 +1,59 @@
 package io.ktor.foodies.order.events
 
-import com.rabbitmq.client.Channel
 import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.order.events.handlers.*
-import io.ktor.foodies.rabbitmq.messages
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import org.slf4j.LoggerFactory
+import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
+import io.ktor.foodies.rabbitmq.parConsumeMessage
+import io.ktor.foodies.rabbitmq.subscribe
+import kotlinx.coroutines.flow.Flow
 
-class OrderEventConsumer(
-    private val channel: Channel,
-    private val exchange: String,
-    private val stockConfirmedHandler: StockConfirmedEventHandler,
-    private val stockRejectedHandler: StockRejectedEventHandler,
-    private val paymentSucceededHandler: PaymentSucceededEventHandler,
-    private val paymentFailedHandler: PaymentFailedEventHandler,
-    private val orderStatusChangedHandler: OrderStatusChangedEventHandler,
-    private val scope: CoroutineScope
-) {
-    private val logger = LoggerFactory.getLogger(OrderEventConsumer::class.java)
-
-    fun start() {
-        setupStockConfirmedConsumer()
-        setupStockRejectedConsumer()
-        setupPaymentSucceededConsumer()
-        setupPaymentFailedConsumer()
-        setupOrderStatusChangedConsumer()
-    }
-
-    private fun setupStockConfirmedConsumer() {
+fun orderEventConsumers(
+    subscriber: RabbitMQSubscriber,
+    exchange: String,
+    stockConfirmedHandler: StockConfirmedEventHandler,
+    stockRejectedHandler: StockRejectedEventHandler,
+    paymentSucceededHandler: PaymentSucceededEventHandler,
+    paymentFailedHandler: PaymentFailedEventHandler,
+    orderStatusChangedHandler: OrderStatusChangedEventHandler
+): List<Flow<Unit>> = listOf(
+    run {
         val queueName = "order.stock-confirmed"
         val routingKey = "stock.confirmed"
-        
-        channel.queueDeclare(queueName, true, false, false, null)
-        channel.queueBind(queueName, exchange, routingKey)
-
-        channel.messages<StockConfirmedEvent>(queueName)
-            .onEach { message ->
-                runCatching {
-                    stockConfirmedHandler.handle(message.value)
-                    message.ack()
-                }.onFailure { e ->
-                    logger.error("Error processing StockConfirmedEvent", e)
-                    message.nack()
-                }
-            }
-            .launchIn(scope)
-    }
-
-    private fun setupStockRejectedConsumer() {
+        subscriber.subscribe<StockConfirmedEvent>(queueName) {
+            queueDeclare(queueName, true, false, false, null)
+            queueBind(queueName, exchange, routingKey)
+        }.parConsumeMessage { stockConfirmedHandler.handle(it) }
+    },
+    run {
         val queueName = "order.stock-rejected"
         val routingKey = "stock.rejected"
-
-        channel.queueDeclare(queueName, true, false, false, null)
-        channel.queueBind(queueName, exchange, routingKey)
-
-        channel.messages<StockRejectedEvent>(queueName)
-            .onEach { message ->
-                runCatching {
-                    stockRejectedHandler.handle(message.value)
-                    message.ack()
-                }.onFailure { e ->
-                    logger.error("Error processing StockRejectedEvent", e)
-                    message.nack()
-                }
-            }
-            .launchIn(scope)
-    }
-
-    private fun setupPaymentSucceededConsumer() {
+        subscriber.subscribe<StockRejectedEvent>(queueName) {
+            queueDeclare(queueName, true, false, false, null)
+            queueBind(queueName, exchange, routingKey)
+        }.parConsumeMessage { stockRejectedHandler.handle(it) }
+    },
+    run {
         val queueName = "order.payment-succeeded"
         val routingKey = "payment.succeeded"
-
-        channel.queueDeclare(queueName, true, false, false, null)
-        channel.queueBind(queueName, exchange, routingKey)
-
-        channel.messages<OrderPaymentSucceededEvent>(queueName)
-            .onEach { message ->
-                runCatching {
-                    paymentSucceededHandler.handle(message.value)
-                    message.ack()
-                }.onFailure { e ->
-                    logger.error("Error processing OrderPaymentSucceededEvent", e)
-                    message.nack()
-                }
-            }
-            .launchIn(scope)
-    }
-
-    private fun setupPaymentFailedConsumer() {
+        subscriber.subscribe<OrderPaymentSucceededEvent>(queueName) {
+            queueDeclare(queueName, true, false, false, null)
+            queueBind(queueName, exchange, routingKey)
+        }.parConsumeMessage { paymentSucceededHandler.handle(it) }
+    },
+    run {
         val queueName = "order.payment-failed"
         val routingKey = "payment.failed"
-
-        channel.queueDeclare(queueName, true, false, false, null)
-        channel.queueBind(queueName, exchange, routingKey)
-
-        channel.messages<OrderPaymentFailedEvent>(queueName)
-            .onEach { message ->
-                runCatching {
-                    paymentFailedHandler.handle(message.value)
-                    message.ack()
-                }.onFailure { e ->
-                    logger.error("Error processing OrderPaymentFailedEvent", e)
-                    message.nack()
-                }
-            }
-            .launchIn(scope)
-    }
-
-    private fun setupOrderStatusChangedConsumer() {
+        subscriber.subscribe<OrderPaymentFailedEvent>(queueName) {
+            queueDeclare(queueName, true, false, false, null)
+            queueBind(queueName, exchange, routingKey)
+        }.parConsumeMessage { paymentFailedHandler.handle(it) }
+    },
+    run {
         val queueName = "order.notifications"
         val routingKey = "order.status-changed"
-
-        channel.queueDeclare(queueName, true, false, false, null)
-        channel.queueBind(queueName, exchange, routingKey)
-
-        channel.messages<OrderStatusChangedEvent>(queueName)
-            .onEach { message ->
-                runCatching {
-                    orderStatusChangedHandler.handle(message.value)
-                    message.ack()
-                }.onFailure { e ->
-                    logger.error("Error processing OrderStatusChangedEvent", e)
-                    message.nack()
-                }
-            }
-            .launchIn(scope)
+        subscriber.subscribe<OrderStatusChangedEvent>(queueName) {
+            queueDeclare(queueName, true, false, false, null)
+            queueBind(queueName, exchange, routingKey)
+        }.parConsumeMessage { orderStatusChangedHandler.handle(it) }
     }
-}
+)

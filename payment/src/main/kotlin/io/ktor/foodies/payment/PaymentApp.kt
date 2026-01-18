@@ -11,6 +11,7 @@ import io.ktor.server.netty.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.routing.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.launchIn
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
@@ -22,6 +23,9 @@ fun main() {
 
 fun Application.app(module: PaymentModule) {
     install(ContentNegotiation) { json() }
+
+    module.consumers.forEach { it.launchIn(this) }
+
     install(Cohort) {
         verboseHealthCheckResponse = true
         healthcheck("/healthz/startup", HealthCheckRegistry(Dispatchers.Default))
