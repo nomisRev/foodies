@@ -39,7 +39,7 @@
 ## Prometheus Deployment
 
 ### 4. Deploy Prometheus
-- [ ] Create `k8s/base/prometheus/` directory structure
+- [x] Create `k8s/base/prometheus/` directory structure
 - [ ] Create `k8s/base/prometheus/configmap.yaml`
   - Configure scrape configs for OpenTelemetry Collector
   - Configure scrape configs for application metrics
@@ -50,14 +50,14 @@
   - Configure persistent volume for data
 - [ ] Create `k8s/base/prometheus/service.yaml`
   - Expose Prometheus UI port 9090
-- [ ] Create `k8s/base/prometheus/kustomization.yaml`
+- [x] Create `k8s/base/prometheus/kustomization.yaml`
 - [ ] Add Prometheus UI to Ingress configuration for external access
 
 ## Integration
 
 ### 5. Update Kubernetes Configuration
-- [ ] Update `k8s/base/kustomization.yaml`
-  - [ ] Add otel-collector, jaeger, and prometheus to resources
+- [x] Update `k8s/base/kustomization.yaml`
+  - [x] Add otel-collector, jaeger, and prometheus to resources
   - [x] Verify OTEL_EXPORTER_OTLP_ENDPOINT points to `http://otel-collector:4317`
 
 ### 6. Verify Service Configuration
@@ -81,7 +81,7 @@
 
 ### 8. Update Documentation
 - [x] Document how to access Jaeger UI
-- [ ] Document how to access Prometheus UI
+- [x] Document how to access Prometheus UI
 - [ ] Document how to query traces and metrics
 - [ ] Add troubleshooting section for common issues
 EOF
