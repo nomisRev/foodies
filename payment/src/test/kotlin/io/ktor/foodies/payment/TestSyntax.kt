@@ -6,7 +6,7 @@ import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import com.sksamuel.cohort.HealthCheckRegistry
-import io.ktor.foodies.payment.events.OrderStockConfirmedEvent
+import io.ktor.foodies.events.order.OrderStockConfirmedEvent
 import io.ktor.foodies.payment.events.RabbitMQEventPublisher
 import io.ktor.foodies.payment.events.orderStockConfirmedEventConsumer
 import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway

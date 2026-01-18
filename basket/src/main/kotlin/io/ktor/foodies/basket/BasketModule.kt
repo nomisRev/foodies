@@ -7,7 +7,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
-import io.ktor.foodies.basket.events.OrderCreatedEvent
+import io.ktor.foodies.events.order.OrderCreatedEvent
 import io.ktor.foodies.basket.events.orderCreatedEventConsumer
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber

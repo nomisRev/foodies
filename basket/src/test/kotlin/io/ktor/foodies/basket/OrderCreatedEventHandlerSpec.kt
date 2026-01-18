@@ -1,8 +1,9 @@
 package io.ktor.foodies.basket
 
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.basket.events.OrderCreatedEvent
-import io.ktor.foodies.basket.events.OrderItem
+import io.ktor.foodies.events.order.OrderCreatedEvent
+import io.ktor.foodies.events.order.OrderItemSnapshot
+import kotlin.time.Instant
 import java.math.BigDecimal
 import kotlin.test.assertNull
 
@@ -52,18 +53,18 @@ val orderCreatedEventHandlerSpec by testSuite {
 
         // Create the event
         val event = OrderCreatedEvent(
-            orderId = "order-456",
+            orderId = 456L,
             buyerId = buyerId,
             items = listOf(
-                OrderItem(
+                OrderItemSnapshot(
                     menuItemId = 1L,
-                    menuItemName = "Pizza",
-                    unitPrice = BigDecimal("10.00"),
-                    quantity = 2
+                    quantity = 2,
+                    unitPrice = BigDecimal("10.00")
                 )
             ),
             totalPrice = BigDecimal("20.00"),
-            createdAt = "2025-01-11T10:00:00Z"
+            currency = "USD",
+            createdAt = Instant.parse("2025-01-11T10:00:00Z")
         )
 
         // Process the event directly (simulating what the consumer does)
@@ -80,11 +81,12 @@ val orderCreatedEventHandlerSpec by testSuite {
 
         // Create the event for a user without a basket
         val event = OrderCreatedEvent(
-            orderId = "order-789",
+            orderId = 789L,
             buyerId = buyerId,
             items = emptyList(),
             totalPrice = BigDecimal("0.00"),
-            createdAt = "2025-01-11T10:00:00Z"
+            currency = "USD",
+            createdAt = Instant.parse("2025-01-11T10:00:00Z")
         )
 
         // Process the event - should not throw
@@ -138,18 +140,18 @@ val orderCreatedEventHandlerSpec by testSuite {
 
         // Create event for buyer1 only
         val event = OrderCreatedEvent(
-            orderId = "order-123",
+            orderId = 123L,
             buyerId = buyer1,
             items = listOf(
-                OrderItem(
+                OrderItemSnapshot(
                     menuItemId = 1L,
-                    menuItemName = "Pizza",
-                    unitPrice = BigDecimal("10.00"),
-                    quantity = 1
+                    quantity = 1,
+                    unitPrice = BigDecimal("10.00")
                 )
             ),
             totalPrice = BigDecimal("10.00"),
-            createdAt = "2025-01-11T10:00:00Z"
+            currency = "USD",
+            createdAt = Instant.parse("2025-01-11T10:00:00Z")
         )
 
         // Process the event

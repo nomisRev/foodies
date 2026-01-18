@@ -4,7 +4,7 @@ import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.testScope
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.ctxSuite
-import io.ktor.foodies.user.event.UserEvent
+import io.ktor.foodies.events.user.UserEvent
 import kotlinx.serialization.json.Json
 import org.keycloak.events.Event
 import org.keycloak.events.EventType

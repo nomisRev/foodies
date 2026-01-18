@@ -1,7 +1,7 @@
 package io.ktor.foodies.payment.gateway
 
-import io.ktor.foodies.payment.PaymentFailureCode
-import io.ktor.foodies.payment.PaymentMethodInfo
+import io.ktor.foodies.events.common.PaymentFailureCode
+import io.ktor.foodies.events.common.PaymentMethodInfo
 import io.ktor.foodies.server.SerializableBigDecimal
 
 interface PaymentGateway {

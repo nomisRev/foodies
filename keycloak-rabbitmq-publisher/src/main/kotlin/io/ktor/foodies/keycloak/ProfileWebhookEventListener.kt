@@ -1,7 +1,7 @@
 package io.ktor.foodies.keycloak
 
 import com.rabbitmq.client.Connection
-import io.ktor.foodies.user.event.UserEvent
+import io.ktor.foodies.events.user.UserEvent
 import kotlinx.serialization.json.Json
 import org.jboss.logging.Logger
 import org.keycloak.events.Event

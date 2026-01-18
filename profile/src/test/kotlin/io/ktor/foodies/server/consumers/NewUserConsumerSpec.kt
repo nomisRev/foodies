@@ -6,7 +6,7 @@
 //import io.ktor.foodies.server.profile.ExposedProfileRepository
 //import io.ktor.foodies.server.test.channel
 //import io.ktor.foodies.server.test.rabbitContainer
-//import io.ktor.foodies.user.event.UserEvent
+//import io.ktor.foodies.events.user.UserEvent
 //import kotlinx.coroutines.flow.first
 //import kotlinx.serialization.json.Json
 //import kotlin.test.assertEquals

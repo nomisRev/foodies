@@ -1,8 +1,8 @@
 package io.ktor.foodies.order.repository
 
+import io.ktor.foodies.events.order.OrderStatus
 import io.ktor.foodies.order.domain.CreateOrder
 import io.ktor.foodies.order.domain.Order
-import io.ktor.foodies.order.domain.OrderStatus
 import io.ktor.foodies.order.domain.PaginatedOrders
 
 interface OrderRepository {

@@ -15,7 +15,7 @@ ktor {
 
 dependencies {
     implementation(project(":server-shared"))
-    implementation(project(":keycloak-events"))
+    implementation(project(":events-user"))
     implementation(project(":rabbitmq-ext"))
 
     implementation(ktorLibs.server.netty)

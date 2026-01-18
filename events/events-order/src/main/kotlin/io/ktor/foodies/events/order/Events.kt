@@ -1,9 +1,20 @@
-package io.ktor.foodies.order.domain
+package io.ktor.foodies.events.order
 
+import io.ktor.foodies.events.common.PaymentMethodInfo
 import io.ktor.foodies.rabbitmq.HasRoutingKey
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
+
+@Serializable
+enum class OrderStatus {
+    Submitted,              // Initial state after order creation
+    AwaitingValidation,     // Grace period ended, awaiting stock validation
+    StockConfirmed,         // Menu service confirmed item availability
+    Paid,                   // Payment confirmed
+    Shipped,                // Order shipped to customer
+    Cancelled               // Order cancelled (by user, stock rejection, or payment failure)
+}
 
 @Serializable
 data class OrderCreatedEvent(
@@ -72,32 +83,6 @@ data class StockValidationItem(
 )
 
 @Serializable
-data class StockConfirmedEvent(
-    val orderId: Long,
-    val confirmedAt: Instant,
-) : HasRoutingKey {
-    override val key: String = "stock.confirmed"
-}
-
-@Serializable
-enum class PaymentMethodType {
-    CREDIT_CARD,
-    DEBIT_CARD,
-    DIGITAL_WALLET,
-    BANK_TRANSFER
-}
-
-@Serializable
-data class PaymentMethodInfo(
-    val type: PaymentMethodType,
-    val cardLastFour: String?,
-    val cardBrand: CardBrand?,
-    val cardHolderName: String?,
-    val expirationMonth: Int?,
-    val expirationYear: Int?
-)
-
-@Serializable
 data class OrderStockConfirmedEvent(
     val eventId: String,
     val orderId: Long,
@@ -108,57 +93,4 @@ data class OrderStockConfirmedEvent(
     val occurredAt: Instant
 ) : HasRoutingKey {
     override val key: String = "order.stock-confirmed"
-}
-
-@Serializable
-data class StockRejectedEvent(
-    val orderId: Long,
-    val rejectedItems: List<RejectedItem>,
-    val rejectedAt: Instant,
-) : HasRoutingKey {
-    override val key: String = "stock.rejected"
-}
-
-@Serializable
-data class RejectedItem(
-    val menuItemId: Long,
-    val menuItemName: String,
-    val requestedQuantity: Int,
-    val availableQuantity: Int,
-)
-
-@Serializable
-data class OrderPaymentSucceededEvent(
-    val eventId: String,
-    val orderId: Long,
-    val paymentId: Long,
-    val transactionId: String,
-    val amount: SerializableBigDecimal,
-    val currency: String,
-    val processedAt: Instant,
-) : HasRoutingKey {
-    override val key: String = "payment.succeeded"
-}
-
-@Serializable
-enum class PaymentFailureCode {
-    INSUFFICIENT_FUNDS,
-    CARD_DECLINED,
-    CARD_EXPIRED,
-    INVALID_CARD,
-    FRAUD_SUSPECTED,
-    GATEWAY_ERROR,
-    TIMEOUT,
-    UNKNOWN
-}
-
-@Serializable
-data class OrderPaymentFailedEvent(
-    val eventId: String,
-    val orderId: Long,
-    val failureReason: String,
-    val failureCode: PaymentFailureCode,
-    val occurredAt: Instant,
-) : HasRoutingKey {
-    override val key: String = "payment.failed"
 }

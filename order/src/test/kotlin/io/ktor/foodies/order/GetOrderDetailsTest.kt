@@ -2,6 +2,7 @@ package io.ktor.foodies.order
 
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.order.domain.*
+import io.ktor.foodies.events.order.OrderStatus
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.time.Instant

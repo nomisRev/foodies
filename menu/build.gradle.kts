@@ -15,6 +15,8 @@ ktor {
 
 dependencies {
     implementation(project(":server-shared"))
+    implementation(project(":events-menu"))
+    implementation(project(":events-order"))
 
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.config.yaml)
