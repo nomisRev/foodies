@@ -3,7 +3,7 @@ package io.ktor.foodies.menu
 import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.aroundEachTest
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.menu.events.StockValidationItem
+import io.ktor.foodies.events.order.StockValidationItem
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

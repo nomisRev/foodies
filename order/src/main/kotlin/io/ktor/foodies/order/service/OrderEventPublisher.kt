@@ -1,5 +1,6 @@
 package io.ktor.foodies.order.service
 
+import io.ktor.foodies.events.order.*
 import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.publish

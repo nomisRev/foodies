@@ -14,7 +14,7 @@ dependencies {
     compileOnly(libs.keycloak.server.spi)
     compileOnly(libs.keycloak.server.spi.private)
 
-    implementation(project(":keycloak-events"))
+    implementation(project(":events-user"))
     implementation(libs.serialization.json)
     implementation(libs.rabbitmq)
 

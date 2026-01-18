@@ -1,6 +1,7 @@
 package io.ktor.foodies.order.domain
 
 import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.events.common.CardBrand
 import kotlin.test.assertEquals
 
 val cardBrandSpec by testSuite {

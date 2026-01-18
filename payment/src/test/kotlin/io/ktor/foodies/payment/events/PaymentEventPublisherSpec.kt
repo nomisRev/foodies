@@ -1,6 +1,7 @@
 package io.ktor.foodies.payment.events
 
 import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.events.payment.OrderPaymentSucceededEvent
 import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.subscribe
