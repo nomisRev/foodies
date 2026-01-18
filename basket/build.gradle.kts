@@ -16,6 +16,7 @@ ktor {
 dependencies {
     implementation(project(":server-shared"))
     implementation(project(":rabbitmq-ext"))
+    implementation(project(":events-order"))
 
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.config.yaml)

@@ -25,7 +25,7 @@
             <option value="$PROJECT_DIR$/events/events-menu" />
             <option value="$PROJECT_DIR$/events/events-order" />
             <option value="$PROJECT_DIR$/events/events-payment" />
-            <option value="$PROJECT_DIR$/keycloak-events" />
+            <option value="$PROJECT_DIR$/events/events-user" />
             <option value="$PROJECT_DIR$/keycloak-rabbitmq-publisher" />
             <option value="$PROJECT_DIR$/menu" />
             <option value="$PROJECT_DIR$/order" />

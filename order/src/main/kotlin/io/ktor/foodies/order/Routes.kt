@@ -4,7 +4,7 @@ import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.order.domain.CancelOrderRequest
 import io.ktor.foodies.order.domain.CardBrandResponse
 import io.ktor.foodies.order.domain.CreateOrderRequest
-import io.ktor.foodies.order.domain.OrderStatus
+import io.ktor.foodies.events.order.OrderStatus
 import io.ktor.foodies.order.service.OrderService
 import io.ktor.foodies.server.getValue
 import io.ktor.http.HttpStatusCode

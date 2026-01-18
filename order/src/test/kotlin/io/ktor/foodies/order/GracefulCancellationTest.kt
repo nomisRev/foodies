@@ -3,6 +3,7 @@ package io.ktor.foodies.order
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.order.domain.*
+import io.ktor.foodies.events.order.*
 import java.math.BigDecimal
 import java.util.UUID
 import kotlin.test.assertEquals

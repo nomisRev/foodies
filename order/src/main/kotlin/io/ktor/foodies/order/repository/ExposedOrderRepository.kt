@@ -5,6 +5,7 @@ import io.ktor.foodies.order.database.OrderHistory
 import io.ktor.foodies.order.database.OrderItems
 import io.ktor.foodies.order.database.Orders
 import io.ktor.foodies.order.database.PaymentMethods
+import io.ktor.foodies.events.order.*
 import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.server.SerializableBigDecimal
 import java.math.BigDecimal

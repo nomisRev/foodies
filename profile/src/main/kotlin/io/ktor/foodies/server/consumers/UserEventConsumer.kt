@@ -3,7 +3,7 @@ package io.ktor.foodies.server.consumers
 import io.ktor.foodies.rabbitmq.Message
 import io.ktor.foodies.rabbitmq.parConsumeMessage
 import io.ktor.foodies.server.profile.ProfileRepository
-import io.ktor.foodies.user.event.UserEvent
+import io.ktor.foodies.events.user.UserEvent
 import kotlinx.coroutines.flow.Flow
 import org.slf4j.LoggerFactory
 

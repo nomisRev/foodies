@@ -1,6 +1,6 @@
 package io.ktor.foodies.keycloak
 
-import io.ktor.foodies.user.event.UserEvent
+import io.ktor.foodies.events.user.UserEvent
 import org.keycloak.events.Event
 import org.keycloak.events.EventType
 

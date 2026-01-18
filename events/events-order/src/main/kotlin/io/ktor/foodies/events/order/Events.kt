@@ -1,13 +1,20 @@
-package io.ktor.foodies.order.domain
+package io.ktor.foodies.events.order
 
-import io.ktor.foodies.events.common.CardBrand
-import io.ktor.foodies.events.common.PaymentFailureCode
 import io.ktor.foodies.events.common.PaymentMethodInfo
-import io.ktor.foodies.events.common.PaymentMethodType
 import io.ktor.foodies.rabbitmq.HasRoutingKey
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
+
+@Serializable
+enum class OrderStatus {
+    Submitted,              // Initial state after order creation
+    AwaitingValidation,     // Grace period ended, awaiting stock validation
+    StockConfirmed,         // Menu service confirmed item availability
+    Paid,                   // Payment confirmed
+    Shipped,                // Order shipped to customer
+    Cancelled               // Order cancelled (by user, stock rejection, or payment failure)
+}
 
 @Serializable
 data class OrderCreatedEvent(
@@ -76,14 +83,6 @@ data class StockValidationItem(
 )
 
 @Serializable
-data class StockConfirmedEvent(
-    val orderId: Long,
-    val confirmedAt: Instant,
-) : HasRoutingKey {
-    override val key: String = "stock.confirmed"
-}
-
-@Serializable
 data class OrderStockConfirmedEvent(
     val eventId: String,
     val orderId: Long,
@@ -95,21 +94,3 @@ data class OrderStockConfirmedEvent(
 ) : HasRoutingKey {
     override val key: String = "order.stock-confirmed"
 }
-
-@Serializable
-data class StockRejectedEvent(
-    val orderId: Long,
-    val rejectedItems: List<RejectedItem>,
-    val rejectedAt: Instant,
-) : HasRoutingKey {
-    override val key: String = "stock.rejected"
-}
-
-@Serializable
-data class RejectedItem(
-    val menuItemId: Long,
-    val menuItemName: String,
-    val requestedQuantity: Int,
-    val availableQuantity: Int,
-)
-

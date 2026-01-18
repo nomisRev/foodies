@@ -1,6 +1,7 @@
 package io.ktor.foodies.basket.events
 
 import io.ktor.foodies.basket.BasketRepository
+import io.ktor.foodies.events.order.OrderCreatedEvent
 import io.ktor.foodies.rabbitmq.Message
 import io.ktor.foodies.rabbitmq.parConsumeMessage
 import kotlinx.coroutines.flow.Flow

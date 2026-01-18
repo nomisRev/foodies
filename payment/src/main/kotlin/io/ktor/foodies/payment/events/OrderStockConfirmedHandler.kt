@@ -2,6 +2,7 @@ package io.ktor.foodies.payment.events
 
 import io.ktor.foodies.events.common.PaymentFailureCode
 import io.ktor.foodies.events.common.PaymentMethodInfo
+import io.ktor.foodies.events.order.OrderStockConfirmedEvent
 import io.ktor.foodies.events.payment.OrderPaymentFailedEvent
 import io.ktor.foodies.events.payment.OrderPaymentSucceededEvent
 import io.ktor.foodies.payment.PaymentResult

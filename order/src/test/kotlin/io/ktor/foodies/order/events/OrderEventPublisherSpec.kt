@@ -1,9 +1,7 @@
 package io.ktor.foodies.order.events
 
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.order.domain.OrderCancelledEvent
-import io.ktor.foodies.order.domain.OrderCreatedEvent
-import io.ktor.foodies.order.domain.OrderItemSnapshot
+import io.ktor.foodies.events.order.*
 import io.ktor.foodies.order.service.RabbitOrderEventPublisher
 import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
