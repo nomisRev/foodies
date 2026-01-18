@@ -25,16 +25,16 @@
 ## Jaeger Deployment
 
 ### 3. Deploy Jaeger All-in-One
-- [ ] Create `k8s/base/jaeger/` directory structure
-- [ ] Create `k8s/base/jaeger/deployment.yaml`
-  - Use Jaeger all-in-one image
-  - Configure memory storage backend
-  - Expose necessary ports (16686 UI, 14250 gRPC)
-- [ ] Create `k8s/base/jaeger/service.yaml`
-  - Expose Jaeger UI port 16686
-  - Expose Jaeger collector gRPC port 14250
-- [ ] Create `k8s/base/jaeger/kustomization.yaml`
-- [ ] Add Jaeger UI to Ingress configuration for external access
+- [x] Create `k8s/base/jaeger/` directory structure
+- [x] Create `k8s/base/jaeger/deployment.yaml`
+  - [x] Use Jaeger all-in-one image
+  - [x] Configure memory storage backend
+  - [x] Expose necessary ports (16686 UI, 14250 gRPC)
+- [x] Create `k8s/base/jaeger/service.yaml`
+  - [x] Expose Jaeger UI port 16686
+  - [x] Expose Jaeger collector gRPC port 14250
+- [x] Create `k8s/base/jaeger/kustomization.yaml`
+- [x] Add Jaeger UI to Ingress configuration for external access
 
 ## Prometheus Deployment
 
