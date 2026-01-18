@@ -1,5 +1,8 @@
 package io.ktor.foodies.menu.events
 
+import io.ktor.foodies.events.menu.RejectedItem
+import io.ktor.foodies.events.menu.StockConfirmedEvent
+import io.ktor.foodies.events.menu.StockRejectedEvent
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber

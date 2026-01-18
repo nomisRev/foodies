@@ -1,6 +1,6 @@
 package io.ktor.foodies.payment.gateway
 
-import io.ktor.foodies.payment.PaymentFailureCode
+import io.ktor.foodies.events.common.PaymentFailureCode
 import io.ktor.foodies.payment.PaymentGatewayConfig
 import kotlinx.coroutines.delay
 import java.util.UUID

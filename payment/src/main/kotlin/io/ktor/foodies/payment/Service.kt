@@ -1,5 +1,6 @@
 package io.ktor.foodies.payment
 
+import io.ktor.foodies.events.common.*
 import io.ktor.foodies.payment.gateway.ChargeRequest
 import io.ktor.foodies.payment.gateway.GatewayResult
 import io.ktor.foodies.payment.gateway.PaymentGateway

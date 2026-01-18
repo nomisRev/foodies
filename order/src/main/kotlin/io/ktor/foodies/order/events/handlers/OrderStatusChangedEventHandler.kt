@@ -1,6 +1,6 @@
 package io.ktor.foodies.order.events.handlers
 
-import io.ktor.foodies.order.domain.OrderStatusChangedEvent
+import io.ktor.foodies.events.order.OrderStatusChangedEvent
 import io.ktor.foodies.order.repository.OrderRepository
 import io.ktor.foodies.order.service.NotificationService
 

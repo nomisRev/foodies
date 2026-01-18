@@ -1,4 +1,4 @@
-package io.ktor.foodies.user.event
+package io.ktor.foodies.events.user
 
 import kotlinx.serialization.Serializable
 

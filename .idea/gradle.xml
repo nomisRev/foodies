@@ -1,27 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-    <component name="GradleMigrationSettings" migrationVersion="1"/>
-    <component name="GradleSettings">
-        <option name="linkedExternalProjectsSettings">
-            <GradleProjectSettings>
-                <compositeConfiguration>
-                    <compositeBuild compositeDefinitionSource="SCRIPT">
-                        <builds>
-                            <build path="$PROJECT_DIR$/buildSrc" name="buildSrc">
-                                <projects>
-                                    <project path="$PROJECT_DIR$/buildSrc"/>
-                                </projects>
-                            </build>
-                        </builds>
-                    </compositeBuild>
-                </compositeConfiguration>
-                <option name="externalProjectPath" value="$PROJECT_DIR$"/>
-                <option name="modules">
-                    <set>
-                        <option value="$PROJECT_DIR$"/>
-                        <option value="$PROJECT_DIR$/basket"/>
-                        <option value="$PROJECT_DIR$/buildSrc"/>
-                        <option value="$PROJECT_DIR$/keycloak-events" />
+  <component name="GradleMigrationSettings" migrationVersion="1" />
+  <component name="GradleSettings">
+    <option name="linkedExternalProjectsSettings">
+      <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/buildSrc" name="buildSrc">
+                <projects>
+                  <project path="$PROJECT_DIR$/buildSrc" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/basket" />
+            <option value="$PROJECT_DIR$/buildSrc" />
+            <option value="$PROJECT_DIR$/events/events-common" />
+            <option value="$PROJECT_DIR$/events/events-menu" />
+            <option value="$PROJECT_DIR$/events/events-order" />
+            <option value="$PROJECT_DIR$/events/events-payment" />
+            <option value="$PROJECT_DIR$/events/events-user" />
             <option value="$PROJECT_DIR$/keycloak-rabbitmq-publisher" />
             <option value="$PROJECT_DIR$/menu" />
             <option value="$PROJECT_DIR$/order" />

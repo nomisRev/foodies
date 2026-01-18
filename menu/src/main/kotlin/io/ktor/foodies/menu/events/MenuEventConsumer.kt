@@ -1,5 +1,8 @@
 package io.ktor.foodies.menu.events
 
+import io.ktor.foodies.events.menu.StockConfirmedEvent
+import io.ktor.foodies.events.menu.StockRejectedEvent
+import io.ktor.foodies.events.order.*
 import io.ktor.foodies.menu.MenuService
 import io.ktor.foodies.menu.StockValidationResult
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber

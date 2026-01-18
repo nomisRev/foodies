@@ -8,6 +8,7 @@ import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.datetime.timestamp
 import org.jetbrains.exposed.v1.jdbc.*
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import io.ktor.foodies.events.common.*
 import io.ktor.foodies.server.SerializableBigDecimal
 
 interface PaymentRepository {

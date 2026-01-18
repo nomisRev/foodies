@@ -3,6 +3,7 @@ package io.ktor.foodies.order
 import io.ktor.foodies.order.client.BasketClient
 import io.ktor.foodies.order.client.CustomerBasket
 import io.ktor.foodies.order.domain.*
+import io.ktor.foodies.events.order.*
 import io.ktor.foodies.order.repository.OrderRepository
 import io.ktor.foodies.order.service.DefaultOrderService
 import io.ktor.foodies.order.service.OrderEventPublisher

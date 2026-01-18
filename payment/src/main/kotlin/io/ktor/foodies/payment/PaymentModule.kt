@@ -2,7 +2,7 @@ package io.ktor.foodies.payment
 
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
-import io.ktor.foodies.payment.events.OrderStockConfirmedEvent
+import io.ktor.foodies.events.order.OrderStockConfirmedEvent
 import io.ktor.foodies.payment.events.RabbitMQEventPublisher
 import io.ktor.foodies.payment.events.orderStockConfirmedEventConsumer
 import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway

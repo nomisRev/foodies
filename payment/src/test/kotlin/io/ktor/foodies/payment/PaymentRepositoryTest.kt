@@ -1,5 +1,6 @@
 package io.ktor.foodies.payment
 
+import io.ktor.foodies.events.common.*
 import io.ktor.foodies.server.test.ctxSuite
 import java.math.BigDecimal
 import kotlin.test.assertEquals

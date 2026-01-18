@@ -1,6 +1,6 @@
 package io.ktor.foodies.order.events.handlers
 
-import io.ktor.foodies.order.domain.StockConfirmedEvent
+import io.ktor.foodies.events.menu.StockConfirmedEvent
 import io.ktor.foodies.order.service.OrderService
 
 class StockConfirmedEventHandler(
