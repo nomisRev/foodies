@@ -4,7 +4,7 @@ import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.healthcheck.http.EndpointHealthCheck
 import com.sksamuel.cohort.lettuce.RedisHealthCheck
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.foodies.basket.events.OrderCreatedEvent
@@ -34,7 +34,7 @@ data class BasketModule(
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun Application.module(config: Config, telemetry: OpenTelemetry): BasketModule {
-    val httpClient = HttpClient(CIO) {
+    val httpClient = HttpClient(Apache5) {
         install(ContentNegotiation) { json() }
         install(KtorClientTelemetry) {
             setOpenTelemetry(telemetry)

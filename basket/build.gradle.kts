@@ -26,7 +26,7 @@ dependencies {
     implementation(ktorLibs.server.auth.jwt)
 
     implementation(ktorLibs.client.core)
-    implementation(ktorLibs.client.cio)
+    implementation(ktorLibs.client.apache5)
     implementation(ktorLibs.client.contentNegotiation)
 
     implementation(libs.lettuce)
