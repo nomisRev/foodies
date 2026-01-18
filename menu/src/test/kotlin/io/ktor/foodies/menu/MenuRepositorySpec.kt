@@ -19,8 +19,8 @@ val menuRepositorySpec by testSuite {
     testSuite(
         "tests",
         testConfig = TestConfig.aroundEachTest { test ->
-            test()
             transaction(dataSource().database) { MenuItemsTable.deleteAll() }
+            test()
         }) {
         test("create stores a menu item and findById retrieves it") {
             val created = repository().create(
