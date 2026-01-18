@@ -10,6 +10,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
+import java.net.URI
 import org.slf4j.LoggerFactory
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -26,10 +27,7 @@ data class OpenIdConfiguration(
     @SerialName("end_session_endpoint")
     val endSessionEndpoint: String
 ) {
-    fun jwksProvider() = JwkProviderBuilder(jwksUri)
-        .cached(true)
-        .rateLimited(true)
-        .build()
+    fun jwks() = JwkProviderBuilder(URI(jwksUri).toURL()).build()
 }
 
 private val logger = LoggerFactory.getLogger(OpenIdConfiguration::class.java)

@@ -1,5 +1,7 @@
 package io.ktor.foodies.keycloak
 
+import de.infix.testBalloon.framework.core.TestConfig
+import de.infix.testBalloon.framework.core.testScope
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.ctxSuite
 import io.ktor.foodies.events.user.UserEvent
@@ -10,14 +12,18 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.time.Duration.Companion.minutes
 
 /**
  * We are making some assumptions here about 'Event',
  * and it would be better to do a proper integration test with a real Keycloak instance.
- * This is non-trivial and is postponed for a proper intergration test of the entire system.
+ * This is non-trivial and is postponed for a proper integration test of the entire system.
  * Contributions welcome!
  */
-val toUserEventSpec by ctxSuite(context = { rabbitContext() }) {
+val toUserEventSpec by ctxSuite(
+    context = { rabbitContext() },
+    testConfig = TestConfig.testScope(true, 3.minutes)
+) {
     testListener("publishes NewUserEvent to RabbitMQ when REGISTER event is received") { queueName, listener ->
         val event = Event().apply {
             type = EventType.REGISTER

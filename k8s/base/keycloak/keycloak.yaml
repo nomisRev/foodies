@@ -8,5 +8,8 @@ spec:
     - name: http
       port: 8000
       targetPort: 8000
+    - name: management
+      port: 9000
+      targetPort: 9000
   selector:
     app: keycloak
