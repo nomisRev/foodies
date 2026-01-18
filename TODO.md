@@ -82,6 +82,6 @@
 ### 8. Update Documentation
 - [x] Document how to access Jaeger UI
 - [x] Document how to access Prometheus UI
-- [ ] Document how to query traces and metrics
-- [ ] Add troubleshooting section for common issues
+- [x] Document how to query traces and metrics
+- [x] Add troubleshooting section for common issues
 EOF
