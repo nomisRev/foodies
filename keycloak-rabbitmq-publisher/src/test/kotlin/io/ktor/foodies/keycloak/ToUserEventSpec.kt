@@ -17,7 +17,7 @@ import kotlin.time.Duration.Companion.minutes
 /**
  * We are making some assumptions here about 'Event',
  * and it would be better to do a proper integration test with a real Keycloak instance.
- * This is non-trivial and is postponed for a proper intergration test of the entire system.
+ * This is non-trivial and is postponed for a proper integration test of the entire system.
  * Contributions welcome!
  */
 val toUserEventSpec by ctxSuite(
