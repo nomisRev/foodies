@@ -32,7 +32,7 @@ val imageTag = "foodies-keycloak:${project.version}"
 
 tasks {
     shadowJar {
-        archiveFileName.set("keycloak-rabbitmq-publisher--all.jar")
+        archiveClassifier.set("all")
         mergeServiceFiles()
         dependencies {
             exclude(dependency("org.slf4j:slf4j-api"))
@@ -48,7 +48,11 @@ tasks {
         inputs.dir(rootProject.projectDir.resolve("keycloak"))
 
         workingDir(rootProject.projectDir)
-        commandLine("docker", "build", "-t", imageTag, "-f", "keycloak/Dockerfile", ".")
+        commandLine("docker", "build", "--build-arg", "JAR_VERSION=${project.version}",
+            "-t", imageTag,
+            "-f", "keycloak/Dockerfile",
+            "."
+        )
     }
 
     val localRestartService by registering(Exec::class) {
