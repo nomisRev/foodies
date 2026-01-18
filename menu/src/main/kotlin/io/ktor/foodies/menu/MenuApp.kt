@@ -3,7 +3,7 @@ package io.ktor.foodies.menu
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
 import io.ktor.foodies.server.ValidationException
-import io.ktor.foodies.server.telemetry.openTelemetry
+import io.ktor.foodies.server.telemetry.monitoring
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.launchIn
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
-        val openTelemetry = openTelemetry(config.telemetry.otlpEndpoint)
+        val (prometheus, openTelemetry) = monitoring(config.telemetry)
         app(module(config, openTelemetry))
     }.start(wait = true)
 }

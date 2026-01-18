@@ -5,6 +5,7 @@ import dasniko.testcontainers.keycloak.KeycloakContainer
 import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
+import io.ktor.foodies.server.telemetry.MonitoringConfig
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
@@ -78,7 +79,7 @@ fun TestSuite.testWebAppService(
             password = "",
             ttlSeconds = 3600
         ),
-        telemetry = Config.Telemetry(otlpEndpoint = "http://localhost:4317")
+        telemetry = MonitoringConfig(otlpEndpoint = "http://localhost:4317")
     )
     application { app(config, module(config, OpenTelemetry.noop())) }
     block()

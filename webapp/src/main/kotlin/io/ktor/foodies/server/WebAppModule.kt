@@ -12,6 +12,7 @@ import io.ktor.foodies.server.htmx.basket.HttpBasketService
 import io.ktor.foodies.server.htmx.menu.HttpMenuService
 import io.ktor.foodies.server.htmx.menu.MenuService
 import io.ktor.foodies.server.security.RedisSessionStorage
+import io.ktor.foodies.server.telemetry.Monitoring
 import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
