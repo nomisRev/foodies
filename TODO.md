@@ -16,7 +16,7 @@
   - Configure resource limits and requests
   - Mount ConfigMap as volume
   - Expose ports 4317 (gRPC), 4318 (HTTP), 8888 (metrics), 8889 (Prometheus)
-- [ ] Create `k8s/base/otel-collector/service.yaml`
+- [x] Create `k8s/base/otel-collector/service.yaml`
   - Expose OTLP gRPC port 4317
   - Expose OTLP HTTP port 4318
   - Expose Prometheus metrics port 8889
