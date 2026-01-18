@@ -15,3 +15,5 @@ config:
   gateway:
     always_succeed: "$PAYMENT_ALWAYS_SUCCEED:true"
     processing_delay_ms: "$PAYMENT_DELAY_MS:100"
+  telemetry:
+    otlp_endpoint: "$OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317"

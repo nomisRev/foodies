@@ -11,7 +11,13 @@ data class Config(
     @SerialName("data_source") val dataSource: DataSource.Config,
     val rabbit: RabbitConfig,
     val gateway: PaymentGatewayConfig,
-)
+    val telemetry: Telemetry,
+) {
+    @Serializable
+    data class Telemetry(
+        @SerialName("otlp_endpoint") val otlpEndpoint: String,
+    )
+}
 
 @Serializable
 data class RabbitConfig(

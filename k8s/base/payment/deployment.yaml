@@ -113,3 +113,5 @@ spec:
                 configMapKeyRef:
                   name: payment-config
                   key: PAYMENT_DELAY_MS
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector:4317"
