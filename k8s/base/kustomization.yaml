@@ -17,6 +17,7 @@ resources:
   - keycloak
   - otel-collector
   - jaeger
+  - prometheus
 
 configMapGenerator:
   - name: foodies-config

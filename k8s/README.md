@@ -138,6 +138,7 @@ Or update the `FOODIES_HOST` value in [k8s/configmaps/foodies-config.yaml](fleet
 ### 6. Monitoring and Tracing
 
 - **Jaeger UI**: http://foodies.local/jaeger (distributed tracing)
+- **Prometheus UI**: http://foodies.local/prometheus (metrics)
 
 ## Configuration
 
@@ -173,6 +174,7 @@ k8s/
 │   ├── order/                 # Order service resources
 │   ├── payment/               # Payment service resources
 │   ├── profile/               # Profile service resources
+│   ├── prometheus/            # Prometheus monitoring resources
 │   ├── rabbitmq/              # RabbitMQ infrastructure resources
 │   ├── redis/                 # Redis database resources
 │   ├── webapp/                # Web application resources
