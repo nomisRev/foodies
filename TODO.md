@@ -20,7 +20,7 @@
   - Expose OTLP gRPC port 4317
   - Expose OTLP HTTP port 4318
   - Expose Prometheus metrics port 8889
-- [ ] Create `k8s/base/otel-collector/kustomization.yaml`
+- [x] Create `k8s/base/otel-collector/kustomization.yaml`
 
 ## Jaeger Deployment
 
