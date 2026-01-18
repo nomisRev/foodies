@@ -17,7 +17,7 @@ lettuce = "7.2.1.RELEASE"
 redis-testcontainers = "2.2.4"
 kotlinx-coroutines = "1.10.2"
 playwright = "1.57.0"
-keycloak-testcontainers = "3.4.0"
+keycloak-testcontainers = "4.1.1"
 opentelemetry = "1.58.0"
 
 [libraries]
