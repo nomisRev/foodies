@@ -77,7 +77,8 @@ fun TestSuite.testWebAppService(
             port = ctx.redisContainer().firstMappedPort,
             password = "",
             ttlSeconds = 3600
-        )
+        ),
+        telemetry = Config.Telemetry(otlpEndpoint = "http://localhost:4317")
     )
     application { app(config, module(config, OpenTelemetry.noop())) }
     block()

@@ -14,3 +14,5 @@ config:
     port: "$REDIS_PORT:6379"
     password: "$REDIS_PASSWORD:"
     ttlSeconds: "$SESSION_TTL_SECONDS:3600"
+  telemetry:
+    otlp_endpoint: "$OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317"

@@ -97,3 +97,5 @@ spec:
                 configMapKeyRef:
                   name: menu-config
                   key: RABBITMQ_QUEUE
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector:4317"

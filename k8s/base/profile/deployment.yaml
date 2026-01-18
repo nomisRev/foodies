@@ -98,3 +98,5 @@ spec:
                 configMapKeyRef:
                   name: foodies-config
                   key: RABBITMQ_QUEUE
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: "http://otel-collector:4317"
