@@ -42,7 +42,7 @@ fun stockReturnedConsumer(
     subscriber: RabbitMQSubscriber,
     queueName: String,
     menuService: MenuService
-) = subscriber.subscribe<OrderAwaitingValidationEvent>(queueName) { exchange ->
+) = subscriber.subscribe<StockReturnedEvent>(queueName) { exchange ->
     queueDeclare(queueName, true, false, false, null)
     queueBind(queueName, exchange, "order.stock-returned")
 }.parConsumeMessage { event ->
