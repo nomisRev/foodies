@@ -11,11 +11,11 @@
   - Set up pipelines for traces and metrics
 
 ### 2. Deploy OpenTelemetry Collector
-- [ ] Create `k8s/base/otel-collector/deployment.yaml`
-  - Use official OpenTelemetry Collector image
-  - Configure resource limits and requests
-  - Mount ConfigMap as volume
-  - Expose ports 4317 (gRPC), 4318 (HTTP), 8888 (metrics), 8889 (Prometheus)
+- [x] Create `k8s/base/otel-collector/deployment.yaml`
+  - [x] Use official OpenTelemetry Collector image
+  - [x] Configure resource limits and requests
+  - [x] Mount ConfigMap as volume
+  - [x] Expose ports 4317 (gRPC), 4318 (HTTP), 8888 (metrics), 8889 (Prometheus)
 - [x] Create `k8s/base/otel-collector/service.yaml`
   - Expose OTLP gRPC port 4317
   - Expose OTLP HTTP port 4318
@@ -57,8 +57,8 @@
 
 ### 5. Update Kubernetes Configuration
 - [ ] Update `k8s/base/kustomization.yaml`
-  - Add otel-collector, jaeger, and prometheus to resources
-  - Verify OTEL_EXPORTER_OTLP_ENDPOINT points to `http://otel-collector:4317`
+  - [ ] Add otel-collector, jaeger, and prometheus to resources
+  - [x] Verify OTEL_EXPORTER_OTLP_ENDPOINT points to `http://otel-collector:4317`
 
 ### 6. Verify Service Configuration
 - [x] Ensure all services (basket, menu, order, payment, profile, webapp) have `OTEL_EXPORTER_OTLP_ENDPOINT` environment variable configured
