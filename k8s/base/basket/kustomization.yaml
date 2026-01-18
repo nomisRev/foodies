@@ -10,7 +10,7 @@ configMapGenerator:
     literals:
       - HOST=0.0.0.0
       - PORT=8083
-      - AUTH_ISSUER=http://keycloak:8000/auth/realms/foodies-keycloak
+      - AUTH_ISSUER=http://keycloak:8000/realms/foodies-keycloak
       - AUTH_AUDIENCE=account
       - REDIS_HOST=redis
       - REDIS_PORT=6379

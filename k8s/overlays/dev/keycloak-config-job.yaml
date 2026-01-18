@@ -2,14 +2,17 @@ apiVersion: batch/v1
 kind: Job
 metadata:
   name: keycloak-config
+  namespace: foodies
   labels:
     app: keycloak-config
 spec:
   ttlSecondsAfterFinished: 100
+  backoffLimit: 3
   template:
     metadata:
       labels:
         app: keycloak-config
+        job-name: keycloak-config
     spec:
       restartPolicy: OnFailure
       initContainers:
@@ -20,7 +23,7 @@ spec:
             - -c
             - |
               echo "Waiting for Keycloak to be ready..."
-              until wget -q --spider http://keycloak:8000/health/ready; do
+              until wget -q --spider http://keycloak:9000/health/ready; do
                 echo "Keycloak not ready yet, waiting..."
                 sleep 5
               done
@@ -48,7 +51,7 @@ spec:
 
               echo "Authenticating with Keycloak Admin API..."
               /opt/keycloak/bin/kcadm.sh config credentials \
-                --server http://keycloak:8000 \
+                --server http://keycloak:8000/auth \
                 --realm master \
                 --user "$KC_BOOTSTRAP_ADMIN_USERNAME" \
                 --password "$KC_BOOTSTRAP_ADMIN_PASSWORD"
@@ -56,27 +59,36 @@ spec:
               echo "Checking if realm 'foodies-keycloak' exists..."
               if /opt/keycloak/bin/kcadm.sh get realms/foodies-keycloak > /dev/null 2>&1; then
                 echo "Realm 'foodies-keycloak' already exists, updating..."
-                /opt/keycloak/bin/kcadm.sh update realms/foodies-keycloak \
-                  -s enabled=true \
-                  -s registrationAllowed=true \
-                  -s resetPasswordAllowed=true \
-                  -s eventsEnabled=true \
-                  -s 'eventsListeners=["jboss-logging","profile-webhook"]' \
-                  -s 'enabledEventTypes=["REGISTER","DELETE_ACCOUNT","UPDATE_PROFILE"]'
+                # Use JSON file for proper array handling
+                cat > /tmp/realm-update.json << 'EOF'
+              {
+                "enabled": true,
+                "registrationAllowed": true,
+                "resetPasswordAllowed": true,
+                "eventsEnabled": true,
+                "eventsListeners": ["jboss-logging", "profile-webhook"],
+                "enabledEventTypes": ["REGISTER", "DELETE_ACCOUNT", "UPDATE_PROFILE"]
+              }
+              EOF
+                /opt/keycloak/bin/kcadm.sh update realms/foodies-keycloak -f /tmp/realm-update.json
               else
                 echo "Creating realm 'foodies-keycloak'..."
-                /opt/keycloak/bin/kcadm.sh create realms \
-                  -s realm=foodies-keycloak \
-                  -s enabled=true \
-                  -s registrationAllowed=true \
-                  -s resetPasswordAllowed=true \
-                  -s eventsEnabled=true \
-                  -s 'eventsListeners=["jboss-logging","profile-webhook"]' \
-                  -s 'enabledEventTypes=["REGISTER","DELETE_ACCOUNT","UPDATE_PROFILE"]'
+                cat > /tmp/realm-create.json << 'EOF'
+              {
+                "realm": "foodies-keycloak",
+                "enabled": true,
+                "registrationAllowed": true,
+                "resetPasswordAllowed": true,
+                "eventsEnabled": true,
+                "eventsListeners": ["jboss-logging", "profile-webhook"],
+                "enabledEventTypes": ["REGISTER", "DELETE_ACCOUNT", "UPDATE_PROFILE"]
+              }
+              EOF
+                /opt/keycloak/bin/kcadm.sh create realms -f /tmp/realm-create.json
               fi
 
               echo "Checking if role 'user' exists in realm 'foodies-keycloak'..."
-              if /opt/keycloak/bin/kcadm.sh get roles -r foodies-keycloak --fields name | grep -q '"user"'; then
+              if /opt/keycloak/bin/kcadm.sh get roles/user -r foodies-keycloak > /dev/null 2>&1; then
                 echo "Role 'user' already exists, updating..."
                 /opt/keycloak/bin/kcadm.sh update roles/user -r foodies-keycloak \
                   -s 'description=Regular user with standard permissions'
@@ -88,32 +100,47 @@ spec:
               fi
 
               echo "Checking if client 'foodies' exists..."
-              CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak --fields id,clientId | grep -B 1 '"foodies"' | grep '"id"' | sed 's/.*"id" : "\(.*\)".*/\1/' || echo "")
+              # Use query parameter for more reliable lookup
+              CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=foodies --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
 
               if [ -n "$CLIENT_ID" ]; then
                 echo "Client 'foodies' already exists (ID: $CLIENT_ID), updating..."
-                /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID -r foodies-keycloak \
-                  -s clientId=foodies \
-                  -s directAccessGrantsEnabled=true \
-                  -s publicClient=false \
-                  -s secret=foodies_client_secret \
-                  -s 'redirectUris=["http://foodies.local/oauth/callback"]' \
-                  -s 'webOrigins=["http://foodies.local"]' \
-                  -s 'attributes."post.logout.redirect.uris"="http://foodies.local/"'
+                # Use JSON file for proper array and attribute handling
+                cat > /tmp/client-update.json << 'EOF'
+              {
+                "clientId": "foodies",
+                "directAccessGrantsEnabled": true,
+                "publicClient": false,
+                "secret": "foodies_client_secret",
+                "redirectUris": ["http://foodies.local/oauth/callback"],
+                "webOrigins": ["http://foodies.local"],
+                "attributes": {
+                  "post.logout.redirect.uris": "http://foodies.local/"
+                }
+              }
+              EOF
+                /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID -r foodies-keycloak -f /tmp/client-update.json
               else
                 echo "Creating client 'foodies'..."
-                /opt/keycloak/bin/kcadm.sh create clients -r foodies-keycloak \
-                  -s clientId=foodies \
-                  -s directAccessGrantsEnabled=true \
-                  -s publicClient=false \
-                  -s secret=foodies_client_secret \
-                  -s 'redirectUris=["http://foodies.local/oauth/callback"]' \
-                  -s 'webOrigins=["http://foodies.local"]' \
-                  -s 'attributes."post.logout.redirect.uris"="http://foodies.local/"'
+                cat > /tmp/client-create.json << 'EOF'
+              {
+                "clientId": "foodies",
+                "directAccessGrantsEnabled": true,
+                "publicClient": false,
+                "secret": "foodies_client_secret",
+                "redirectUris": ["http://foodies.local/oauth/callback"],
+                "webOrigins": ["http://foodies.local"],
+                "attributes": {
+                  "post.logout.redirect.uris": "http://foodies.local/"
+                }
+              }
+              EOF
+                /opt/keycloak/bin/kcadm.sh create clients -r foodies-keycloak -f /tmp/client-create.json
               fi
 
               echo "Checking if user 'food3_lover' exists..."
-              USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak --fields id,username | grep -B 1 '"food3_lover"' | grep '"id"' | sed 's/.*"id" : "\(.*\)".*/\1/' || echo "")
+              # Use query parameter for more reliable lookup
+              USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak -q username=food3_lover --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
 
               if [ -n "$USER_ID" ]; then
                 echo "User 'food3_lover' already exists (ID: $USER_ID), updating..."
@@ -126,8 +153,7 @@ spec:
                 echo "Resetting password for user 'food3_lover'..."
                 /opt/keycloak/bin/kcadm.sh set-password -r foodies-keycloak \
                   --username food3_lover \
-                  --new-password password \
-                  --temporary false
+                  --new-password password
               else
                 echo "Creating user 'food3_lover'..."
                 /opt/keycloak/bin/kcadm.sh create users -r foodies-keycloak \
@@ -140,16 +166,20 @@ spec:
                 echo "Setting password for user 'food3_lover'..."
                 /opt/keycloak/bin/kcadm.sh set-password -r foodies-keycloak \
                   --username food3_lover \
-                  --new-password password \
-                  --temporary false
+                  --new-password password
 
-                USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak --fields id,username | grep -B 1 '"food3_lover"' | grep '"id"' | sed 's/.*"id" : "\(.*\)".*/\1/')
+                USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak -q username=food3_lover --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/')
               fi
 
-              echo "Assigning role 'user' to user 'food3_lover'..."
-              ROLE_ID=$(/opt/keycloak/bin/kcadm.sh get roles/user -r foodies-keycloak --fields id | grep '"id"' | sed 's/.*"id" : "\(.*\)".*/\1/')
-              /opt/keycloak/bin/kcadm.sh add-roles -r foodies-keycloak \
-                --uid "$USER_ID" \
-                --rolename user || echo "Role already assigned or error occurred (continuing...)"
+              echo "Checking if role 'user' is assigned to user 'food3_lover'..."
+              # Check if role is already assigned to avoid duplicate role assignment errors
+              if /opt/keycloak/bin/kcadm.sh get-roles -r foodies-keycloak --uid "$USER_ID" 2>/dev/null | grep -q '"name" *: *"user"'; then
+                echo "Role 'user' already assigned to user 'food3_lover', skipping..."
+              else
+                echo "Assigning role 'user' to user 'food3_lover'..."
+                /opt/keycloak/bin/kcadm.sh add-roles -r foodies-keycloak \
+                  --uid "$USER_ID" \
+                  --rolename user
+              fi
 
               echo "Keycloak configuration completed successfully!"
