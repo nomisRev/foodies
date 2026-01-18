@@ -1,5 +1,6 @@
 package io.ktor.foodies.order.domain
 
+import io.ktor.foodies.rabbitmq.HasRoutingKey
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
@@ -12,7 +13,9 @@ data class OrderCreatedEvent(
     val totalPrice: SerializableBigDecimal,
     val currency: String,
     val createdAt: Instant
-)
+) : HasRoutingKey {
+    override val key: String = "order.created"
+}
 
 @Serializable
 data class OrderItemSnapshot(
@@ -27,7 +30,9 @@ data class OrderCancelledEvent(
     val buyerId: String,
     val reason: String,
     val cancelledAt: Instant,
-)
+) : HasRoutingKey {
+    override val key: String = "order.cancelled"
+}
 
 @Serializable
 data class OrderStatusChangedEvent(
@@ -39,20 +44,26 @@ data class OrderStatusChangedEvent(
     val currency: String,
     val description: String?,
     val changedAt: Instant,
-)
+) : HasRoutingKey {
+    override val key: String = "order.status-changed"
+}
 
 @Serializable
 data class OrderAwaitingValidationEvent(
     val orderId: Long,
     val buyerId: String,
     val items: List<StockValidationItem>,
-)
+) : HasRoutingKey {
+    override val key: String = "order.awaiting-validation"
+}
 
 @Serializable
 data class StockReturnedEvent(
     val orderId: Long,
     val items: List<StockValidationItem>,
-)
+) : HasRoutingKey {
+    override val key: String = "order.stock-returned"
+}
 
 @Serializable
 data class StockValidationItem(
@@ -64,7 +75,9 @@ data class StockValidationItem(
 data class StockConfirmedEvent(
     val orderId: Long,
     val confirmedAt: Instant,
-)
+) : HasRoutingKey {
+    override val key: String = "stock.confirmed"
+}
 
 @Serializable
 enum class PaymentMethodType {
@@ -93,14 +106,18 @@ data class OrderStockConfirmedEvent(
     val currency: String,
     val paymentMethod: PaymentMethodInfo,
     val occurredAt: Instant
-)
+) : HasRoutingKey {
+    override val key: String = "order.stock-confirmed"
+}
 
 @Serializable
 data class StockRejectedEvent(
     val orderId: Long,
     val rejectedItems: List<RejectedItem>,
     val rejectedAt: Instant,
-)
+) : HasRoutingKey {
+    override val key: String = "stock.rejected"
+}
 
 @Serializable
 data class RejectedItem(
@@ -119,7 +136,9 @@ data class OrderPaymentSucceededEvent(
     val amount: SerializableBigDecimal,
     val currency: String,
     val processedAt: Instant,
-)
+) : HasRoutingKey {
+    override val key: String = "payment.succeeded"
+}
 
 @Serializable
 enum class PaymentFailureCode {
@@ -140,4 +159,6 @@ data class OrderPaymentFailedEvent(
     val failureReason: String,
     val failureCode: PaymentFailureCode,
     val occurredAt: Instant,
-)
+) : HasRoutingKey {
+    override val key: String = "payment.failed"
+}

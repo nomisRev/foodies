@@ -2,6 +2,7 @@ package io.ktor.foodies.server
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
+import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.config.ApplicationConfig
@@ -14,12 +15,13 @@ import kotlinx.coroutines.flow.launchIn
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
-        app(module(config))
+        val openTelemetry = openTelemetry()
+        app(module(config, openTelemetry))
     }.start(wait = true)
 }
 
 fun Application.app(module: ProfileModule) {
-    module.consumers.forEach { it.process().launchIn(this) }
+    module.consumers.forEach { it.launchIn(this) }
 
     install(Cohort) {
         verboseHealthCheckResponse = true

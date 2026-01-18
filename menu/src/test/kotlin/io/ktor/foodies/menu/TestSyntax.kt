@@ -11,6 +11,7 @@ import io.ktor.foodies.server.test.postgresContainer
 import io.ktor.foodies.server.test.rabbitContainer
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.testing.ApplicationTestBuilder
+import io.opentelemetry.api.OpenTelemetry
 import org.flywaydb.core.Flyway
 
 fun TestSuite.migratedMenuDataSource(): TestSuite.Fixture<DataSource> =
@@ -59,7 +60,8 @@ fun TestSuite.testMenuService(
                             ctx.rabbitContainer().adminUsername,
                             ctx.rabbitContainer().adminPassword,
                         )
-                    )
+                    ),
+                    OpenTelemetry.noop()
                 )
             )
         }

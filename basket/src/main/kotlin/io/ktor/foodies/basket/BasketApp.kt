@@ -2,16 +2,12 @@ package io.ktor.foodies.basket
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.foodies.server.ValidationException
-import io.ktor.foodies.server.openid.discover
+import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
-import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.getAs
 import io.ktor.server.engine.embeddedServer
@@ -28,7 +24,8 @@ fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
         security(config)
-        app(module(config))
+        val openTelemetry = openTelemetry()
+        app(module(config, openTelemetry))
     }.start(wait = true)
 }
 
@@ -42,7 +39,7 @@ fun Application.app(module: BasketModule) {
         }
     }
 
-    module.consumers.forEach { it.process().launchIn(this) }
+    module.consumers.forEach { it.launchIn(this) }
 
     routing {
         install(Cohort) {

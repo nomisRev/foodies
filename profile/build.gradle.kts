@@ -1,7 +1,6 @@
 plugins {
     id("foodies.kotlin-conventions")
-    id("io.ktor.plugin")
-    id("foodies.k8s-conventions")
+    id("foodies.ktor-service-conventions")
 }
 
 application { mainClass = "io.ktor.foodies.server.AppKt" }
@@ -30,7 +29,6 @@ dependencies {
     implementation(libs.exposed.jdbc)
     implementation(libs.flyway.postgresql)
 
-    implementation(libs.cohort.rabbit)
     api(libs.cohort.ktor)
     api(libs.cohort.hikari)
 

@@ -4,6 +4,10 @@ import org.gradle.kotlin.dsl.invoke
 import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.registering
 
+plugins {
+    id("io.ktor.plugin")
+}
+
 tasks {
     named("publishImageToLocalRegistry") {
         dependsOn("classes")

@@ -64,7 +64,6 @@ suspend fun Application.security(
     }
 
     val openIdConfig = httpClient.discover(config.issuer)
-    log.info("Loading $openIdConfig")
 
     authentication {
         oauth(openIdConfig, config, httpClient)

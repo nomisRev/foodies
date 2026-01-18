@@ -1,4 +1,4 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.rabbitmq
 
 import com.rabbitmq.client.Connection
 import com.sksamuel.cohort.HealthCheck

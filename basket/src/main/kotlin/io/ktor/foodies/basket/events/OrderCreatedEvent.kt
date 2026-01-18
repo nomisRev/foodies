@@ -1,5 +1,6 @@
 package io.ktor.foodies.basket.events
 
+import io.ktor.foodies.rabbitmq.HasRoutingKey
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlinx.serialization.Serializable
 
@@ -14,7 +15,9 @@ data class OrderCreatedEvent(
     val items: List<OrderItem>,
     val totalPrice: SerializableBigDecimal,
     val createdAt: String // ISO-8601 instant string
-)
+) : HasRoutingKey {
+    override val key: String = "order.created"
+}
 
 @Serializable
 data class OrderItem(

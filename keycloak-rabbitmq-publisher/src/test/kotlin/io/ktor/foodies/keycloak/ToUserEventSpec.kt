@@ -20,7 +20,7 @@ import kotlin.time.Duration.Companion.minutes
  * This is non-trivial and is postponed for a proper intergration test of the entire system.
  * Contributions welcome!
  */
-val userRegistrationEvent by ctxSuite(
+val toUserEventSpec by ctxSuite(
     context = { rabbitContext() },
     testConfig = TestConfig.testScope(true, 3.minutes)
 ) {
