@@ -440,7 +440,7 @@ After making these changes:
 | Basket  | ✓ | ✓ | ✓ | ✓ |
 | Menu    | ✓ | ✓ | ✓ | ✓ |
 | Order   | ✓ | ✓ | ✓ | ✓ |
-| Payment | [ ] | [ ] | [ ] | [ ] |
+| Payment | ✓ | ✓ | ✓ | ✓ |
 | WebApp  | ✓ | ✓ | ✓ | ✓ |
 
 **Total changes:** 24 files (18 application files + 6 Kubernetes deployments)
