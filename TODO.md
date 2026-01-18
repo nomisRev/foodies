@@ -439,7 +439,7 @@ After making these changes:
 | Profile | ✓ | ✓ | ✓ | ✓ |
 | Basket  | ✓ | ✓ | ✓ | ✓ |
 | Menu    | ✓ | ✓ | ✓ | ✓ |
-| Order   | [ ] | [ ] | [ ] | [ ] |
+| Order   | ✓ | ✓ | ✓ | ✓ |
 | Payment | [ ] | [ ] | [ ] | [ ] |
 | WebApp  | ✓ | ✓ | ✓ | ✓ |
 
