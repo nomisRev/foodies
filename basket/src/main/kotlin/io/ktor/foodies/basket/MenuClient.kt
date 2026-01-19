@@ -19,6 +19,7 @@ data class MenuItem(
     val description: String,
     val imageUrl: String,
     val price: SerializableBigDecimal,
+    val stock: Int,
 )
 
 /**
