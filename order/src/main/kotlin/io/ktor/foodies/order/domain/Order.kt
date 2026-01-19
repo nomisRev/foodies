@@ -10,16 +10,16 @@ import kotlinx.serialization.Serializable
 data class Order(
     val id: Long,
     val requestId: String,
-    val buyerId: String,                        // Keycloak user ID
-    val buyerEmail: String,                     // User email for notifications
-    val buyerName: String,                      // Display name
+    val buyerId: String, // Keycloak user ID
+    val buyerEmail: String, // User email for notifications
+    val buyerName: String, // Display name
     val status: OrderStatus,
     val deliveryAddress: Address,
     val items: List<OrderItem>,
-    val paymentMethod: PaymentMethod?,          // Set after payment verification
+    val paymentMethod: PaymentMethod?, // Set after payment verification
     val totalPrice: SerializableBigDecimal,
     val currency: String,
-    val description: String?,                   // Status description (e.g., rejection reason)
+    val description: String?, // Status description (e.g., rejection reason)
     val history: List<OrderHistoryEntry> = emptyList(),
     val createdAt: Instant,
     val updatedAt: Instant,
@@ -55,16 +55,18 @@ data class PaymentDetails(
     val expirationYear: Int,
 ) {
     fun isNotExpired(): Boolean {
-        val now = try {
-            java.time.YearMonth.now()
-        } catch (e: Exception) {
-            return false
-        }
-        val expiry = try {
-            java.time.YearMonth.of(expirationYear, expirationMonth)
-        } catch (e: Exception) {
-            return false
-        }
+        val now =
+            try {
+                java.time.YearMonth.now()
+            } catch (e: Exception) {
+                return false
+            }
+        val expiry =
+            try {
+                java.time.YearMonth.of(expirationYear, expirationMonth)
+            } catch (e: Exception) {
+                return false
+            }
         return !expiry.isBefore(now)
     }
 }
@@ -99,10 +101,7 @@ data class OrderSummary(
     val createdAt: Instant,
 )
 
-@Serializable
-data class CancelOrderRequest(
-    val reason: String,
-)
+@Serializable data class CancelOrderRequest(val reason: String)
 
 @Serializable
 data class PaginatedOrders(
@@ -114,6 +113,8 @@ data class PaginatedOrders(
 
 sealed interface GetOrderResult {
     data class Success(val order: Order) : GetOrderResult
+
     data object NotFound : GetOrderResult
+
     data object Forbidden : GetOrderResult
 }

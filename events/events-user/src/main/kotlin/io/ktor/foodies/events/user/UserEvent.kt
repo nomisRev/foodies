@@ -11,7 +11,7 @@ sealed interface UserEvent {
         override val subject: String,
         val email: String,
         val firstName: String,
-        val lastName: String
+        val lastName: String,
     ) : UserEvent
 
     @Serializable
@@ -19,9 +19,8 @@ sealed interface UserEvent {
         override val subject: String,
         val email: String,
         val firstName: String,
-        val lastName: String
+        val lastName: String,
     ) : UserEvent
 
-    @Serializable
-    data class Delete(override val subject: String) : UserEvent
+    @Serializable data class Delete(override val subject: String) : UserEvent
 }

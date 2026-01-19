@@ -4,9 +4,7 @@ import io.ktor.foodies.order.domain.GracePeriodExpiredEvent
 import io.ktor.foodies.order.service.OrderService
 import org.slf4j.LoggerFactory
 
-class GracePeriodExpiredEventHandler(
-    private val orderService: OrderService
-) {
+class GracePeriodExpiredEventHandler(private val orderService: OrderService) {
     private val logger = LoggerFactory.getLogger(GracePeriodExpiredEventHandler::class.java)
 
     suspend fun handle(event: GracePeriodExpiredEvent) {

@@ -23,6 +23,9 @@ dependencies {
     val shadowVersion = libs.findVersion("shadow").get().requiredVersion
     implementation("com.gradleup.shadow:shadow-gradle-plugin:$shadowVersion")
 
+    val spotlessVersion = libs.findVersion("spotless").get().requiredVersion
+    implementation("com.diffplug.spotless:spotless-plugin-gradle:$spotlessVersion")
+
     val ktorVersion = ktorLibs.findVersion("ktor").get().requiredVersion
     implementation("io.ktor.plugin:io.ktor.plugin.gradle.plugin:$ktorVersion")
 }

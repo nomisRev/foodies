@@ -16,39 +16,41 @@ fun orderAwaitingValidationConsumer(
     subscriber: RabbitMQSubscriber,
     queueName: String,
     menuService: MenuService,
-    eventPublisher: MenuEventPublisher
-) = subscriber.subscribe<OrderAwaitingValidationEvent>(queueName) { exchange ->
-    queueDeclare(queueName, true, false, false, null)
-    queueBind(queueName, exchange, "order.awaiting-validation")
-}.parConsumeMessage { event ->
-    logger.info("Processing OrderAwaitingValidationEvent for order ${event.orderId}")
-    when (val result = menuService.validateAndReserveStock(event.orderId, event.items)) {
-        is StockValidationResult.Success -> {
-            eventPublisher.publish(StockConfirmedEvent(event.orderId, result.confirmedAt))
-            logger.info("Stock confirmed for order ${event.orderId}")
+    eventPublisher: MenuEventPublisher,
+) =
+    subscriber
+        .subscribe<OrderAwaitingValidationEvent>(queueName) { exchange ->
+            queueDeclare(queueName, true, false, false, null)
+            queueBind(queueName, exchange, "order.awaiting-validation")
         }
+        .parConsumeMessage { event ->
+            logger.info("Processing OrderAwaitingValidationEvent for order ${event.orderId}")
+            when (val result = menuService.validateAndReserveStock(event.orderId, event.items)) {
+                is StockValidationResult.Success -> {
+                    eventPublisher.publish(StockConfirmedEvent(event.orderId, result.confirmedAt))
+                    logger.info("Stock confirmed for order ${event.orderId}")
+                }
 
-        is StockValidationResult.Failure -> {
-            eventPublisher.publish(
-                StockRejectedEvent(
-                    event.orderId,
-                    result.rejectedItems,
-                    result.rejectedAt
-                )
-            )
-            logger.info("Stock rejected for order ${event.orderId}")
+                is StockValidationResult.Failure -> {
+                    eventPublisher.publish(
+                        StockRejectedEvent(event.orderId, result.rejectedItems, result.rejectedAt)
+                    )
+                    logger.info("Stock rejected for order ${event.orderId}")
+                }
+            }
         }
-    }
-}
 
 fun stockReturnedConsumer(
     subscriber: RabbitMQSubscriber,
     queueName: String,
-    menuService: MenuService
-) = subscriber.subscribe<StockReturnedEvent>(queueName) { exchange ->
-    queueDeclare(queueName, true, false, false, null)
-    queueBind(queueName, exchange, "order.stock-returned")
-}.parConsumeMessage { event ->
-    logger.info("Processing StockReturnedEvent for order ${event.orderId}")
-    menuService.returnStock(event.orderId, event.items)
-}
+    menuService: MenuService,
+) =
+    subscriber
+        .subscribe<StockReturnedEvent>(queueName) { exchange ->
+            queueDeclare(queueName, true, false, false, null)
+            queueBind(queueName, exchange, "order.stock-returned")
+        }
+        .parConsumeMessage { event ->
+            logger.info("Processing StockReturnedEvent for order ${event.orderId}")
+            menuService.returnStock(event.orderId, event.items)
+        }

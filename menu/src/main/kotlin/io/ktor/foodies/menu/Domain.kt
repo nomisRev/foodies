@@ -3,8 +3,8 @@ package io.ktor.foodies.menu
 import io.ktor.foodies.server.SerializableBigDecimal
 import io.ktor.foodies.server.validate
 import java.math.BigDecimal
-import kotlinx.serialization.Serializable
 import kotlin.time.Instant
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class MenuItem(
@@ -62,33 +62,32 @@ data class UpdateMenuItem(
     val stock: Int? = null,
 )
 
-fun CreateMenuItemRequest.validate(): CreateMenuItem =
-    validate {
-        CreateMenuItem(
-            name = name.validate(String::isNotBlank) { "name must not be blank" },
-            description = description.validate(String::isNotBlank) { "description must not be blank" },
-            imageUrl = imageUrl.validate(String::isNotBlank) { "imageUrl must not be blank" },
-            price = price.validate({ it > BigDecimal.ZERO }) { "price must be greater than 0" },
-            stock = stock.validate({ it >= 0 }) { "stock must be 0 or greater" },
-        )
-    }
+fun CreateMenuItemRequest.validate(): CreateMenuItem = validate {
+    CreateMenuItem(
+        name = name.validate(String::isNotBlank) { "name must not be blank" },
+        description = description.validate(String::isNotBlank) { "description must not be blank" },
+        imageUrl = imageUrl.validate(String::isNotBlank) { "imageUrl must not be blank" },
+        price = price.validate({ it > BigDecimal.ZERO }) { "price must be greater than 0" },
+        stock = stock.validate({ it >= 0 }) { "stock must be 0 or greater" },
+    )
+}
 
-fun UpdateMenuItemRequest.validate(): UpdateMenuItem =
-    validate {
-        UpdateMenuItem(
-            name = name?.validate(String::isNotBlank) { "name must not be blank" },
-            description = description?.validate(String::isNotBlank) { "description must not be blank" },
-            imageUrl = imageUrl?.validate(String::isNotBlank) { "imageUrl must not be blank" },
-            price = price?.validate({ it > BigDecimal.ZERO }) { "price must be greater than 0" },
-            stock = stock?.validate({ it >= 0 }) { "stock must be 0 or greater" },
-        )
-    }
+fun UpdateMenuItemRequest.validate(): UpdateMenuItem = validate {
+    UpdateMenuItem(
+        name = name?.validate(String::isNotBlank) { "name must not be blank" },
+        description = description?.validate(String::isNotBlank) { "description must not be blank" },
+        imageUrl = imageUrl?.validate(String::isNotBlank) { "imageUrl must not be blank" },
+        price = price?.validate({ it > BigDecimal.ZERO }) { "price must be greater than 0" },
+        stock = stock?.validate({ it >= 0 }) { "stock must be 0 or greater" },
+    )
+}
 
-fun MenuItem.toResponse(): MenuItemResponse = MenuItemResponse(
-    id = id,
-    name = name,
-    description = description,
-    imageUrl = imageUrl,
-    price = price,
-    stock = stock,
-)
+fun MenuItem.toResponse(): MenuItemResponse =
+    MenuItemResponse(
+        id = id,
+        name = name,
+        description = description,
+        imageUrl = imageUrl,
+        price = price,
+        stock = stock,
+    )

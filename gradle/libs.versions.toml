@@ -19,6 +19,7 @@ kotlinx-coroutines = "1.10.2"
 playwright = "1.57.0"
 keycloak-testcontainers = "4.1.1"
 opentelemetry = "1.58.0"
+spotless = "7.0.2"
 
 [libraries]
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -64,3 +65,4 @@ kotlin-assert = { id = "org.jetbrains.kotlin.plugin.power-assert", version.ref =
 serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 testballoon = { id = "de.infix.testBalloon", version.ref = "testballoon" }
 shadow = { id = "com.gradleup.shadow", version.ref = "shadow" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

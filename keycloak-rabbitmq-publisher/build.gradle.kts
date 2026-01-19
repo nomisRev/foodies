@@ -1,5 +1,5 @@
-import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.api.tasks.testing.Test
+import org.gradle.kotlin.dsl.provideDelegate
 
 plugins {
     id("foodies.kotlin-conventions")
@@ -34,47 +34,55 @@ tasks {
     shadowJar {
         archiveClassifier.set("all")
         mergeServiceFiles()
-        dependencies {
-            exclude(dependency("org.slf4j:slf4j-api"))
+        dependencies { exclude(dependency("org.slf4j:slf4j-api")) }
+    }
+
+    val publishImageToLocalRegistry =
+        register<Exec>("publishImageToLocalRegistry") {
+            group = "docker"
+            description =
+                "Builds the Keycloak Docker image and optionally pushes it to a local registry"
+
+            dependsOn(shadowJar)
+            inputs.file(shadowJar.map { it.archiveFile })
+            inputs.dir(rootProject.projectDir.resolve("keycloak"))
+
+            workingDir(rootProject.projectDir)
+            commandLine(
+                "docker",
+                "build",
+                "--build-arg",
+                "JAR_VERSION=${project.version}",
+                "-t",
+                imageTag,
+                "-f",
+                "keycloak/Dockerfile",
+                ".",
+            )
         }
-    }
 
-    val publishImageToLocalRegistry = register<Exec>("publishImageToLocalRegistry") {
-        group = "docker"
-        description = "Builds the Keycloak Docker image and optionally pushes it to a local registry"
+    val localRestartService by
+        registering(Exec::class) {
+            group = "deployment"
+            description = "Restarts service in K8s"
+            dependsOn(named("publishImageToLocalRegistry"))
+            commandLine("kubectl", "rollout", "restart", "deployment/keycloak", "-n", "foodies")
+        }
 
-        dependsOn(shadowJar)
-        inputs.file(shadowJar.map { it.archiveFile })
-        inputs.dir(rootProject.projectDir.resolve("keycloak"))
-
-        workingDir(rootProject.projectDir)
-        commandLine("docker", "build", "--build-arg", "JAR_VERSION=${project.version}",
-            "-t", imageTag,
-            "-f", "keycloak/Dockerfile",
-            "."
-        )
-    }
-
-    val localRestartService by registering(Exec::class) {
-        group = "deployment"
-        description = "Restarts service in K8s"
-        dependsOn(named("publishImageToLocalRegistry"))
-        commandLine("kubectl", "rollout", "restart", "deployment/keycloak", "-n", "foodies")
-    }
-
-    val localReadinessCheck by registering(Exec::class) {
-        group = "deployment"
-        description = "Awaits service to become available (readiness probe)"
-        commandLine(
-            "kubectl",
-            "wait",
-            "--for=condition=available",
-            "--timeout=120s",
-            "deployment/keycloak",
-            "-n",
-            "foodies"
-        )
-    }
+    val localReadinessCheck by
+        registering(Exec::class) {
+            group = "deployment"
+            description = "Awaits service to become available (readiness probe)"
+            commandLine(
+                "kubectl",
+                "wait",
+                "--for=condition=available",
+                "--timeout=120s",
+                "deployment/keycloak",
+                "-n",
+                "foodies",
+            )
+        }
 
     withType<Test>().configureEach {
         dependsOn(publishImageToLocalRegistry)

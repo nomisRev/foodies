@@ -4,6 +4,7 @@ plugins {
 }
 
 application { mainClass = "io.ktor.foodies.menu.AppKt" }
+
 version = "0.0.1"
 
 ktor {
@@ -44,4 +45,3 @@ dependencies {
     testImplementation(ktorLibs.client.contentNegotiation)
     testImplementation(ktorLibs.serialization.kotlinx.json)
 }
-

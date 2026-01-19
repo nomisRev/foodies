@@ -3,20 +3,19 @@ package io.ktor.foodies.rabbitmq
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.rabbitContainer
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import kotlin.time.Duration.Companion.seconds
 
-@Serializable
-data class TestPayload(val id: String, val value: Int)
+@Serializable data class TestPayload(val id: String, val value: Int)
 
 val consumerSpec by testSuite {
     val rabbit = testFixture { rabbitContainer()().connectionFactory() }
@@ -32,7 +31,8 @@ val consumerSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName).first()
+            val message =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName).first()
             assertEquals("test-1", message.value.id)
             assertEquals(42, message.value.value)
             message.ack()
@@ -41,11 +41,12 @@ val consumerSpec by testSuite {
 
     test("messages - emits multiple messages in order") {
         val queueName = "consumer.test.multiple"
-        val payloads = listOf(
-            TestPayload(id = "msg-1", value = 1),
-            TestPayload(id = "msg-2", value = 2),
-            TestPayload(id = "msg-3", value = 3)
-        )
+        val payloads =
+            listOf(
+                TestPayload(id = "msg-1", value = 1),
+                TestPayload(id = "msg-2", value = 2),
+                TestPayload(id = "msg-3", value = 3),
+            )
 
         rabbit().channel { channel ->
             channel.queueDeclare(queueName, true, false, false, null)
@@ -53,11 +54,14 @@ val consumerSpec by testSuite {
                 val body = Json.encodeToString(TestPayload.serializer(), payload)
                 channel.basicPublish("", queueName, null, body.toByteArray())
             }
-
         }
 
         rabbit().newConnection().use { connection ->
-            val messages =  RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName).take(3).toList()
+            val messages =
+                RabbitMQSubscriber(connection, "exchange")
+                    .subscribe<TestPayload>(queueName)
+                    .take(3)
+                    .toList()
 
             assertEquals(3, messages.size)
             assertEquals("msg-1", messages[0].value.id)
@@ -78,15 +82,16 @@ val consumerSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
+            val messagesFlow =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
 
             val error = runCatching { messagesFlow.first() }.exceptionOrNull()
 
             assertNotNull(error, "Expected an exception due to invalid JSON")
             assertTrue(
                 error.message?.contains("Unexpected JSON token") == true ||
-                        error.cause?.message?.contains("Unexpected JSON token") == true,
-                "Expected JSON parsing error but got: ${error.message}"
+                    error.cause?.message?.contains("Unexpected JSON token") == true,
+                "Expected JSON parsing error but got: ${error.message}",
             )
         }
     }
@@ -102,16 +107,16 @@ val consumerSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
+            val messagesFlow =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
             val message = messagesFlow.first()
             message.ack()
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
-            val result = withTimeoutOrNull(2.seconds) {
-                messagesFlow.first()
-            }
+            val messagesFlow =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
+            val result = withTimeoutOrNull(2.seconds) { messagesFlow.first() }
             assertNull(result, "Message should have been acknowledged and removed from queue")
         }
     }
@@ -127,7 +132,8 @@ val consumerSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
+            val messagesFlow =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
             val message = messagesFlow.first()
 
             assertEquals("nack-test", message.value.id)
@@ -137,10 +143,9 @@ val consumerSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
-            val result = withTimeoutOrNull(2.seconds) {
-                messagesFlow.first()
-            }
+            val messagesFlow =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
+            val result = withTimeoutOrNull(2.seconds) { messagesFlow.first() }
             assertNull(result, "Message should have been nack'd and discarded from queue")
         }
     }
@@ -156,16 +161,16 @@ val consumerSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
+            val messagesFlow =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
             val message = messagesFlow.first()
             message.nack() // requeue=false means message is discarded
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
-            val result = withTimeoutOrNull(2.seconds) {
-                messagesFlow.first()
-            }
+            val messagesFlow =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
+            val result = withTimeoutOrNull(2.seconds) { messagesFlow.first() }
             assertNull(result, "Message should have been discarded after nack (requeue=false)")
         }
     }
@@ -181,17 +186,15 @@ val consumerSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
-            messagesFlow.parConsumeMessage {
-                assertEquals("consume-success", it.id)
-            }.first()
+            val messagesFlow =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
+            messagesFlow.parConsumeMessage { assertEquals("consume-success", it.id) }.first()
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
-            val result = withTimeoutOrNull(2.seconds) {
-                messagesFlow.first()
-            }
+            val messagesFlow =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
+            val result = withTimeoutOrNull(2.seconds) { messagesFlow.first() }
             assertNull(result, "Message should have been acknowledged by consumeMessage")
         }
     }
@@ -207,19 +210,19 @@ val consumerSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
+            val messagesFlow =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
             runCatching {
-                messagesFlow.parConsumeMessage {
-                    throw RuntimeException("Processing failed")
-                }.first()
+                messagesFlow
+                    .parConsumeMessage { throw RuntimeException("Processing failed") }
+                    .first()
             }
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
-            val result = withTimeoutOrNull(2.seconds) {
-                messagesFlow.first()
-            }
+            val messagesFlow =
+                RabbitMQSubscriber(connection, "exchange").subscribe<TestPayload>(queueName)
+            val result = withTimeoutOrNull(2.seconds) { messagesFlow.first() }
             assertNull(result, "Message should have been nack'd by consumeMessage")
         }
     }

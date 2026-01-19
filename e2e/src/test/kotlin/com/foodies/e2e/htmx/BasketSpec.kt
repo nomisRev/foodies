@@ -16,9 +16,7 @@ val addToBasketSpec by e2eSuite {
 
         val addButtons = p.locator(".add-to-cart-btn")
 
-        addButtons.first()
-            .also { it.waitFor(Locator.WaitForOptions().setTimeout(5000.0)) }
-            .click()
+        addButtons.first().also { it.waitFor(Locator.WaitForOptions().setTimeout(5000.0)) }.click()
 
         p.waitForHtmxIdle()
 
@@ -36,14 +34,18 @@ val addToBasketSpec by e2eSuite {
         val initialQtyValue = qtyInput.getAttribute("value")
         val initialQty = initialQtyValue?.toIntOrNull() ?: 1
 
-        val plusButton = p.locator(".qty-btn").filter(Locator.FilterOptions().setHasText("+")).first()
+        val plusButton =
+            p.locator(".qty-btn").filter(Locator.FilterOptions().setHasText("+")).first()
         plusButton.click()
 
         p.waitForHtmxIdle()
 
         val newQtyValue = qtyInput.getAttribute("value")
         val newQty = newQtyValue?.toIntOrNull() ?: 1
-        assertTrue(newQty > initialQty, "Quantity should increase. Before: $initialQty, After: $newQty")
+        assertTrue(
+            newQty > initialQty,
+            "Quantity should increase. Before: $initialQty, After: $newQty",
+        )
     }
 
     // TODO: Update the test so that it always has an item to remove, and will never be skipped.
@@ -68,7 +70,7 @@ val addToBasketSpec by e2eSuite {
         val itemsAfter = cartItems.count()
         assertTrue(
             itemsAfter < itemsBefore,
-            "Item should be removed from cart. Before: $itemsBefore, After: $itemsAfter"
+            "Item should be removed from cart. Before: $itemsBefore, After: $itemsAfter",
         )
     }
 }
