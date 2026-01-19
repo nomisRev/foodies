@@ -1,9 +1,12 @@
 package io.ktor.foodies.order.service
 
+import com.rabbitmq.client.AMQP
 import io.ktor.foodies.events.order.*
 import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.publish
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 interface OrderEventPublisher {
     suspend fun publish(event: OrderCreatedEvent)
@@ -12,6 +15,7 @@ interface OrderEventPublisher {
     suspend fun publish(event: OrderStockConfirmedEvent)
     suspend fun publish(event: OrderAwaitingValidationEvent)
     suspend fun publish(event: StockReturnedEvent)
+    suspend fun publish(event: GracePeriodExpiredEvent, delay: Duration)
 }
 
 class RabbitOrderEventPublisher(
@@ -23,4 +27,11 @@ class RabbitOrderEventPublisher(
     override suspend fun publish(event: OrderStockConfirmedEvent) = publisher.publish(event)
     override suspend fun publish(event: OrderAwaitingValidationEvent) = publisher.publish(event)
     override suspend fun publish(event: StockReturnedEvent) = publisher.publish(event)
+
+    override suspend fun publish(event: GracePeriodExpiredEvent, delay: Duration) {
+        val props = AMQP.BasicProperties.Builder()
+            .headers(mapOf("x-delay" to delay.inWholeMilliseconds))
+            .build()
+        publisher.publish(event, props)
+    }
 }
