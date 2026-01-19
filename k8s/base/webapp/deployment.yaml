@@ -99,4 +99,7 @@ spec:
                   name: webapp-config
                   key: SESSION_TTL_SECONDS
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://otel-collector:4317"
+              valueFrom:
+                configMapKeyRef:
+                  name: foodies-config
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT

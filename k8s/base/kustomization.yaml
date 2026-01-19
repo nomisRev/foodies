@@ -15,6 +15,9 @@ resources:
   - redis
   - webapp
   - keycloak
+  - otel-collector
+  - jaeger
+  - prometheus
 
 configMapGenerator:
   - name: foodies-config
@@ -24,6 +27,7 @@ configMapGenerator:
       - RABBITMQ_QUEUE=profile.registration
       - BASKET_RABBITMQ_QUEUE=basket.order-created
       - KEYCLOAK_HTTP_PORT=8000
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
 
 secretGenerator:
   - name: keycloak-admin

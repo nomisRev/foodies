@@ -22,3 +22,17 @@ spec:
                 name: keycloak
                 port:
                   number: 8000
+          - path: /jaeger
+            pathType: Prefix
+            backend:
+              service:
+                name: jaeger
+                port:
+                  number: 16686
+          - path: /prometheus
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus
+                port:
+                  number: 9090
