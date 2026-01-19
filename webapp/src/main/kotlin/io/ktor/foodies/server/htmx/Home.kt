@@ -43,9 +43,11 @@ fun Route.home() = authenticate(optional = true) {
                 title { +"Foodies - Discover the menu" }
                 link(rel = "stylesheet", href = "/static/home.css")
                 script(src = "https://unpkg.com/htmx.org@1.9.12") {}
+                script(src = "https://unpkg.com/htmx-ext-intersect@2.0.0/intersect.js") {}
             }
 
             body {
+                attributes["hx-ext"] = "intersect"
                 header {
                     a(href = "/", classes = "logo") { +"Foodies" }
                     div(classes = "actions") {
