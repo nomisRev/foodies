@@ -12,17 +12,17 @@ import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class Auth(val issuer: String)
+@Serializable data class Auth(val issuer: String)
 
 suspend fun Application.security(auth: Auth) {
     HttpClient(Apache5) {
-        install(ContentNegotiation) { json() }
-        install(HttpRequestRetry) {
-            retryOnExceptionOrServerErrors(maxRetries = 5)
-            exponentialDelay()
+            install(ContentNegotiation) { json() }
+            install(HttpRequestRetry) {
+                retryOnExceptionOrServerErrors(maxRetries = 5)
+                exponentialDelay()
+            }
         }
-    }.use { client -> security(auth, client) }
+        .use { client -> security(auth, client) }
 }
 
 suspend fun Application.security(auth: Auth, client: HttpClient) {
@@ -30,9 +30,7 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
 
     install(Authentication) {
         jwt {
-            verifier(config.jwks(), config.issuer) {
-                withAudience("foodies")
-            }
+            verifier(config.jwks(), config.issuer) { withAudience("foodies") }
             validate { credential -> JWTPrincipal(credential.payload) }
         }
     }

@@ -6,22 +6,23 @@ import io.ktor.foodies.server.DataSource
 import io.ktor.foodies.server.profile.ExposedProfileRepository
 import io.ktor.foodies.server.test.dataSource
 import io.ktor.foodies.server.test.postgresContainer
-import org.flywaydb.core.Flyway
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import org.flywaydb.core.Flyway
 
 val customerRepositorySpec by testSuite {
     val database = migratedPostgresDataSource()
     val repository = testFixture { ExposedProfileRepository(database().database) }
 
     test("create profile from InsertProfile") {
-        repository().insertOrIgnore(
-            subject = "keycloak-123",
-            email = "test@example.com",
-            firstName = "Test",
-            lastName = "User",
-        )
+        repository()
+            .insertOrIgnore(
+                subject = "keycloak-123",
+                email = "test@example.com",
+                firstName = "Test",
+                lastName = "User",
+            )
         val profile = repository().findBySubject("keycloak-123")
         assertNotNull(profile?.id)
         assertEquals("keycloak-123", profile.subject)
@@ -31,12 +32,13 @@ val customerRepositorySpec by testSuite {
     }
 
     test("find profile by subject") {
-        repository().insertOrIgnore(
-            subject = "keycloak-456",
-            email = "find@example.com",
-            firstName = "Find",
-            lastName = "User",
-        )
+        repository()
+            .insertOrIgnore(
+                subject = "keycloak-456",
+                email = "find@example.com",
+                firstName = "Find",
+                lastName = "User",
+            )
 
         val found = repository().findBySubject("keycloak-456")
 
@@ -50,10 +52,9 @@ val customerRepositorySpec by testSuite {
     }
 }
 
-fun TestSuite.migratedPostgresDataSource(): TestSuite.Fixture<DataSource> =
-    testFixture {
-        val container = postgresContainer()()
-        val dataSource = container.dataSource()()
-        Flyway.configure().dataSource(dataSource.hikari).load().migrate()
-        dataSource
-    }
+fun TestSuite.migratedPostgresDataSource(): TestSuite.Fixture<DataSource> = testFixture {
+    val container = postgresContainer()()
+    val dataSource = container.dataSource()()
+    Flyway.configure().dataSource(dataSource.hikari).load().migrate()
+    dataSource
+}

@@ -4,6 +4,7 @@ plugins {
 }
 
 application { mainClass = "io.ktor.foodies.server.WebAppKt" }
+
 version = "0.0.3"
 
 ktor {

@@ -11,5 +11,5 @@ enum class PaymentFailureCode {
     FRAUD_SUSPECTED,
     GATEWAY_ERROR,
     TIMEOUT,
-    UNKNOWN
+    UNKNOWN,
 }

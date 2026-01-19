@@ -20,8 +20,5 @@ data class Config(
         val queue: String,
     )
 
-    @Serializable
-    data class Telemetry(
-        @SerialName("otlp_endpoint") val otlpEndpoint: String,
-    )
+    @Serializable data class Telemetry(@SerialName("otlp_endpoint") val otlpEndpoint: String)
 }

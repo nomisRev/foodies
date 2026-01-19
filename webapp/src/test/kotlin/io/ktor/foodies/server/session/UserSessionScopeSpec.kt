@@ -6,13 +6,12 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.client.plugins.cookies.HttpCookies
-import io.ktor.client.plugins.plugin
-import io.ktor.foodies.server.security.UserSession
-import io.ktor.foodies.server.security.withUserSession
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.foodies.server.security.UserSession
 import io.ktor.foodies.server.security.jwt
 import io.ktor.foodies.server.security.userSession
+import io.ktor.foodies.server.security.withUserSession
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.Authentication
@@ -30,9 +29,7 @@ import java.security.interfaces.RSAPublicKey
 import kotlin.test.assertEquals
 
 private class TestJwkProvider : JwkProvider {
-    val keyPair = KeyPairGenerator.getInstance("RSA").apply {
-        initialize(2048)
-    }.generateKeyPair()
+    val keyPair = KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair()
 
     val publicKey = keyPair.public as RSAPublicKey
     val privateKey = keyPair.private as RSAPrivateKey
@@ -42,27 +39,30 @@ private class TestJwkProvider : JwkProvider {
             mapOf(
                 "kty" to "RSA",
                 "kid" to keyId,
-                "n" to java.util.Base64.getUrlEncoder().encodeToString(publicKey.modulus.toByteArray()),
-                "e" to java.util.Base64.getUrlEncoder().encodeToString(publicKey.publicExponent.toByteArray()),
+                "n" to
+                    java.util.Base64.getUrlEncoder()
+                        .encodeToString(publicKey.modulus.toByteArray()),
+                "e" to
+                    java.util.Base64.getUrlEncoder()
+                        .encodeToString(publicKey.publicExponent.toByteArray()),
                 "alg" to "RS256",
-                "use" to "sig"
+                "use" to "sig",
             )
         )
 
-    val token = JWT.create()
-        .withKeyId("test-key")
-        .withIssuer("issuer")
-        .withAudience("foodies")
-        .sign(Algorithm.RSA256(publicKey, privateKey))
+    val token =
+        JWT.create()
+            .withKeyId("test-key")
+            .withIssuer("issuer")
+            .withAudience("foodies")
+            .sign(Algorithm.RSA256(publicKey, privateKey))
 }
 
 val userSessionScopeSpec by testSuite {
     val provider = TestJwkProvider()
 
     testApplication("returns 401 and HX-Redirect when no session") {
-        install(Authentication) {
-            jwt(provider, "issuer")
-        }
+        install(Authentication) { jwt(provider, "issuer") }
         install(Sessions) { cookie<UserSession>("USER_SESSION", SessionStorageMemory()) }
         routing {
             withUserSession {
@@ -85,7 +85,9 @@ val userSessionScopeSpec by testSuite {
         install(Sessions) { cookie<UserSession>("USER_SESSION", SessionStorageMemory()) }
         routing {
             get("/set-session") {
-                call.sessions.set(UserSession(idToken = provider.token, "test-token", expiresIn = 10000, null))
+                call.sessions.set(
+                    UserSession(idToken = provider.token, "test-token", expiresIn = 10000, null)
+                )
                 call.respondText("Session set")
             }
             route("/protected") {

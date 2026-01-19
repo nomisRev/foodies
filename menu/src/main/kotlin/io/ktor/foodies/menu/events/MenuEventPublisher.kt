@@ -7,12 +7,12 @@ import io.ktor.foodies.rabbitmq.publish
 
 interface MenuEventPublisher {
     suspend fun publish(event: StockConfirmedEvent)
+
     suspend fun publish(event: StockRejectedEvent)
 }
 
-class RabbitMenuEventPublisher(
-    private val publisher: Publisher,
-) : MenuEventPublisher {
+class RabbitMenuEventPublisher(private val publisher: Publisher) : MenuEventPublisher {
     override suspend fun publish(event: StockConfirmedEvent) = publisher.publish(event)
+
     override suspend fun publish(event: StockRejectedEvent) = publisher.publish(event)
 }

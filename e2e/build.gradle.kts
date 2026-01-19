@@ -1,6 +1,4 @@
-plugins {
-    id("foodies.kotlin-conventions")
-}
+plugins { id("foodies.kotlin-conventions") }
 
 kotlin {
     jvmToolchain(21)

@@ -7,11 +7,11 @@ import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.subscribe
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.rabbitContainer
-import kotlinx.coroutines.flow.first
-import kotlinx.serialization.json.Json
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.Json
 
 val paymentEventPublisherSpec by testSuite {
     val rabbit = testFixture { rabbitContainer()().connectionFactory() }
@@ -19,15 +19,16 @@ val paymentEventPublisherSpec by testSuite {
     test("publish OrderPaymentSucceededEvent - successfully publishes message to RabbitMQ") {
         val exchangeName = "payment.test.exchange"
         val queueName = "payment.test.queue.succeeded"
-        val event = OrderPaymentSucceededEvent(
-            eventId = "event-123",
-            orderId = 1L,
-            paymentId = 456L,
-            transactionId = "trans-789",
-            amount = BigDecimal("100.00"),
-            currency = "USD",
-            processedAt = Instant.parse("2026-01-17T23:54:00Z")
-        )
+        val event =
+            OrderPaymentSucceededEvent(
+                eventId = "event-123",
+                orderId = 1L,
+                paymentId = 456L,
+                transactionId = "trans-789",
+                amount = BigDecimal("100.00"),
+                currency = "USD",
+                processedAt = Instant.parse("2026-01-17T23:54:00Z"),
+            )
 
         rabbit().channel { channel ->
             channel.exchangeDeclare(exchangeName, "topic", true)
@@ -44,7 +45,10 @@ val paymentEventPublisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message = RabbitMQSubscriber(connection, exchangeName).subscribe<OrderPaymentSucceededEvent>(queueName).first()
+            val message =
+                RabbitMQSubscriber(connection, exchangeName)
+                    .subscribe<OrderPaymentSucceededEvent>(queueName)
+                    .first()
             assertEquals(1L, message.value.orderId)
             assertEquals("payment.succeeded", event.key)
             message.ack()

@@ -15,33 +15,26 @@ data class BasketItem(
     val menuItemName: String,
     val menuItemImageUrl: String,
     val unitPrice: SerializableBigDecimal,
-    val quantity: Int
+    val quantity: Int,
 )
 
-@Serializable
-data class CustomerBasket(
-    val buyerId: String,
-    val items: List<BasketItem>
-)
+@Serializable data class CustomerBasket(val buyerId: String, val items: List<BasketItem>)
 
 interface BasketClient {
     suspend fun getBasket(buyerId: String, token: String): CustomerBasket?
 }
 
-class HttpBasketClient(
-    private val httpClient: HttpClient,
-    private val baseUrl: String
-) : BasketClient {
+class HttpBasketClient(private val httpClient: HttpClient, private val baseUrl: String) :
+    BasketClient {
     private val basketBaseUrl = baseUrl.trimEnd('/')
 
     override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? {
         return try {
-            httpClient.get("$basketBaseUrl/basket") {
-                header("Authorization", "Bearer $token")
-            }.body<CustomerBasket>()
+            httpClient
+                .get("$basketBaseUrl/basket") { header("Authorization", "Bearer $token") }
+                .body<CustomerBasket>()
         } catch (e: ClientRequestException) {
-            if (e.response.status == HttpStatusCode.NotFound) null
-            else throw e
+            if (e.response.status == HttpStatusCode.NotFound) null else throw e
         }
     }
 }

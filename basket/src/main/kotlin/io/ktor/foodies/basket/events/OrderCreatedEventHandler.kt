@@ -10,13 +10,14 @@ import org.slf4j.LoggerFactory
 private val logger = LoggerFactory.getLogger("OrderCreatedEventHandler")
 
 /**
- * Creates a consumer that handles OrderCreatedEvent messages.
- * When an order is created, the basket for the buyer is cleared.
+ * Creates a consumer that handles OrderCreatedEvent messages. When an order is created, the basket
+ * for the buyer is cleared.
  */
 fun orderCreatedEventConsumer(
     orderEvents: Flow<Message<OrderCreatedEvent>>,
-    basketRepository: BasketRepository
-) = orderEvents.parConsumeMessage { event ->
-    basketRepository.deleteBasket(event.buyerId)
-    logger.info("Cleared basket for user ${event.buyerId} after order ${event.orderId}")
-}
+    basketRepository: BasketRepository,
+) =
+    orderEvents.parConsumeMessage { event ->
+        basketRepository.deleteBasket(event.buyerId)
+        logger.info("Cleared basket for user ${event.buyerId} after order ${event.orderId}")
+    }

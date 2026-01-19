@@ -3,10 +3,10 @@ package io.ktor.foodies.order
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.events.common.PaymentFailureCode
+import io.ktor.foodies.events.order.*
 import io.ktor.foodies.order.client.BasketItem
 import io.ktor.foodies.order.client.CustomerBasket
 import io.ktor.foodies.order.domain.*
-import io.ktor.foodies.events.order.*
 import java.math.BigDecimal
 import java.util.UUID
 import kotlin.test.assertEquals
@@ -16,30 +16,39 @@ import kotlin.test.assertNotNull
 val orderServiceSpec by testSuite {
     test("should create order and publish event") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order =
+            ctx.service.createOrder(
+                UUID.randomUUID(),
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
 
         assertEquals(1, order.id)
         assertEquals("buyer-1", order.buyerId)
@@ -50,32 +59,49 @@ val orderServiceSpec by testSuite {
 
     test("should return existing order for same request id") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
         val requestId = UUID.randomUUID()
-        val order1 = ctx.service.createOrder(requestId, "buyer-1", "buyer@test.com", "John", request, "token")
-        val order2 = ctx.service.createOrder(requestId, "buyer-1", "buyer@test.com", "John", request, "token")
+        val order1 =
+            ctx.service.createOrder(
+                requestId,
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
+        val order2 =
+            ctx.service.createOrder(
+                requestId,
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
 
         assertEquals(order1.id, order2.id)
         assertEquals(1, ctx.orderRepository.orders.size)
@@ -84,31 +110,46 @@ val orderServiceSpec by testSuite {
 
     test("should return paginated orders") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
-        ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
-        ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        ctx.service.createOrder(
+            UUID.randomUUID(),
+            "buyer-1",
+            "buyer@test.com",
+            "John",
+            request,
+            "token",
+        )
+        ctx.service.createOrder(
+            UUID.randomUUID(),
+            "buyer-1",
+            "buyer@test.com",
+            "John",
+            request,
+            "token",
+        )
 
         val paginated = ctx.service.getOrders("buyer-1", 0, 10)
 
@@ -118,32 +159,42 @@ val orderServiceSpec by testSuite {
 
     test("should cancel order and publish event") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order =
+            ctx.service.createOrder(
+                UUID.randomUUID(),
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
 
-        val cancelledOrder = ctx.service.cancelOrder(UUID.randomUUID(), order.id, "buyer-1", "Changed my mind")
+        val cancelledOrder =
+            ctx.service.cancelOrder(UUID.randomUUID(), order.id, "buyer-1", "Changed my mind")
 
         assertEquals(OrderStatus.Cancelled, cancelledOrder.status)
         assertEquals("Changed my mind", cancelledOrder.description)
@@ -158,30 +209,39 @@ val orderServiceSpec by testSuite {
 
     test("should return existing order when cancelling already cancelled order") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order =
+            ctx.service.createOrder(
+                UUID.randomUUID(),
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
 
         // Manually set status to Cancelled
         val cancelledOrder = order.copy(status = OrderStatus.Cancelled)
@@ -196,30 +256,39 @@ val orderServiceSpec by testSuite {
 
     test("should ship order and publish event") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order =
+            ctx.service.createOrder(
+                UUID.randomUUID(),
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
 
         // Manually set status to Paid
         val paidOrder = order.copy(status = OrderStatus.Paid)
@@ -236,30 +305,39 @@ val orderServiceSpec by testSuite {
 
     test("should return existing order when shipping already shipped order") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order =
+            ctx.service.createOrder(
+                UUID.randomUUID(),
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
 
         // Manually set status to Shipped
         val shippedOrder = order.copy(status = OrderStatus.Shipped)
@@ -274,30 +352,39 @@ val orderServiceSpec by testSuite {
 
     test("should throw error if shipping order that is not paid") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order =
+            ctx.service.createOrder(
+                UUID.randomUUID(),
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
 
         assertFailsWith<IllegalArgumentException> {
             ctx.service.shipOrder(UUID.randomUUID(), order.id)
@@ -306,30 +393,39 @@ val orderServiceSpec by testSuite {
 
     test("should throw error if cancelling paid order") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order =
+            ctx.service.createOrder(
+                UUID.randomUUID(),
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
 
         // Manually set status to Paid
         val paidOrder = order.copy(status = OrderStatus.Paid)
@@ -342,30 +438,39 @@ val orderServiceSpec by testSuite {
 
     test("should throw error if cancelling shipped order") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order =
+            ctx.service.createOrder(
+                UUID.randomUUID(),
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
 
         // Manually set status to Shipped
         val shippedOrder = order.copy(status = OrderStatus.Shipped)
@@ -378,30 +483,39 @@ val orderServiceSpec by testSuite {
 
     test("should transition to awaiting validation and publish events") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order =
+            ctx.service.createOrder(
+                UUID.randomUUID(),
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
 
         val updatedOrder = ctx.service.transitionToAwaitingValidation(order.id)
 
@@ -420,43 +534,63 @@ val orderServiceSpec by testSuite {
 
     test("should cancel order due to payment failure and publish events") {
         val ctx = createTestContext()
-        ctx.basketClient.basket = CustomerBasket(
-            buyerId = "buyer-1",
-            items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+        ctx.basketClient.basket =
+            CustomerBasket(
+                buyerId = "buyer-1",
+                items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)),
             )
-        )
 
-        val request = CreateOrderRequest(
-            street = "Street",
-            city = "City",
-            state = "State",
-            country = "Country",
-            zipCode = "12345",
-            paymentDetails = PaymentDetails(
-                cardType = CardBrand.VISA,
-                cardNumber = "1234567812345678",
-                cardHolderName = "John Doe",
-                cardSecurityNumber = "123",
-                expirationMonth = 12,
-                expirationYear = 2030
+        val request =
+            CreateOrderRequest(
+                street = "Street",
+                city = "City",
+                state = "State",
+                country = "Country",
+                zipCode = "12345",
+                paymentDetails =
+                    PaymentDetails(
+                        cardType = CardBrand.VISA,
+                        cardNumber = "1234567812345678",
+                        cardHolderName = "John Doe",
+                        cardSecurityNumber = "123",
+                        expirationMonth = 12,
+                        expirationYear = 2030,
+                    ),
             )
-        )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order =
+            ctx.service.createOrder(
+                UUID.randomUUID(),
+                "buyer-1",
+                "buyer@test.com",
+                "John",
+                request,
+                "token",
+            )
 
         // Move to StockConfirmed
         val stockConfirmedOrder = order.copy(status = OrderStatus.StockConfirmed)
         ctx.orderRepository.update(stockConfirmedOrder)
 
-        val cancelledOrder = ctx.service.cancelOrderDueToPaymentFailure(order.id, "Insufficient funds", PaymentFailureCode.INSUFFICIENT_FUNDS)
+        val cancelledOrder =
+            ctx.service.cancelOrderDueToPaymentFailure(
+                order.id,
+                "Insufficient funds",
+                PaymentFailureCode.INSUFFICIENT_FUNDS,
+            )
 
         assertNotNull(cancelledOrder)
         assertEquals(OrderStatus.Cancelled, cancelledOrder.status)
-        assertEquals("Payment failed (INSUFFICIENT_FUNDS): Insufficient funds", cancelledOrder.description)
+        assertEquals(
+            "Payment failed (INSUFFICIENT_FUNDS): Insufficient funds",
+            cancelledOrder.description,
+        )
 
         assertEquals(1, ctx.eventPublisher.cancelledEvents.size)
-        assertEquals("Payment failed (INSUFFICIENT_FUNDS): Insufficient funds", ctx.eventPublisher.cancelledEvents[0].reason)
+        assertEquals(
+            "Payment failed (INSUFFICIENT_FUNDS): Insufficient funds",
+            ctx.eventPublisher.cancelledEvents[0].reason,
+        )
 
         assertEquals(1, ctx.eventPublisher.stockReturnedEvents.size)
         assertEquals(order.id, ctx.eventPublisher.stockReturnedEvents[0].orderId)

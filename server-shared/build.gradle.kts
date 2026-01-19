@@ -1,6 +1,4 @@
-plugins {
-    id("foodies.kotlin-conventions")
-}
+plugins { id("foodies.kotlin-conventions") }
 
 dependencies {
     implementation(ktorLibs.client.apache5)
@@ -37,4 +35,3 @@ dependencies {
     testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.testballoon)
 }
-

@@ -12,18 +12,20 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.transactions.TransactionManager
 
 class DataSource(val hikari: HikariDataSource, val database: Database) {
-    @Serializable
-    data class Config(val url: String, val username: String, val password: String)
+    @Serializable data class Config(val url: String, val username: String, val password: String)
 }
 
 fun Application.dataSource(database: DataSource.Config, openTelemetry: OpenTelemetry): DataSource {
-    val hikari = HikariDataSource(HikariConfig().apply {
-        jdbcUrl = database.url
-        username = database.username
-        password = database.password
-        metricsTrackerFactory = HikariTelemetry.create(openTelemetry).createMetricsTrackerFactory()
-    })
-
+    val hikari =
+        HikariDataSource(
+            HikariConfig().apply {
+                jdbcUrl = database.url
+                username = database.username
+                password = database.password
+                metricsTrackerFactory =
+                    HikariTelemetry.create(openTelemetry).createMetricsTrackerFactory()
+            }
+        )
 
     val instrumented = JdbcTelemetry.create(openTelemetry).wrap(hikari)
 

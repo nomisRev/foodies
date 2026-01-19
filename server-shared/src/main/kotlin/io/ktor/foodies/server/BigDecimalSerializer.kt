@@ -1,5 +1,6 @@
 package io.ktor.foodies.server
 
+import java.math.BigDecimal
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -7,12 +8,12 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import java.math.BigDecimal
 
 typealias SerializableBigDecimal = @Serializable(with = BigDecimalSerializer::class) BigDecimal
 
 object BigDecimalSerializer : KSerializer<BigDecimal> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("BigDecimal", PrimitiveKind.STRING)
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("BigDecimal", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): BigDecimal = decoder.decodeString().toBigDecimal()
 
