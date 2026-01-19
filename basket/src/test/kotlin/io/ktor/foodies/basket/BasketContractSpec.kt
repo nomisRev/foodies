@@ -24,7 +24,8 @@ private val MARGHERITA_PIZZA = MenuItem(
     name = "Margherita Pizza",
     description = "Classic tomato and mozzarella",
     imageUrl = "https://example.com/pizza.jpg",
-    price = BigDecimal("12.99")
+    price = BigDecimal("12.99"),
+    stock = 10
 )
 
 private val PASTA_CARBONARA = MenuItem(
@@ -32,7 +33,8 @@ private val PASTA_CARBONARA = MenuItem(
     name = "Pasta Carbonara",
     description = "Creamy bacon pasta",
     imageUrl = "https://example.com/pasta.jpg",
-    price = BigDecimal("14.50")
+    price = BigDecimal("14.50"),
+    stock = 5
 )
 
 private val TIRAMISU = MenuItem(
@@ -40,7 +42,8 @@ private val TIRAMISU = MenuItem(
     name = "Tiramisu",
     description = "Italian dessert",
     imageUrl = "https://example.com/tiramisu.jpg",
-    price = BigDecimal("7.99")
+    price = BigDecimal("7.99"),
+    stock = 7
 )
 
 private val TEST_PIZZA = MenuItem(
@@ -48,7 +51,8 @@ private val TEST_PIZZA = MenuItem(
     name = "Pizza",
     description = "Delicious",
     imageUrl = "https://example.com/pizza.jpg",
-    price = BigDecimal("15.00")
+    price = BigDecimal("15.00"),
+    stock = 100
 )
 
 private val TEST_BURGER = MenuItem(
@@ -56,7 +60,8 @@ private val TEST_BURGER = MenuItem(
     name = "Burger",
     description = "Juicy",
     imageUrl = "https://example.com/burger.jpg",
-    price = BigDecimal("12.00")
+    price = BigDecimal("12.00"),
+    stock = 50
 )
 
 private val SIMPLE_PIZZA = MenuItem(
@@ -64,7 +69,8 @@ private val SIMPLE_PIZZA = MenuItem(
     name = "Pizza",
     description = "Delicious",
     imageUrl = "https://example.com/pizza.jpg",
-    price = BigDecimal("10.00")
+    price = BigDecimal("10.00"),
+    stock = 100
 )
 
 /**
