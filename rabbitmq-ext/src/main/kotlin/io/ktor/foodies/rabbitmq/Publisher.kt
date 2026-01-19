@@ -18,7 +18,7 @@ interface Publisher {
     )
 }
 
-inline fun <reified A : HasRoutingKey> Publisher.publish(message: A, props: AMQP.BasicProperties? = null, ) =
+inline fun <reified A : HasRoutingKey> Publisher.publish(message: A, props: AMQP.BasicProperties? = null) =
     publish(serializer<A>(), message, props)
 
 fun Publisher(channel: Channel, exchange: String, format: StringFormat): Publisher =
