@@ -6,6 +6,7 @@
 - Run all checks for a module `./gradlew :<module>:jvmTest`
     - Test selection accepts the pipe | character to separate test elements:
       `./gradlew cleanJvmTest jvmTest --tests "com.example.TestSuite|inner suite|*" --no-build-cache`
+- Run `./gradlew publishImageToLocalRegistry` to publish images for local deployment
 - Always use Gradle's Version Catalog, never hardcode dependencies in build.gradle.kts
 
 ## Kubernetes Debugging
