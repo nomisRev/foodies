@@ -1,14 +1,15 @@
 package io.ktor.foodies.order
 
 import io.ktor.foodies.server.DataSource
+import io.ktor.foodies.server.openid.Auth
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class Config(
-    val host: String = "0.0.0.0",
-    val port: Int = 8084,
-    val auth: AuthConfig,
+    val host: String,
+    val port: Int,
+    val auth: Auth,
     val database: DataSource.Config,
     val basket: BasketServiceConfig,
     val payment: PaymentServiceConfig,
@@ -20,12 +21,6 @@ data class Config(
 @Serializable
 data class OrderConfig(
     val gracePeriodSeconds: Int,
-)
-
-@Serializable
-data class AuthConfig(
-    val issuer: String,
-    val audience: String,
 )
 
 @Serializable
