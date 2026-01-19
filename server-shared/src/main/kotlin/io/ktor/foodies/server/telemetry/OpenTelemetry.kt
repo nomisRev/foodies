@@ -28,7 +28,15 @@ data class Monitoring(
     val opentelemetry: OpenTelemetrySdk
 )
 
-fun Application.openTelemetry(otlpEndpoint: String = "http://localhost:4317"): Monitoring =
+/**
+ * Explicit OpenTelemetry setup with Prometheus and OTLP exporters.
+ * To show how to install [KtorServerTelemetry] to automatically monitor processed requested, and errors.
+ * And install [io.opentelemetry.extension.kotlin.KotlinContextElement] into the CoroutienContext of your Pipeline,
+ * this way it can automatically be inherited by coroutines for tracing.
+ *
+ * We use nocode opentelemetry for setting up the service name, and version automatically.
+ */
+fun Application.openTelemetry(otlpEndpoint: String): Monitoring =
     monitoring(MonitoringConfig(otlpEndpoint))
 
 fun Application.monitoring(config: MonitoringConfig): Monitoring {
