@@ -64,7 +64,7 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
             setBody(sushi.copy(name = "Item 3"))
         }.body<MenuItemResponse>()
 
-        val response = jsonClient().get("/menu")
+        val response = jsonClient().get("/menu?limit=50")
         assertEquals(HttpStatusCode.OK, response.status)
         val items = response.body<List<MenuItemResponse>>()
         assertContains(items, item1)

@@ -14,6 +14,7 @@ import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.rabbitmq.subscribe
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.foodies.server.telemetry.Monitoring
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
@@ -33,7 +34,8 @@ data class BasketModule(
 )
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-fun Application.module(config: Config, telemetry: OpenTelemetry): BasketModule {
+fun Application.module(config: Config, monitoring: Monitoring): BasketModule {
+    val telemetry = monitoring.opentelemetry
     val httpClient = HttpClient(Apache5) {
         install(ContentNegotiation) { json() }
         install(KtorClientTelemetry) {

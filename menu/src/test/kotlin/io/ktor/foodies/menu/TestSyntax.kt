@@ -4,6 +4,7 @@ import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.DataSource
+import io.ktor.foodies.server.telemetry.MonitoringConfig
 import io.ktor.foodies.server.test.PostgreSQLContainer
 import io.ktor.foodies.server.test.RabbitContainer
 import io.ktor.foodies.server.test.dataSource
@@ -60,7 +61,9 @@ fun TestSuite.testMenuService(
                             ctx.rabbitContainer().adminUsername,
                             ctx.rabbitContainer().adminPassword,
                         ),
-                        telemetry = Config.Telemetry(otlpEndpoint = "http://localhost:4317")
+                        telemetry = MonitoringConfig(
+                            otlpEndpoint = "http://localhost:4317"
+                        )
                     ),
                     OpenTelemetry.noop()
                 )

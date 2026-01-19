@@ -1,6 +1,7 @@
 package io.ktor.foodies.menu
 
 import io.ktor.foodies.server.DataSource
+import io.ktor.foodies.server.telemetry.MonitoringConfig
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -10,12 +11,8 @@ data class Config(
     val port: Int,
     @SerialName("data_source") val dataSource: DataSource.Config,
     val rabbit: RabbitConfig,
-    val telemetry: Telemetry,
+    val telemetry: MonitoringConfig,
 ) {
-    @Serializable
-    data class Telemetry(
-        @SerialName("otlp_endpoint") val otlpEndpoint: String,
-    )
 }
 
 @Serializable

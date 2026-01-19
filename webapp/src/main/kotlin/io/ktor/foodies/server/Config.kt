@@ -1,6 +1,6 @@
 package io.ktor.foodies.server
 
-import kotlinx.serialization.SerialName
+import io.ktor.foodies.server.telemetry.MonitoringConfig
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -11,7 +11,7 @@ data class Config(
     val menu: Menu,
     val basket: Basket,
     val redis: RedisSession,
-    val telemetry: Telemetry,
+    val telemetry: MonitoringConfig,
 ) {
     @Serializable
     data class Security(val issuer: String, val clientId: String, val clientSecret: String)
@@ -30,8 +30,4 @@ data class Config(
         val ttlSeconds: Long = 3600
     )
 
-    @Serializable
-    data class Telemetry(
-        @SerialName("otlp_endpoint") val otlpEndpoint: String,
-    )
 }
