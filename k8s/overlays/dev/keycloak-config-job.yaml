@@ -99,13 +99,82 @@ spec:
                   -s 'description=Regular user with standard permissions'
               fi
 
+              echo "Configuring 'foodies-audience' client scope..."
+              SCOPE_ID=$(/opt/keycloak/bin/kcadm.sh get client-scopes -r foodies-keycloak 2>/dev/null | grep -B5 '"name" *: *"foodies-audience"' | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+
+              if [ -n "$SCOPE_ID" ]; then
+                echo "Client scope 'foodies-audience' already exists (ID: $SCOPE_ID), updating..."
+                cat > /tmp/client-scope.json << 'EOF'
+              {
+                "name": "foodies-audience",
+                "description": "Adds foodies audience to tokens for API access",
+                "protocol": "openid-connect",
+                "attributes": {
+                  "include.in.token.scope": "false",
+                  "display.on.consent.screen": "false"
+                }
+              }
+              EOF
+                /opt/keycloak/bin/kcadm.sh update client-scopes/$SCOPE_ID -r foodies-keycloak -f /tmp/client-scope.json
+              else
+                echo "Creating client scope 'foodies-audience'..."
+                cat > /tmp/client-scope.json << 'EOF'
+              {
+                "name": "foodies-audience",
+                "description": "Adds foodies audience to tokens for API access",
+                "protocol": "openid-connect",
+                "attributes": {
+                  "include.in.token.scope": "false",
+                  "display.on.consent.screen": "false"
+                }
+              }
+              EOF
+                /opt/keycloak/bin/kcadm.sh create client-scopes -r foodies-keycloak -f /tmp/client-scope.json
+                SCOPE_ID=$(/opt/keycloak/bin/kcadm.sh get client-scopes -r foodies-keycloak 2>/dev/null | grep -B5 '"name" *: *"foodies-audience"' | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/')
+              fi
+
+              echo "Configuring audience mapper in 'foodies-audience' scope..."
+              MAPPER_ID=$(/opt/keycloak/bin/kcadm.sh get client-scopes/$SCOPE_ID/protocol-mappers/models -r foodies-keycloak 2>/dev/null | grep -B5 '"name" *: *"audience-mapper"' | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+
+              if [ -n "$MAPPER_ID" ]; then
+                echo "Audience mapper already exists in scope, updating..."
+                cat > /tmp/audience-mapper.json << 'EOF'
+              {
+                "name": "audience-mapper",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
+                "consentRequired": false,
+                "config": {
+                  "included.client.audience": "foodies",
+                  "id.token.claim": "true",
+                  "access.token.claim": "true"
+                }
+              }
+              EOF
+                /opt/keycloak/bin/kcadm.sh update client-scopes/$SCOPE_ID/protocol-mappers/models/$MAPPER_ID -r foodies-keycloak -f /tmp/audience-mapper.json
+              else
+                echo "Creating audience mapper in scope..."
+                cat > /tmp/audience-mapper.json << 'EOF'
+              {
+                "name": "audience-mapper",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
+                "consentRequired": false,
+                "config": {
+                  "included.client.audience": "foodies",
+                  "id.token.claim": "true",
+                  "access.token.claim": "true"
+                }
+              }
+              EOF
+                /opt/keycloak/bin/kcadm.sh create client-scopes/$SCOPE_ID/protocol-mappers/models -r foodies-keycloak -f /tmp/audience-mapper.json
+              fi
+
               echo "Checking if client 'foodies' exists..."
-              # Use query parameter for more reliable lookup
               CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=foodies --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
 
               if [ -n "$CLIENT_ID" ]; then
                 echo "Client 'foodies' already exists (ID: $CLIENT_ID), updating..."
-                # Use JSON file for proper array and attribute handling
                 cat > /tmp/client-update.json << 'EOF'
               {
                 "clientId": "foodies",
@@ -136,7 +205,11 @@ spec:
               }
               EOF
                 /opt/keycloak/bin/kcadm.sh create clients -r foodies-keycloak -f /tmp/client-create.json
+                CLIENT_ID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=foodies --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/')
               fi
+
+              echo "Assigning 'foodies-audience' scope to client as default scope..."
+              /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/default-client-scopes/$SCOPE_ID -r foodies-keycloak 2>/dev/null || echo "Scope already assigned or assignment created"
 
               echo "Checking if user 'food3_lover' exists..."
               # Use query parameter for more reliable lookup
