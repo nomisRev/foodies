@@ -10,6 +10,7 @@ import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.server.dataSource
+import io.ktor.foodies.server.telemetry.Monitoring
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.opentelemetry.api.OpenTelemetry

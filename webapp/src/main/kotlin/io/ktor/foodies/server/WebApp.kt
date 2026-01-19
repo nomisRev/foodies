@@ -6,7 +6,7 @@ import io.ktor.foodies.server.htmx.cart.cartRoutes
 import io.ktor.foodies.server.htmx.home
 import io.ktor.foodies.server.htmx.menu.menuRoutes
 import io.ktor.foodies.server.security.security
-import io.ktor.foodies.server.telemetry.openTelemetry
+import io.ktor.foodies.server.telemetry.monitoring
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -22,7 +22,7 @@ import kotlinx.coroutines.Dispatchers
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
-        val openTelemetry = openTelemetry(config.telemetry.otlpEndpoint)
+        val (prometheus, openTelemetry) = monitoring(config.telemetry)
         app(config, module(config, openTelemetry))
     }.start(wait = true)
 }
