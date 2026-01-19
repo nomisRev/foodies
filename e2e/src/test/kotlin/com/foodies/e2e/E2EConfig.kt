@@ -13,7 +13,7 @@ data class E2EConfig(
     val storageStatePath: Path = Paths.get("build/playwright/.auth/user.json"),
     val webappBaseUrl: String = "http://foodies.local",
     val apiBaseUrl: String = webappBaseUrl,
-    val testUsername: String = "food_lover",
+    val testUsername: String = "food_lover@gmail.com",
     val testPassword: String = "password",
     val headless: Boolean = false,
     val slowMo: Int = 0,
@@ -26,7 +26,7 @@ data class E2EConfig(
             return E2EConfig(
                 webappBaseUrl = webappBaseUrl,
                 apiBaseUrl = System.getenv("API_BASE_URL") ?: webappBaseUrl,
-                testUsername = System.getenv("TEST_USERNAME") ?: "food_lover",
+                testUsername = System.getenv("TEST_USERNAME") ?: "food_lover@gmail.com",
                 testPassword = System.getenv("TEST_PASSWORD") ?: "password",
                 headless = System.getenv("HEADLESS")?.toBoolean() ?: false,
                 slowMo = System.getenv("SLOW_MO")?.toIntOrNull() ?: 0

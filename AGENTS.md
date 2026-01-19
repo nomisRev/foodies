@@ -1,13 +1,22 @@
 # Guidelines
 
-## Build with Gradle
+# Build with Gradle
 
 - Build any module `./gradlew :<module>:build`
 - Run all checks for a module `./gradlew :<module>:jvmTest`
     - Test selection accepts the pipe | character to separate test elements:
       `./gradlew cleanJvmTest jvmTest --tests "com.example.TestSuite|inner suite|*" --no-build-cache`
+- Run `./gradlew publishImageToLocalRegistry` to publish images for local deployment
 - Always use Gradle's Version Catalog, never hardcode dependencies in build.gradle.kts
+- 
+# Code Style
 
+- No comments unless code is complex and requires context for future developers.
+- Testing: Never use mocks. Use TestContainers and prefer testing actual integrations.
+- Logging: Use structured logging (tracing). Never log secrets directly. Rely on nocode/javaagent where applicable
+- Avoid exceptions for control flow, and use proper types and domain modeling
+
+# Testing
 ## Kubernetes Debugging
 
 The development machine has `127.0.0.1       foodies.local` configured in `/etc/hosts`.
@@ -19,9 +28,5 @@ Everything runs in the foodies namespace:
 - Pod logs: `kubectl logs <pod-name> -n foodies`
 - Delete stuck pod: `kubectl delete pod <pod-name> -n foodies`
 
-## Code Style
-
-- No comments unless code is complex and requires context for future developers.
-- Testing: Never use mocks. Use TestContainers and prefer testing actual integrations.
-- Logging: Use structured logging (tracing). Never log secrets directly. Rely on nocode/javaagent where applicable
-- Avoid exceptions for control flow, and use proper types and domain modeling
+## WebApp
+ - If you get stuck with Playwright clear the USER_SESSION.

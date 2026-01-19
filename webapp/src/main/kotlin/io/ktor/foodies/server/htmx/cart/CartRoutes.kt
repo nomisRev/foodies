@@ -56,7 +56,7 @@ fun Application.cartRoutes(basketService: BasketService) {
             get("/cart/badge") {
                 val session = call.sessions.get<UserSession>()
                 val itemCount = if (session != null) {
-                    runCatching { basketService.getBasket(session.idToken).items.sumOf { it.quantity } }.getOrDefault(0)
+                    runCatching { basketService.getBasket(session.accessToken).items.sumOf { it.quantity } }.getOrDefault(0)
                 } else {
                     0
                 }
@@ -66,7 +66,7 @@ fun Application.cartRoutes(basketService: BasketService) {
 
         withUserSession {
             get("/cart") {
-                val basket = basketService.getBasket(userSession().idToken)
+                val basket = basketService.getBasket(userSession().accessToken)
                 call.respondHtml { cartPage(basket) }
             }
 
@@ -77,7 +77,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                     val menuItemId: Long by form
                     val quantity: Int? by form
 
-                    val basket = basketService.addItem(session.idToken, menuItemId, quantity ?: 1)
+                    val basket = basketService.addItem(session.accessToken, menuItemId, quantity ?: 1)
                     val itemCount = basket.items.sumOf { it.quantity }
 
                     call.respondHtmxFragment {
@@ -91,7 +91,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                     val itemId: String by call.parameters
                     val quantity: Int by call.receiveParameters()
 
-                    val basket = basketService.updateItemQuantity(session.idToken, itemId, quantity)
+                    val basket = basketService.updateItemQuantity(session.accessToken, itemId, quantity)
 
                     call.respondHtmxFragment {
                         cartItemsFragment(basket)
@@ -104,7 +104,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                     val session = userSession()
                     val itemId: String by call.parameters
 
-                    val basket = basketService.removeItem(session.idToken, itemId)
+                    val basket = basketService.removeItem(session.accessToken, itemId)
 
                     call.respondHtmxFragment {
                         cartItemsFragment(basket)
@@ -116,7 +116,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                 delete("/cart") {
                     val session = userSession()
 
-                    basketService.clearBasket(session.idToken)
+                    basketService.clearBasket(session.accessToken)
 
                     call.respondHtmxFragment {
                         cartItemsFragment(CustomerBasket(buyerId = "", items = emptyList()))

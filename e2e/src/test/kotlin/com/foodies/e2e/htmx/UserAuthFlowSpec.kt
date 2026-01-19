@@ -10,7 +10,7 @@ import com.microsoft.playwright.options.AriaRole
 import java.nio.file.Files
 import kotlin.test.assertTrue
 
-val userAuthFlowSpec by e2eSuite(browserType = AppBrowserType.WEBKIT) {
+val userAuthFlowSpec by e2eSuite {
     test("Keycloak Authentication - should authenticate user and save session state") {
         val p = page()
 
