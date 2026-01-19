@@ -36,7 +36,8 @@ private data class MenuItemResponse(
     val name: String,
     val description: String,
     val imageUrl: String,
-    val price: SerializableBigDecimal
+    val price: SerializableBigDecimal,
+    val stock: Int
 )
 
 private fun MenuItemResponse.toDomain(): MenuItem = MenuItem(
