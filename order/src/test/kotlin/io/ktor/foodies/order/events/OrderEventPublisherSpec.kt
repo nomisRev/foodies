@@ -96,10 +96,8 @@ val orderEventPublisherSpec by testSuite {
     test("publish GracePeriodExpiredEvent - successfully publishes message to RabbitMQ") {
         val exchangeName = "order.test.exchange"
         val queueName = "order.test.queue.grace-period"
-        val event = GracePeriodExpiredEvent(
-            orderId = 1L,
-            expiredAt = Instant.parse("2026-01-17T23:55:00Z")
-        )
+        val event =
+            GracePeriodExpiredEvent(orderId = 1L, expiredAt = Instant.parse("2026-01-17T23:55:00Z"))
 
         rabbit().channel { channel ->
             channel.exchangeDeclare(exchangeName, "topic", true)
@@ -116,7 +114,10 @@ val orderEventPublisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message = RabbitMQSubscriber(connection, exchangeName).subscribe<GracePeriodExpiredEvent>(queueName).first()
+            val message =
+                RabbitMQSubscriber(connection, exchangeName)
+                    .subscribe<GracePeriodExpiredEvent>(queueName)
+                    .first()
             assertEquals(1L, message.value.orderId)
             assertEquals("order.grace-period.expired", event.key)
             message.ack()
