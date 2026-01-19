@@ -51,7 +51,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
                     name = "Pizza",
                     description = "Delicious",
                     imageUrl = "https://example.com/pizza.jpg",
-                    price = BigDecimal("10.00")
+                    price = BigDecimal("10.00"),
+                    stock = 100
                 )
             )
 
@@ -82,7 +83,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
                     name = "Pizza Margherita",
                     description = "Classic tomato and mozzarella",
                     imageUrl = "https://example.com/pizza.jpg",
-                    price = BigDecimal("12.99")
+                    price = BigDecimal("12.99"),
+                    stock = 100
                 )
             )
 
@@ -109,7 +111,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
                     name = "Pizza",
                     description = "Delicious",
                     imageUrl = "https://example.com/pizza.jpg",
-                    price = BigDecimal("10.00")
+                    price = BigDecimal("10.00"),
+                    stock = 100
                 )
             )
 
@@ -183,7 +186,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
                     name = "Pizza",
                     description = "Delicious",
                     imageUrl = "https://example.com/pizza.jpg",
-                    price = BigDecimal("10.00")
+                    price = BigDecimal("10.00"),
+                    stock = 100
                 )
             )
 
@@ -247,7 +251,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
                     name = "Pizza",
                     description = "Delicious",
                     imageUrl = "https://example.com/pizza.jpg",
-                    price = BigDecimal("10.00")
+                    price = BigDecimal("10.00"),
+                    stock = 100
                 )
             )
             module.menuClient.addMenuItem(
@@ -256,7 +261,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
                     name = "Pasta",
                     description = "Creamy",
                     imageUrl = "https://example.com/pasta.jpg",
-                    price = BigDecimal("8.50")
+                    price = BigDecimal("8.50"),
+                    stock = 100
                 )
             )
 
@@ -307,7 +313,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
                     name = "Pizza",
                     description = "Delicious",
                     imageUrl = "https://example.com/pizza.jpg",
-                    price = BigDecimal("10.00")
+                    price = BigDecimal("10.00"),
+                    stock = 100
                 )
             )
 
@@ -355,7 +362,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
                     name = "Pizza",
                     description = "Delicious",
                     imageUrl = "https://example.com/pizza.jpg",
-                    price = BigDecimal("10.00")
+                    price = BigDecimal("10.00"),
+                    stock = 100
                 )
             )
 

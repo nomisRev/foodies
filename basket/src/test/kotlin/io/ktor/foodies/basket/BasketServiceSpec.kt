@@ -40,7 +40,8 @@ val basketServiceSpec by testSuite {
                 name = "Pizza Margherita",
                 description = "Classic tomato and mozzarella",
                 imageUrl = "https://example.com/pizza.jpg",
-                price = BigDecimal("12.99")
+                price = BigDecimal("12.99"),
+                stock = 100
             )
         )
 
@@ -66,7 +67,8 @@ val basketServiceSpec by testSuite {
                 name = "Pizza",
                 description = "Delicious",
                 imageUrl = "https://example.com/pizza.jpg",
-                price = BigDecimal("10.00")
+                price = BigDecimal("10.00"),
+                stock = 100
             )
         )
 
@@ -86,7 +88,8 @@ val basketServiceSpec by testSuite {
                 name = "Pizza",
                 description = "Delicious",
                 imageUrl = "https://example.com/pizza.jpg",
-                price = BigDecimal("10.00")
+                price = BigDecimal("10.00"),
+                stock = 100
             )
         )
         ctx.menuClient.addMenuItem(
@@ -95,7 +98,8 @@ val basketServiceSpec by testSuite {
                 name = "Pasta",
                 description = "Creamy",
                 imageUrl = "https://example.com/pasta.jpg",
-                price = BigDecimal("8.50")
+                price = BigDecimal("8.50"),
+                stock = 100
             )
         )
 
@@ -125,7 +129,8 @@ val basketServiceSpec by testSuite {
                 name = "Pizza",
                 description = "Delicious",
                 imageUrl = "https://example.com/pizza.jpg",
-                price = BigDecimal("10.00")
+                price = BigDecimal("10.00"),
+                stock = 100
             )
         )
         val initialBasket = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1))
@@ -141,7 +146,8 @@ val basketServiceSpec by testSuite {
 
     test("updateItemQuantity returns null when basket does not exist") {
         val ctx = createTestContext()
-        val basket = ctx.service.updateItemQuantity("user-123", "non-existent-item", ValidatedUpdateQuantity(quantity = 5))
+        val basket =
+            ctx.service.updateItemQuantity("user-123", "non-existent-item", ValidatedUpdateQuantity(quantity = 5))
 
         assertNull(basket)
     }
@@ -154,7 +160,8 @@ val basketServiceSpec by testSuite {
                 name = "Pizza",
                 description = "Delicious",
                 imageUrl = "https://example.com/pizza.jpg",
-                price = BigDecimal("10.00")
+                price = BigDecimal("10.00"),
+                stock = 100
             )
         )
         ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1))
@@ -172,7 +179,8 @@ val basketServiceSpec by testSuite {
                 name = "Pizza",
                 description = "Delicious",
                 imageUrl = "https://example.com/pizza.jpg",
-                price = BigDecimal("10.00")
+                price = BigDecimal("10.00"),
+                stock = 100
             )
         )
         ctx.menuClient.addMenuItem(
@@ -181,7 +189,8 @@ val basketServiceSpec by testSuite {
                 name = "Pasta",
                 description = "Creamy",
                 imageUrl = "https://example.com/pasta.jpg",
-                price = BigDecimal("8.50")
+                price = BigDecimal("8.50"),
+                stock = 100
             )
         )
         ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1))
@@ -211,7 +220,8 @@ val basketServiceSpec by testSuite {
                 name = "Pizza",
                 description = "Delicious",
                 imageUrl = "https://example.com/pizza.jpg",
-                price = BigDecimal("10.00")
+                price = BigDecimal("10.00"),
+                stock = 100
             )
         )
         ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1))
@@ -229,7 +239,8 @@ val basketServiceSpec by testSuite {
                 name = "Pizza",
                 description = "Delicious",
                 imageUrl = "https://example.com/pizza.jpg",
-                price = BigDecimal("10.00")
+                price = BigDecimal("10.00"),
+                stock = 100
             )
         )
         ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 3))
@@ -254,7 +265,8 @@ val basketServiceSpec by testSuite {
                 name = "Pizza",
                 description = "Delicious",
                 imageUrl = "https://example.com/pizza.jpg",
-                price = BigDecimal("10.00")
+                price = BigDecimal("10.00"),
+                stock = 100
             )
         )
         ctx.menuClient.addMenuItem(
@@ -263,7 +275,8 @@ val basketServiceSpec by testSuite {
                 name = "Pasta",
                 description = "Creamy",
                 imageUrl = "https://example.com/pasta.jpg",
-                price = BigDecimal("8.50")
+                price = BigDecimal("8.50"),
+                stock = 100
             )
         )
 
