@@ -1,6 +1,8 @@
-# basket
+# Basket Service
 
 Shopping basket service backed by Redis. Manages user shopping baskets with JWT authentication and integrates with the Menu service for item details.
+
+> For common architectural patterns, testing approach, and build commands, see the [main README](../README.md#architecture-patterns).
 
 ## Configuration
 
@@ -8,11 +10,12 @@ Values come from `config` in `src/main/resources/application.yaml` (env override
 
 - `HOST` / `PORT`: bind address and port (default `0.0.0.0:8083`)
 - `AUTH_ISSUER`: Keycloak OIDC issuer URL (default `http://localhost:9090/realms/foodies-keycloak`)
-- `AUTH_AUDIENCE`: JWT audience claim to validate (default `account`)
 - `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD`: Redis connection (defaults to `localhost:6379`, empty password)
 - `MENU_SERVICE_URL`: Menu service base URL (default `http://localhost:8082`)
 - `RABBITMQ_HOST` / `RABBITMQ_PORT` / `RABBITMQ_USERNAME` / `RABBITMQ_PASSWORD`: RabbitMQ connection (defaults to `localhost:5672`, `guest/guest`)
+- `RABBITMQ_EXCHANGE`: RabbitMQ exchange name (default `foodies`)
 - `RABBITMQ_QUEUE`: Event queue name (default `basket.order-created`)
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: OpenTelemetry endpoint (default `http://localhost:4317`)
 
 ## API
 
@@ -30,8 +33,9 @@ All routes under `/basket` require JWT authentication. The buyer ID is extracted
   - Returns `404` if item not found
 - `DELETE /basket/items/{itemId}`: remove item from basket
 - `DELETE /basket`: clear entire basket, returns `204`
-- `GET /healthz`: liveness probe (always returns `200`)
-- `GET /healthz/ready`: readiness probe (checks Redis connectivity)
+- `GET /healthz/startup`: startup probe
+- `GET /healthz/liveness`: liveness probe
+- `GET /healthz/readiness`: readiness probe (checks Redis, Menu service, and RabbitMQ connectivity)
 
 ### Response Format
 
@@ -52,6 +56,8 @@ All routes under `/basket` require JWT authentication. The buyer ID is extracted
 }
 ```
 
+The basket includes a `totalPrice()` method that calculates the sum of all items (unitPrice × quantity).
+
 ### Error Responses
 
 - `400 Bad Request`: validation errors (e.g., quantity < 1)
@@ -68,11 +74,28 @@ All routes under `/basket` require JWT authentication. The buyer ID is extracted
 
 The service consumes `OrderCreatedEvent` from RabbitMQ to clear baskets after successful order creation.
 
-- Exchange: `foodies.events`
+- Exchange: `foodies`
 - Routing Key: `order.created`
 - Queue: `basket.order-created`
+- Event handler: `orderCreatedEventConsumer` in `events/OrderCreatedEventHandler.kt`
 
-## Running locally
+## Architecture
+
+### Components
+
+- **BasketModule**: Dependency injection container wiring all services
+- **BasketService**: Core business logic with Redis-backed implementation
+- **BasketRepository**: Data access layer using Redis with JSON serialization
+- **MenuClient**: HTTP client for fetching menu item details
+- **Event Handler**: RabbitMQ consumer for `OrderCreatedEvent`
+- **Domain Models**: `CustomerBasket`, `BasketItem`, and DTOs
+
+### Service-Specific Stack
+
+- **Persistence**: Redis via Lettuce client with coroutines support
+- **Authentication**: JWT validation against Keycloak
+
+## Running Locally
 
 ```bash
 # Start Redis (required)
@@ -84,11 +107,25 @@ docker run -d -p 6379:6379 redis:7-alpine
 # Start Keycloak (required for authentication)
 cd webapp && docker compose up keycloak -d
 
+# Start RabbitMQ (required for event handling)
+docker run -d -p 5672:5672 -p 15672:15672 --name rabbitmq rabbitmq:3-management
+
 # Run basket service
 ./gradlew :basket:run
 ```
 
-## Example curl commands
+## Testing
+
+Test suites use TestContainers with real Redis:
+
+- **BasketContractSpec**: End-to-end HTTP contract tests
+- **BasketServiceSpec**: Business logic tests
+- **BasketRoutesSpec**: HTTP route integration tests
+- **RedisBasketRepositorySpec**: Redis repository tests
+- **BasketValidationSpec**: Input validation tests
+- **OrderCreatedEventHandlerSpec**: Event handling tests
+
+## Example curl Commands
 
 ```bash
 # Get basket (requires valid JWT token)
@@ -115,6 +152,11 @@ curl -X DELETE http://localhost:8083/basket \
   -H "Authorization: Bearer $TOKEN"
 
 # Health checks
-curl http://localhost:8083/healthz
-curl http://localhost:8083/healthz/ready
+curl http://localhost:8083/healthz/startup
+curl http://localhost:8083/healthz/liveness
+curl http://localhost:8083/healthz/readiness
 ```
+
+## Kubernetes Deployment
+
+Deployed with standard resource limits (256Mi-512Mi memory, 100m-500m CPU) and health probes. See [k8s/README.md](../k8s/README.md) for details.
