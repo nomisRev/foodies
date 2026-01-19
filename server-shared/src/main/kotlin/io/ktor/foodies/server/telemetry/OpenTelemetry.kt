@@ -4,6 +4,12 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.application.install
 import io.ktor.server.application.log
+import io.ktor.server.metrics.micrometer.MicrometerMetrics
+import io.ktor.server.response.respond
+import io.ktor.server.routing.get
+import io.ktor.server.routing.routing
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator
 import io.opentelemetry.context.propagation.ContextPropagators
 import io.opentelemetry.exporter.otlp.metrics.OtlpGrpcMetricExporter
@@ -17,9 +23,17 @@ import io.opentelemetry.sdk.trace.export.BatchSpanProcessor
 import io.opentelemetry.sdk.trace.export.SpanExporter
 import java.util.concurrent.TimeUnit
 
-fun Application.openTelemetry(otlpEndpoint: String = "http://localhost:4317"): OpenTelemetrySdk {
+data class Monitoring(
+    val prometheus: PrometheusMeterRegistry,
+    val opentelemetry: OpenTelemetrySdk
+)
+
+fun Application.openTelemetry(otlpEndpoint: String = "http://localhost:4317"): Monitoring =
+    monitoring(MonitoringConfig(otlpEndpoint))
+
+fun Application.monitoring(config: MonitoringConfig): Monitoring {
     val spanExporter: SpanExporter = OtlpGrpcSpanExporter.builder()
-        .setEndpoint(otlpEndpoint)
+        .setEndpoint(config.otlpEndpoint)
         .build()
 
     val tracerProvider = SdkTracerProvider.builder()
@@ -27,7 +41,7 @@ fun Application.openTelemetry(otlpEndpoint: String = "http://localhost:4317"): O
         .build()
 
     val metricExporter = OtlpGrpcMetricExporter.builder()
-        .setEndpoint(otlpEndpoint)
+        .setEndpoint(config.otlpEndpoint)
         .build()
 
     val meterProvider = SdkMeterProvider.builder()
@@ -43,7 +57,19 @@ fun Application.openTelemetry(otlpEndpoint: String = "http://localhost:4317"): O
 
     install(KtorServerTelemetry) { setOpenTelemetry(openTelemetry) }
 
-    return openTelemetry
+    val prometheusRegistry = PrometheusMeterRegistry(PrometheusConfig.DEFAULT)
+    monitor.subscribe(ApplicationStopped) { prometheusRegistry.close() }
+    install(MicrometerMetrics) {
+        registry = prometheusRegistry
+    }
+
+    routing {
+        get("/metrics") {
+            call.respond(prometheusRegistry.scrape())
+        }
+    }
+
+    return Monitoring(prometheusRegistry, openTelemetry)
 }
 
 context(app: Application)

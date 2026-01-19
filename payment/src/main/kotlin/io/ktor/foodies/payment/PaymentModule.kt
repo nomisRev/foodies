@@ -12,6 +12,7 @@ import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.rabbitmq.subscribe
 import io.ktor.foodies.server.dataSource
+import io.ktor.foodies.server.telemetry.Monitoring
 import io.ktor.server.application.*
 import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers

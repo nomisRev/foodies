@@ -11,6 +11,7 @@ dependencies {
     implementation(ktorLibs.server.auth.jwt)
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.server.metrics.micrometer)
 
     implementation(ktorLibs.server.htmlBuilder)
     implementation(ktorLibs.server.htmx)
@@ -30,6 +31,7 @@ dependencies {
     api(libs.otel.ktor)
     api(libs.otel.hikari)
     api(libs.otel.jdbc)
+    api(libs.prometheus)
 
     testImplementation(project(":server-shared-test"))
     testImplementation(ktorLibs.server.testHost)
