@@ -13,6 +13,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import java.math.BigDecimal
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 val orderEventPublisherSpec by testSuite {
