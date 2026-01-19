@@ -4,6 +4,7 @@ kind: Kustomization
 resources:
   - keycloak.yaml
   - deployment.yaml
+  - database.yaml
 
 configMapGenerator:
   - name: keycloak-config
