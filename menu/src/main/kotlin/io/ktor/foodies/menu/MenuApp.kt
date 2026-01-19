@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.launchIn
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
-        val (prometheus, openTelemetry) = monitoring(config.telemetry)
+        val (_, openTelemetry) = monitoring(config.telemetry)
         app(module(config, openTelemetry))
     }.start(wait = true)
 }

@@ -47,6 +47,7 @@ testcontainers-core = { module = "org.testcontainers:testcontainers", version.re
 testcontainers-redis = { module = "com.redis:testcontainers-redis", version.ref = "redis-testcontainers" }
 testcontainers-keycloak = { module = "com.github.dasniko:testcontainers-keycloak", version.ref = "keycloak-testcontainers" }
 kotlinx-coroutines-reactor = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactor", version.ref = "kotlinx-coroutines" }
+kotlinx-coroutines-reactive = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-reactive", version.ref = "kotlinx-coroutines" }
 playwright = { module = "com.microsoft.playwright:playwright", version.ref = "playwright" }
 
 otel-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "opentelemetry" }

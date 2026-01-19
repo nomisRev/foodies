@@ -31,6 +31,7 @@ dependencies {
     implementation(ktorLibs.client.contentNegotiation)
 
     implementation(libs.lettuce)
+    implementation(libs.kotlinx.coroutines.reactive)
 
     implementation(libs.logback)
 
