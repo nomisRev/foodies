@@ -135,6 +135,13 @@ Then access at `http://localhost:8080`.
 
 Or update the `FOODIES_HOST` value in [k8s/configmaps/foodies-config.yaml](fleet-file://mmglq7uf96d8i197ro8d/Users/simonvergauwen/Developer/foodies/k8s/configmaps/foodies-config.yaml?type=file&root=%252F) to match your environment.
 
+### 6. Monitoring and Tracing
+
+- **Jaeger UI**: http://foodies.local/jaeger (distributed tracing)
+  - To query traces: Select a service (e.g., `webapp`, `menu`) from the **Service** dropdown and click **Find Traces**.
+- **Prometheus UI**: http://foodies.local/prometheus (metrics)
+  - To query metrics: Use the expression browser to search for metrics (e.g., `http_server_requests_seconds_count`) and click **Execute**.
+
 ## Configuration
 
 ### ConfigMaps
@@ -169,6 +176,7 @@ k8s/
 │   ├── order/                 # Order service resources
 │   ├── payment/               # Payment service resources
 │   ├── profile/               # Profile service resources
+│   ├── prometheus/            # Prometheus monitoring resources
 │   ├── rabbitmq/              # RabbitMQ infrastructure resources
 │   ├── redis/                 # Redis database resources
 │   ├── webapp/                # Web application resources
@@ -293,6 +301,17 @@ kubectl get endpoints webapp -n foodies
 # Port-forward to test directly
 kubectl port-forward -n foodies svc/webapp 8080:8080
 ```
+
+### Monitoring Stack Issues
+
+If Jaeger or Prometheus are not showing data:
+
+1. Check OpenTelemetry Collector logs:
+   ```bash
+   kubectl logs -n foodies -l app=otel-collector
+   ```
+2. Verify that services have the `OTEL_EXPORTER_OTLP_ENDPOINT` set to `http://otel-collector:4317`.
+3. Check if the Prometheus targets are up in the Prometheus UI (**Status** -> **Targets**).
 
 ## Cleanup
 

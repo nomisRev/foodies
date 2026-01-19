@@ -86,7 +86,10 @@ spec:
                   name: foodies-config
                   key: BASKET_RABBITMQ_QUEUE
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "http://otel-collector:4317"
+              valueFrom:
+                configMapKeyRef:
+                  name: foodies-config
+                  key: OTEL_EXPORTER_OTLP_ENDPOINT
           resources:
             requests:
               memory: "256Mi"
