@@ -57,7 +57,7 @@ fun Application.module(config: Config, monitoring: Monitoring): BasketModule {
     val connection = connectionFactory.newConnection("basket-service")
     monitor.subscribe(ApplicationStopped) { connection.close() }
 
-    val subscriber = RabbitMQSubscriber(connection, "foodies")
+    val subscriber = RabbitMQSubscriber(connection, config.rabbit.exchange)
 
     val orderCreatedConsumer = orderCreatedEventConsumer(
         subscriber.subscribe<OrderCreatedEvent>(config.rabbit.queue),
