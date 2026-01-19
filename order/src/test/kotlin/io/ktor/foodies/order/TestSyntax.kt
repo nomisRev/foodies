@@ -150,6 +150,7 @@ class InMemoryOrderEventPublisher : OrderEventPublisher {
     val stockConfirmedEvents = mutableListOf<OrderStockConfirmedEvent>()
     val awaitingValidationEvents = mutableListOf<OrderAwaitingValidationEvent>()
     val stockReturnedEvents = mutableListOf<StockReturnedEvent>()
+    val delayedEvents = mutableListOf<Pair<GracePeriodExpiredEvent, Int>>()
 
     override suspend fun publish(event: OrderCreatedEvent) {
         createdEvents.add(event)
@@ -173,5 +174,9 @@ class InMemoryOrderEventPublisher : OrderEventPublisher {
 
     override suspend fun publish(event: StockReturnedEvent) {
         stockReturnedEvents.add(event)
+    }
+
+    suspend fun publishDelayed(event: GracePeriodExpiredEvent, delaySeconds: Int) {
+        delayedEvents.add(event to delaySeconds)
     }
 }

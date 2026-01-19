@@ -1,17 +1,17 @@
 package io.ktor.foodies.order.service
 
-import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.events.common.PaymentFailureCode
 import io.ktor.foodies.events.common.PaymentMethodInfo
 import io.ktor.foodies.events.common.PaymentMethodType
 import io.ktor.foodies.order.client.BasketClient
+import io.ktor.foodies.order.OrderConfig
 import io.ktor.foodies.events.menu.RejectedItem
 import io.ktor.foodies.events.order.*
 import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.order.repository.OrderRepository
-import io.ktor.foodies.server.SerializableBigDecimal
 import io.ktor.foodies.server.validate
 import java.util.UUID
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
 interface OrderService {
@@ -52,12 +52,8 @@ class DefaultOrderService(
     private val orderRepository: OrderRepository,
     private val basketClient: BasketClient,
     private val eventPublisher: OrderEventPublisher,
+    private val config: OrderConfig,
 ) : OrderService {
-    private var gracePeriodService: GracePeriodService? = null
-
-    fun setGracePeriodService(service: GracePeriodService) {
-        this.gracePeriodService = service
-    }
 
     override suspend fun createOrder(
         requestId: UUID,
@@ -104,8 +100,12 @@ class DefaultOrderService(
             createdAt = order.createdAt
         )
         eventPublisher.publish(event)
-
-        gracePeriodService?.scheduleGracePeriodExpiration(order.id)
+        val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
+        val gracePeriodEvent = GracePeriodExpiredEvent(
+            orderId = order.id,
+            expiredAt = now + config.gracePeriodSeconds.seconds
+        )
+        eventPublisher.publish(gracePeriodEvent, config.gracePeriodSeconds.seconds)
 
         return order
     }
