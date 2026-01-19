@@ -24,7 +24,6 @@ tasks {
     val localReadinessCheck by registering(Exec::class) {
         group = "deployment"
         description = "Awaits service to become available (readiness probe)"
-        dependsOn(localRestartService)
         commandLine(
             "kubectl",
             "wait",
@@ -34,14 +33,5 @@ tasks {
             "-n",
             "foodies"
         )
-    }
-
-    register("localDeployK8s") {
-        group = "deployment"
-        description = "Restarts the service and awaits its availability"
-
-        mustRunAfter(":kustomizeDev")
-        dependsOn(localRestartService)
-        dependsOn(localReadinessCheck)
     }
 }
