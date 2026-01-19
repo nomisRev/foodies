@@ -31,6 +31,8 @@ configMapGenerator:
 
 secretGenerator:
   - name: keycloak-admin
+    options:
+      disableNameSuffixHash: true
     literals:
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
