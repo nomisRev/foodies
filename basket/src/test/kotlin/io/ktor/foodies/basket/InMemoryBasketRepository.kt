@@ -1,8 +1,6 @@
 package io.ktor.foodies.basket
 
-/**
- * In-memory implementation for testing purposes.
- */
+/** In-memory implementation for testing purposes. */
 class InMemoryBasketRepository : BasketRepository {
     private val baskets = mutableMapOf<String, CustomerBasket>()
 

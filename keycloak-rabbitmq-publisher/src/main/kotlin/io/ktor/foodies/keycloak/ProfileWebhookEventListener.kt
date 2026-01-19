@@ -25,20 +25,17 @@ internal class ProfileWebhookEventListener(
         val event = event?.toUserEvent() ?: return
         val message = Json.encodeToString(UserEvent.serializer(), event)
 
-        runCatching { channel.basicPublish("", rabbitConfig.queue, null, message.toByteArray()) }.onFailure {
-            logger.error(
-                "Failed to forward registration event to profile queue ${rabbitConfig.queue} for userId=${event.subject}",
-                it
-            )
-        }
+        runCatching { channel.basicPublish("", rabbitConfig.queue, null, message.toByteArray()) }
+            .onFailure {
+                logger.error(
+                    "Failed to forward registration event to profile queue ${rabbitConfig.queue} for userId=${event.subject}",
+                    it,
+                )
+            }
     }
 
     override fun close() {
-        runCatching { if (channel.isOpen) channel.close() }.onFailure {
-            logger.warn(
-                "Failed to close RabbitMQ channel",
-                it
-            )
-        }
+        runCatching { if (channel.isOpen) channel.close() }
+            .onFailure { logger.warn("Failed to close RabbitMQ channel", it) }
     }
 }

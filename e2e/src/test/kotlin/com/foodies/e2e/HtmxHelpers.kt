@@ -5,4 +5,7 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.options.WaitForSelectorState
 
 fun Page.waitForHtmxIdle(): ElementHandle? =
-    waitForSelector(".htmx-request", Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN))
+    waitForSelector(
+        ".htmx-request",
+        Page.WaitForSelectorOptions().setState(WaitForSelectorState.HIDDEN),
+    )

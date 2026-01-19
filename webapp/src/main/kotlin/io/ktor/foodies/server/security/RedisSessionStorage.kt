@@ -7,7 +7,7 @@ import io.lettuce.core.api.coroutines.RedisCoroutinesCommands
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 class RedisSessionStorage(
     private val redis: RedisCoroutinesCommands<String, String>,
-    private val ttlSeconds: Long = 3600
+    private val ttlSeconds: Long = 3600,
 ) : SessionStorage {
 
     private fun sessionKey(id: String): String = "/session/$id"
