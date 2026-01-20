@@ -1,5 +1,14 @@
 # Guidelines
 
+## Issue tracking
+
+This project uses 'br' (rust beads) for task and issue tracking.
+
+When implementing always consult 'br', and try to break down your tasks.
+Keep your task as short as possible, and prefer creating new tasks in 'br' for follow-up work.
+
+When reviewing create issues using 'br' for any issues you find. 
+
 # Build with Gradle
 
 - Build any module `./gradlew :<module>:build`
