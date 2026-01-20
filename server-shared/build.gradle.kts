@@ -34,6 +34,7 @@ dependencies {
     api(libs.prometheus)
 
     testImplementation(project(":server-shared-test"))
+    testImplementation(ktorLibs.client.mock)
     testImplementation(ktorLibs.server.testHost)
     testImplementation(libs.testballoon)
 }
