@@ -16,8 +16,7 @@ When reviewing create issues using 'br' for any issues you find.
     - Test selection accepts the pipe | character to separate test elements:
       `./gradlew cleanJvmTest jvmTest --tests "com.example.TestSuite|inner suite|*" --no-build-cache`
 - Run `./gradlew publishImageToLocalRegistry` to publish images for local deployment
-- Always use Gradle's Version Catalog, never hardcode dependencies in build.gradle.kts
-- 
+
 # Code Style
 
 - No comments unless code is complex and requires context for future developers.
@@ -36,6 +35,3 @@ Everything runs in the foodies namespace:
 - Describe pod: `kubectl describe pod <pod-name> -n foodies`
 - Pod logs: `kubectl logs <pod-name> -n foodies`
 - Delete stuck pod: `kubectl delete pod <pod-name> -n foodies`
-
-## WebApp
- - If you get stuck with Playwright clear the USER_SESSION.
