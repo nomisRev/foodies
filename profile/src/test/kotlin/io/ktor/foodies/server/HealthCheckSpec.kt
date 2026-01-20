@@ -19,9 +19,9 @@ val healthCheckSpec by
 
         testProfileService("readiness probe checks database connectivity") {
             val response = client.get("/healthz/readiness")
-            assertEquals(HttpStatusCode.OK, response.status)
 
             eventually {
+                assertEquals(HttpStatusCode.OK, response.status)
                 val body = response.bodyAsText()
                 assertContains(body, "hikari_open_connections", ignoreCase = true)
             }
@@ -29,9 +29,9 @@ val healthCheckSpec by
 
         testProfileService("readiness probe checks database connectivity") {
             val response = client.get("/healthz/readiness")
-            assertEquals(HttpStatusCode.OK, response.status)
 
             eventually {
+                assertEquals(HttpStatusCode.OK, response.status)
                 val body = response.bodyAsText()
                 assertContains(body, "rabbitmq", ignoreCase = true)
             }
