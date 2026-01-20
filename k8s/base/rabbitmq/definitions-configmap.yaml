@@ -35,6 +35,11 @@ data:
           "name": "payment_service",
           "password": "JcFLK9E3SKhIOd92U88td2Aqww5T5m+QsHOucv0VRK8=",
           "tags": []
+        },
+        {
+          "name": "keycloak_service",
+          "password": "MeZZEYsAyI8Ft2k+lmSiVsway6Sj5TO7X2HbOfQfbQo=",
+          "tags": []
         }
       ],
       "vhosts": [
@@ -84,6 +89,13 @@ data:
           "configure": "payment\\.stock-confirmed",
           "write": "foodies\\.events",
           "read": "payment\\.stock-confirmed"
+        },
+        {
+          "user": "keycloak_service",
+          "vhost": "/",
+          "configure": "profile\\.registration",
+          "write": "profile\\.registration",
+          "read": ""
         }
       ],
       "policies": [],

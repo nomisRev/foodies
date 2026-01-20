@@ -64,6 +64,10 @@ secretGenerator:
     literals:
       - RABBITMQ_USERNAME=payment_service
       - RABBITMQ_PASSWORD=JcFLK9E3SKhIOd92U88td2Aqww5T5m+QsHOucv0VRK8=
+  - name: keycloak-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=keycloak_service
+      - RABBITMQ_PASSWORD=MeZZEYsAyI8Ft2k+lmSiVsway6Sj5TO7X2HbOfQfbQo=
   - name: webapp-auth
     literals:
       - AUTH_CLIENT_SECRET=foodies_client_secret
