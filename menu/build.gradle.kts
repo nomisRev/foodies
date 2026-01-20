@@ -28,6 +28,10 @@ dependencies {
 
     implementation(libs.serialization.json)
 
+    implementation(ktorLibs.server.auth)
+    implementation(ktorLibs.server.auth.jwt)
+    implementation(libs.javaJwt)
+
     implementation(project(":rabbitmq-ext"))
     implementation(libs.postgresql)
     implementation(libs.hikari)

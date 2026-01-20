@@ -19,6 +19,11 @@ import io.ktor.server.routing.routing
 import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.jwt.jwt
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
@@ -36,6 +41,30 @@ fun Application.app(module: MenuModule) {
     install(StatusPages) {
         exception<ValidationException> { call, cause ->
             call.respondText(cause.message, status = HttpStatusCode.BadRequest)
+        }
+    }
+
+    install(Authentication) {
+        jwt("auth-jwt") {
+            realm = "foodies-menu-service"
+            verifier(
+                // For now, a mocked verifier that always passes.
+                // In a real scenario, this would involve fetching the public key from the SAP.
+                JWT
+                    .require(Algorithm.HMAC256("super-secret-key-that-should-be-in-config")) // Replace with actual secret/public key
+                    .withAudience("menu-service") // Ensure token is for this service
+                    .build()
+            )
+            validate { credential ->
+                if (credential.payload.audience.contains("menu-service")) {
+                    JWTPrincipal(credential.payload)
+                } else {
+                    null
+                }
+            }
+            challenge { defaultScheme, realm ->
+                call.respondText("Token is not valid or has expired", status = HttpStatusCode.Unauthorized)
+            }
         }
     }
 
