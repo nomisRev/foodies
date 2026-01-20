@@ -15,9 +15,11 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 
-/** Extracts the buyer ID (subject claim) from the JWT principal. */
-private fun JWTPrincipal.buyerId(): String =
-    payload.subject ?: throw IllegalStateException("JWT subject claim is missing")
+/**
+ * Extracts the buyer ID (subject claim) from the JWT principal.
+ */
+private fun JWTPrincipal.buyerId(): String = payload.subject
+    ?: throw IllegalStateException("JWT subject claim is missing")
 
 fun Route.basketRoutes(basketService: BasketService) = authenticate {
     route("/basket") {

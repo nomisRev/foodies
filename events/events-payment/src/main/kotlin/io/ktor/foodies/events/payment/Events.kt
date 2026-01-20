@@ -14,7 +14,7 @@ data class OrderPaymentSucceededEvent(
     val transactionId: String,
     val amount: SerializableBigDecimal,
     val currency: String,
-    val processedAt: Instant,
+    val processedAt: Instant
 ) : HasRoutingKey {
     override val key: String = "payment.succeeded"
 }
@@ -25,7 +25,7 @@ data class OrderPaymentFailedEvent(
     val orderId: Long,
     val failureReason: String,
     val failureCode: PaymentFailureCode,
-    val occurredAt: Instant,
+    val occurredAt: Instant
 ) : HasRoutingKey {
     override val key: String = "payment.failed"
 }

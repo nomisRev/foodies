@@ -3,15 +3,16 @@ package io.ktor.foodies.basket
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.events.order.OrderCreatedEvent
 import io.ktor.foodies.events.order.OrderItemSnapshot
+import kotlin.time.Instant
 import java.math.BigDecimal
 import kotlin.test.assertNull
-import kotlin.time.Instant
 
-/** A test Message implementation that doesn't require RabbitMQ infrastructure. */
+/**
+ * A test Message implementation that doesn't require RabbitMQ infrastructure.
+ */
 private class TestMessage<A>(override val value: A) : MessageLike<A> {
     var acknowledged = false
         private set
-
     var negativeAcknowledged = false
         private set
 
@@ -34,41 +35,37 @@ val orderCreatedEventHandlerSpec by testSuite {
 
         // Setup: Create a basket with items
         val buyerId = "user-123"
-        val basket =
-            CustomerBasket(
-                buyerId = buyerId,
-                items =
-                    listOf(
-                        BasketItem(
-                            id = "item-1",
-                            menuItemId = 1L,
-                            menuItemName = "Pizza",
-                            menuItemDescription = "Delicious",
-                            menuItemImageUrl = "https://example.com/pizza.jpg",
-                            unitPrice = BigDecimal("10.00"),
-                            quantity = 2,
-                        )
-                    ),
+        val basket = CustomerBasket(
+            buyerId = buyerId,
+            items = listOf(
+                BasketItem(
+                    id = "item-1",
+                    menuItemId = 1L,
+                    menuItemName = "Pizza",
+                    menuItemDescription = "Delicious",
+                    menuItemImageUrl = "https://example.com/pizza.jpg",
+                    unitPrice = BigDecimal("10.00"),
+                    quantity = 2
+                )
             )
+        )
         repository.updateBasket(basket)
 
         // Create the event
-        val event =
-            OrderCreatedEvent(
-                orderId = 456L,
-                buyerId = buyerId,
-                items =
-                    listOf(
-                        OrderItemSnapshot(
-                            menuItemId = 1L,
-                            quantity = 2,
-                            unitPrice = BigDecimal("10.00"),
-                        )
-                    ),
-                totalPrice = BigDecimal("20.00"),
-                currency = "USD",
-                createdAt = Instant.parse("2025-01-11T10:00:00Z"),
-            )
+        val event = OrderCreatedEvent(
+            orderId = 456L,
+            buyerId = buyerId,
+            items = listOf(
+                OrderItemSnapshot(
+                    menuItemId = 1L,
+                    quantity = 2,
+                    unitPrice = BigDecimal("10.00")
+                )
+            ),
+            totalPrice = BigDecimal("20.00"),
+            currency = "USD",
+            createdAt = Instant.parse("2025-01-11T10:00:00Z")
+        )
 
         // Process the event directly (simulating what the consumer does)
         repository.deleteBasket(event.buyerId)
@@ -83,15 +80,14 @@ val orderCreatedEventHandlerSpec by testSuite {
         val buyerId = "user-without-basket"
 
         // Create the event for a user without a basket
-        val event =
-            OrderCreatedEvent(
-                orderId = 789L,
-                buyerId = buyerId,
-                items = emptyList(),
-                totalPrice = BigDecimal("0.00"),
-                currency = "USD",
-                createdAt = Instant.parse("2025-01-11T10:00:00Z"),
-            )
+        val event = OrderCreatedEvent(
+            orderId = 789L,
+            buyerId = buyerId,
+            items = emptyList(),
+            totalPrice = BigDecimal("0.00"),
+            currency = "USD",
+            createdAt = Instant.parse("2025-01-11T10:00:00Z")
+        )
 
         // Process the event - should not throw
         repository.deleteBasket(event.buyerId)
@@ -111,56 +107,52 @@ val orderCreatedEventHandlerSpec by testSuite {
         repository.updateBasket(
             CustomerBasket(
                 buyerId = buyer1,
-                items =
-                    listOf(
-                        BasketItem(
-                            id = "item-1",
-                            menuItemId = 1L,
-                            menuItemName = "Pizza",
-                            menuItemDescription = "Delicious",
-                            menuItemImageUrl = "https://example.com/pizza.jpg",
-                            unitPrice = BigDecimal("10.00"),
-                            quantity = 1,
-                        )
-                    ),
+                items = listOf(
+                    BasketItem(
+                        id = "item-1",
+                        menuItemId = 1L,
+                        menuItemName = "Pizza",
+                        menuItemDescription = "Delicious",
+                        menuItemImageUrl = "https://example.com/pizza.jpg",
+                        unitPrice = BigDecimal("10.00"),
+                        quantity = 1
+                    )
+                )
             )
         )
 
         repository.updateBasket(
             CustomerBasket(
                 buyerId = buyer2,
-                items =
-                    listOf(
-                        BasketItem(
-                            id = "item-2",
-                            menuItemId = 2L,
-                            menuItemName = "Pasta",
-                            menuItemDescription = "Creamy",
-                            menuItemImageUrl = "https://example.com/pasta.jpg",
-                            unitPrice = BigDecimal("8.00"),
-                            quantity = 2,
-                        )
-                    ),
+                items = listOf(
+                    BasketItem(
+                        id = "item-2",
+                        menuItemId = 2L,
+                        menuItemName = "Pasta",
+                        menuItemDescription = "Creamy",
+                        menuItemImageUrl = "https://example.com/pasta.jpg",
+                        unitPrice = BigDecimal("8.00"),
+                        quantity = 2
+                    )
+                )
             )
         )
 
         // Create event for buyer1 only
-        val event =
-            OrderCreatedEvent(
-                orderId = 123L,
-                buyerId = buyer1,
-                items =
-                    listOf(
-                        OrderItemSnapshot(
-                            menuItemId = 1L,
-                            quantity = 1,
-                            unitPrice = BigDecimal("10.00"),
-                        )
-                    ),
-                totalPrice = BigDecimal("10.00"),
-                currency = "USD",
-                createdAt = Instant.parse("2025-01-11T10:00:00Z"),
-            )
+        val event = OrderCreatedEvent(
+            orderId = 123L,
+            buyerId = buyer1,
+            items = listOf(
+                OrderItemSnapshot(
+                    menuItemId = 1L,
+                    quantity = 1,
+                    unitPrice = BigDecimal("10.00")
+                )
+            ),
+            totalPrice = BigDecimal("10.00"),
+            currency = "USD",
+            createdAt = Instant.parse("2025-01-11T10:00:00Z")
+        )
 
         // Process the event
         repository.deleteBasket(event.buyerId)

@@ -16,16 +16,16 @@ import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
+import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
-            val (_, openTelemetry) = monitoring(config.telemetry)
-            app(module(config, openTelemetry))
-        }
-        .start(wait = true)
+        val (_, openTelemetry) = monitoring(config.telemetry)
+        app(module(config, openTelemetry))
+    }.start(wait = true)
 }
 
 fun Application.app(module: MenuModule) {
@@ -46,5 +46,7 @@ fun Application.app(module: MenuModule) {
         healthcheck("/healthz/readiness", module.readinessCheck)
     }
 
-    routing { menuRoutes(module.menuService) }
+    routing {
+        menuRoutes(module.menuService)
+    }
 }

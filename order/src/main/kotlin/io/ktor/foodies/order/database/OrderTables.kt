@@ -3,8 +3,8 @@ package io.ktor.foodies.order.database
 import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.events.order.OrderStatus
 import org.jetbrains.exposed.v1.core.*
-import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.core.dao.id.LongIdTable
+import org.jetbrains.exposed.v1.core.ReferenceOption
 import org.jetbrains.exposed.v1.datetime.CurrentTimestamp
 import org.jetbrains.exposed.v1.datetime.timestamp
 

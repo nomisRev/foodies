@@ -12,7 +12,8 @@ data class Config(
     @SerialName("data_source") val dataSource: DataSource.Config,
     val rabbit: RabbitConfig,
     val telemetry: MonitoringConfig,
-) {}
+) {
+}
 
 @Serializable
 data class RabbitConfig(

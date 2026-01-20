@@ -6,7 +6,8 @@ import java.nio.file.Paths
 /**
  * Test configuration that can be customized via command-line arguments or environment variables.
  *
- * Usage: ./gradlew :e2e:test --args="--webappBaseUrl=http://localhost:8080 --headless=false"
+ * Usage:
+ *   ./gradlew :e2e:test --args="--webappBaseUrl=http://localhost:8080 --headless=false"
  */
 data class E2EConfig(
     val storageStatePath: Path = Paths.get("build/playwright/.auth/user.json"),
@@ -17,7 +18,7 @@ data class E2EConfig(
     val headless: Boolean = false,
     val slowMo: Int = 0,
     val defaultTimeout: Int = 30_000, // 30 seconds
-    val navigationTimeout: Int = 60_000, // 60 seconds
+    val navigationTimeout: Int = 60_000 // 60 seconds
 ) {
     companion object {
         fun fromEnvironment(): E2EConfig {
@@ -28,7 +29,7 @@ data class E2EConfig(
                 testUsername = System.getenv("TEST_USERNAME") ?: "food_lover@gmail.com",
                 testPassword = System.getenv("TEST_PASSWORD") ?: "password",
                 headless = System.getenv("HEADLESS")?.toBoolean() ?: false,
-                slowMo = System.getenv("SLOW_MO")?.toIntOrNull() ?: 0,
+                slowMo = System.getenv("SLOW_MO")?.toIntOrNull() ?: 0
             )
         }
     }

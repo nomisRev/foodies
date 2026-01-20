@@ -18,11 +18,20 @@ data class Config(
     val telemetry: Telemetry,
 )
 
-@Serializable data class OrderConfig(val gracePeriodSeconds: Int)
+@Serializable
+data class OrderConfig(
+    val gracePeriodSeconds: Int,
+)
 
-@Serializable data class BasketServiceConfig(val baseUrl: String)
+@Serializable
+data class BasketServiceConfig(
+    val baseUrl: String,
+)
 
-@Serializable data class PaymentServiceConfig(val baseUrl: String)
+@Serializable
+data class PaymentServiceConfig(
+    val baseUrl: String,
+)
 
 @Serializable
 data class RabbitConfig(
@@ -34,4 +43,7 @@ data class RabbitConfig(
     val routingKey: String,
 )
 
-@Serializable data class Telemetry(@SerialName("otlp_endpoint") val otlpEndpoint: String)
+@Serializable
+data class Telemetry(
+    @SerialName("otlp_endpoint") val otlpEndpoint: String,
+)

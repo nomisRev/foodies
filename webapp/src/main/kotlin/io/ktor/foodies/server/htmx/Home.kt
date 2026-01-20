@@ -8,6 +8,7 @@ import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.sessions.get
+import io.ktor.server.sessions.sessions
 import kotlinx.html.FlowContent
 import kotlinx.html.a
 import kotlinx.html.body
@@ -28,75 +29,73 @@ import kotlinx.html.title
 const val DefaultMenuPageSize = 12
 const val MenuIntersectTrigger = "intersect once rootMargin: 800px"
 
-fun Route.home() =
-    authenticate(optional = true) {
-        get("/") {
-            val userOrNull = call.principal<UserSession>()
-            val isLoggedIn = userOrNull != null
+fun Route.home() = authenticate(optional = true) {
+    get("/") {
+        val userOrNull = call.principal<UserSession>()
+        val isLoggedIn = userOrNull != null
 
-            call.respondHtml(HttpStatusCode.OK) {
-                lang = "en"
+        call.respondHtml(HttpStatusCode.OK) {
+            lang = "en"
 
-                head {
-                    meta { charset = "utf-8" }
-                    meta {
-                        name = "viewport"
-                        content = "width=device-width, initial-scale=1"
+            head {
+                meta { charset = "utf-8" }
+                meta { name = "viewport"; content = "width=device-width, initial-scale=1" }
+                title { +"Foodies - Discover the menu" }
+                link(rel = "stylesheet", href = "/static/home.css")
+                script(src = "https://unpkg.com/htmx.org@1.9.12") {}
+                script(src = "https://unpkg.com/htmx-ext-intersect@2.0.0/intersect.js") {}
+            }
+
+            body {
+                attributes["hx-ext"] = "intersect"
+                header {
+                    a(href = "/", classes = "logo") { +"Foodies" }
+                    div(classes = "actions") {
+                        cartBadgeLink()
+                        if (isLoggedIn) {
+                            a(href = "/logout", classes = "button secondary") { +"Log out" }
+                        } else {
+                            a(href = "/login", classes = "button primary") { +"Log in" }
+                        }
                     }
-                    title { +"Foodies - Discover the menu" }
-                    link(rel = "stylesheet", href = "/static/home.css")
-                    script(src = "https://unpkg.com/htmx.org@1.9.12") {}
-                    script(src = "https://unpkg.com/htmx-ext-intersect@2.0.0/intersect.js") {}
                 }
 
-                body {
-                    attributes["hx-ext"] = "intersect"
-                    header {
-                        a(href = "/", classes = "logo") { +"Foodies" }
-                        div(classes = "actions") {
-                            cartBadgeLink()
-                            if (isLoggedIn) {
-                                a(href = "/logout", classes = "button secondary") { +"Log out" }
-                            } else {
-                                a(href = "/login", classes = "button primary") { +"Log in" }
+                main {
+                    section(classes = "hero") {
+                        h1 { +"Your favorite dishes, one click away." }
+
+
+                        div(classes = "menu-grid") {
+                            id = "menu-feed"
+
+                            div(classes = "sentinel") {
+                                id = "feed-sentinel"
+                                attributes["hx-get"] = "/menu?offset=0&limit=$DefaultMenuPageSize"
+                                attributes["hx-trigger"] = MenuIntersectTrigger
+                                attributes["hx-swap"] = "outerHTML"
+                                attributes["hx-indicator"] = "#feed-spinner"
+                                span { +"Loading menu..." }
                             }
                         }
-                    }
 
-                    main {
-                        section(classes = "hero") {
-                            h1 { +"Your favorite dishes, one click away." }
-
-                            div(classes = "menu-grid") {
-                                id = "menu-feed"
-
-                                div(classes = "sentinel") {
-                                    id = "feed-sentinel"
-                                    attributes["hx-get"] =
-                                        "/menu?offset=0&limit=$DefaultMenuPageSize"
-                                    attributes["hx-trigger"] = MenuIntersectTrigger
-                                    attributes["hx-swap"] = "outerHTML"
-                                    attributes["hx-indicator"] = "#feed-spinner"
-                                    span { +"Loading menu..." }
-                                }
+                        div(classes = "feed-status") {
+                            span {
+                                id = "feed-status"
+                                attributes["role"] = "status"
+                                attributes["aria-live"] = "polite"
                             }
-
-                            div(classes = "feed-status") {
-                                span {
-                                    id = "feed-status"
-                                    attributes["role"] = "status"
-                                    attributes["aria-live"] = "polite"
-                                }
-                                div(classes = "spinner htmx-indicator") { id = "feed-spinner" }
-                            }
+                            div(classes = "spinner htmx-indicator") { id = "feed-spinner" }
                         }
                     }
+                }
 
-                    div(classes = "toast-container") { div { id = "toast" } }
+                div(classes = "toast-container") {
+                    div { id = "toast" }
                 }
             }
         }
     }
+}
 
 fun FlowContent.cartBadgeLink() {
     a(href = "/cart", classes = "cart-link") {

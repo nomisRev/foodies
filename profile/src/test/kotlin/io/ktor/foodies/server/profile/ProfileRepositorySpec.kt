@@ -11,14 +11,12 @@ val profileRepositorySpec by testSuite {
     val repository = testFixture { ExposedProfileRepository(dataSource().database) }
 
     test("insertOrIgnore inserts a new profile and returns its id") {
-        val id =
-            repository()
-                .insertOrIgnore(
-                    subject = "profile-insert",
-                    email = "insert@example.com",
-                    firstName = "Insert",
-                    lastName = "Test",
-                )
+        val id = repository().insertOrIgnore(
+            subject = "profile-insert",
+            email = "insert@example.com",
+            firstName = "Insert",
+            lastName = "Test",
+        )
 
         val profile = repository().findBySubject("profile-insert")
 
@@ -30,48 +28,42 @@ val profileRepositorySpec by testSuite {
                 firstName = "Insert",
                 lastName = "Test",
             ),
-            profile,
+            profile
         )
     }
 
     test("insertOrIgnore returns null for duplicate subjects") {
-        repository()
-            .insertOrIgnore(
-                subject = "duplicate-subject",
-                email = "first@example.com",
-                firstName = "First",
-                lastName = "User",
-            )
+        repository().insertOrIgnore(
+            subject = "duplicate-subject",
+            email = "first@example.com",
+            firstName = "First",
+            lastName = "User",
+        )
 
-        val secondId =
-            repository()
-                .insertOrIgnore(
-                    subject = "duplicate-subject",
-                    email = "second@example.com",
-                    firstName = "Second",
-                    lastName = "User",
-                )
+        val secondId = repository().insertOrIgnore(
+            subject = "duplicate-subject",
+            email = "second@example.com",
+            firstName = "Second",
+            lastName = "User",
+        )
 
         assertNull(secondId)
     }
 
     test("insertOrIgnore keeps the original profile data when ignoring duplicates") {
-        val firstId =
-            repository()
-                .insertOrIgnore(
-                    subject = "duplicate-subject-data",
-                    email = "first@example.com",
-                    firstName = "First",
-                    lastName = "User",
-                )
+        val firstId = repository().insertOrIgnore(
+            subject = "duplicate-subject-data",
+            email = "first@example.com",
+            firstName = "First",
+            lastName = "User",
+        )
 
-        repository()
-            .insertOrIgnore(
-                subject = "duplicate-subject-data",
-                email = "second@example.com",
-                firstName = "Second",
-                lastName = "User",
-            )
+        repository().insertOrIgnore(
+            subject = "duplicate-subject-data",
+            email = "second@example.com",
+            firstName = "Second",
+            lastName = "User",
+        )
 
         val profile = repository().findBySubject("duplicate-subject-data")
 
@@ -83,18 +75,17 @@ val profileRepositorySpec by testSuite {
                 firstName = "First",
                 lastName = "User",
             ),
-            profile,
+            profile
         )
     }
 
     test("upsert inserts a new profile") {
-        repository()
-            .upsert(
-                subject = "profile-upsert-insert",
-                email = "upsert-insert@example.com",
-                firstName = "UpsertInsert",
-                lastName = "Test",
-            )
+        repository().upsert(
+            subject = "profile-upsert-insert",
+            email = "upsert-insert@example.com",
+            firstName = "UpsertInsert",
+            lastName = "Test",
+        )
 
         val profile = repository().findBySubject("profile-upsert-insert")
         assertEquals("profile-upsert-insert", profile?.subject)
@@ -105,21 +96,19 @@ val profileRepositorySpec by testSuite {
 
     test("upsert updates an existing profile") {
         val subject = "updatable-subject"
-        repository()
-            .insertOrIgnore(
-                subject = subject,
-                email = "old@example.com",
-                firstName = "Old",
-                lastName = "Name",
-            )
+        repository().insertOrIgnore(
+            subject = subject,
+            email = "old@example.com",
+            firstName = "Old",
+            lastName = "Name",
+        )
 
-        repository()
-            .upsert(
-                subject = subject,
-                email = "new@example.com",
-                firstName = "New",
-                lastName = "Name",
-            )
+        repository().upsert(
+            subject = subject,
+            email = "new@example.com",
+            firstName = "New",
+            lastName = "Name",
+        )
 
         val profile = repository().findBySubject(subject)
 
@@ -131,7 +120,7 @@ val profileRepositorySpec by testSuite {
                 firstName = "New",
                 lastName = "Name",
             ),
-            profile,
+            profile
         )
     }
 
@@ -142,13 +131,12 @@ val profileRepositorySpec by testSuite {
 
     test("deleteBySubject removes an existing profile") {
         val subject = "deletable-subject"
-        repository()
-            .insertOrIgnore(
-                subject = subject,
-                email = "delete@example.com",
-                firstName = "Delete",
-                lastName = "Me",
-            )
+        repository().insertOrIgnore(
+            subject = subject,
+            email = "delete@example.com",
+            firstName = "Delete",
+            lastName = "Me",
+        )
 
         val deleted = repository().deleteBySubject(subject)
         val profile = repository().findBySubject(subject)

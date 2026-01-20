@@ -8,12 +8,12 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 enum class OrderStatus {
-    Submitted, // Initial state after order creation
-    AwaitingValidation, // Grace period ended, awaiting stock validation
-    StockConfirmed, // Menu service confirmed item availability
-    Paid, // Payment confirmed
-    Shipped, // Order shipped to customer
-    Cancelled, // Order cancelled (by user, stock rejection, or payment failure)
+    Submitted,              // Initial state after order creation
+    AwaitingValidation,     // Grace period ended, awaiting stock validation
+    StockConfirmed,         // Menu service confirmed item availability
+    Paid,                   // Payment confirmed
+    Shipped,                // Order shipped to customer
+    Cancelled               // Order cancelled (by user, stock rejection, or payment failure)
 }
 
 @Serializable
@@ -23,7 +23,7 @@ data class OrderCreatedEvent(
     val items: List<OrderItemSnapshot>,
     val totalPrice: SerializableBigDecimal,
     val currency: String,
-    val createdAt: Instant,
+    val createdAt: Instant
 ) : HasRoutingKey {
     override val key: String = "order.created"
 }
@@ -32,7 +32,7 @@ data class OrderCreatedEvent(
 data class OrderItemSnapshot(
     val menuItemId: Long,
     val quantity: Int,
-    val unitPrice: SerializableBigDecimal,
+    val unitPrice: SerializableBigDecimal
 )
 
 @Serializable
@@ -69,12 +69,18 @@ data class OrderAwaitingValidationEvent(
 }
 
 @Serializable
-data class StockReturnedEvent(val orderId: Long, val items: List<StockValidationItem>) :
-    HasRoutingKey {
+data class StockReturnedEvent(
+    val orderId: Long,
+    val items: List<StockValidationItem>,
+) : HasRoutingKey {
     override val key: String = "order.stock-returned"
 }
 
-@Serializable data class StockValidationItem(val menuItemId: Long, val quantity: Int)
+@Serializable
+data class StockValidationItem(
+    val menuItemId: Long,
+    val quantity: Int,
+)
 
 @Serializable
 data class OrderStockConfirmedEvent(
@@ -84,7 +90,7 @@ data class OrderStockConfirmedEvent(
     val totalAmount: SerializableBigDecimal,
     val currency: String,
     val paymentMethod: PaymentMethodInfo,
-    val occurredAt: Instant,
+    val occurredAt: Instant
 ) : HasRoutingKey {
     override val key: String = "order.stock-confirmed"
 }

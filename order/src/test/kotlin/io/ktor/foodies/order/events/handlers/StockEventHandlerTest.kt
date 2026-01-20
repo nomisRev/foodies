@@ -5,9 +5,9 @@ import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.events.menu.RejectedItem
 import io.ktor.foodies.events.menu.StockConfirmedEvent
 import io.ktor.foodies.events.menu.StockRejectedEvent
-import io.ktor.foodies.events.order.*
 import io.ktor.foodies.order.createTestContext
 import io.ktor.foodies.order.domain.*
+import io.ktor.foodies.events.order.*
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.time.Instant
@@ -38,7 +38,7 @@ val stockEventHandlerSpec by testSuite {
             StockRejectedEvent(
                 orderId = order.id,
                 rejectedItems = listOf(RejectedItem(1, "Burger", 2, 0)),
-                rejectedAt = Instant.fromEpochMilliseconds(0),
+                rejectedAt = Instant.fromEpochMilliseconds(0)
             )
         )
 
@@ -60,7 +60,7 @@ val stockEventHandlerSpec by testSuite {
             StockRejectedEvent(
                 orderId = order.id,
                 rejectedItems = listOf(RejectedItem(1, "Burger", 2, 1)),
-                rejectedAt = Instant.fromEpochMilliseconds(0),
+                rejectedAt = Instant.fromEpochMilliseconds(0)
             )
         )
 
@@ -69,31 +69,27 @@ val stockEventHandlerSpec by testSuite {
         assertEquals(1, updatedOrder?.items?.size)
         assertEquals(1, updatedOrder?.items?.first()?.quantity)
         assertEquals(BigDecimal.TEN.setScale(2), updatedOrder?.totalPrice?.setScale(2))
-        assertEquals(
-            "Order partially fulfilled due to stock availability",
-            updatedOrder?.description,
-        )
+        assertEquals("Order partially fulfilled due to stock availability", updatedOrder?.description)
 
         val statusEvent = ctx.eventPublisher.statusChangedEvents.last()
         assertEquals(OrderStatus.StockConfirmed, statusEvent.newStatus)
     }
 }
 
-private fun createOrder(status: OrderStatus) =
-    Order(
-        id = 1,
-        requestId = "req-1",
-        buyerId = "user-1",
-        buyerEmail = "user@test.com",
-        buyerName = "User",
-        status = status,
-        deliveryAddress = Address("S", "C", "S", "C", "Z"),
-        items = listOf(OrderItem(1, 1, "Burger", "url", BigDecimal.TEN, 2, BigDecimal.ZERO)),
-        paymentMethod = PaymentMethod(1, CardBrand.VISA, "User", "1234", 12, 2030),
-        totalPrice = BigDecimal.valueOf(20),
-        currency = "USD",
-        description = null,
-        history = emptyList(),
-        createdAt = Instant.fromEpochMilliseconds(0),
-        updatedAt = Instant.fromEpochMilliseconds(0),
-    )
+private fun createOrder(status: OrderStatus) = Order(
+    id = 1,
+    requestId = "req-1",
+    buyerId = "user-1",
+    buyerEmail = "user@test.com",
+    buyerName = "User",
+    status = status,
+    deliveryAddress = Address("S", "C", "S", "C", "Z"),
+    items = listOf(OrderItem(1, 1, "Burger", "url", BigDecimal.TEN, 2, BigDecimal.ZERO)),
+    paymentMethod = PaymentMethod(1, CardBrand.VISA, "User", "1234", 12, 2030),
+    totalPrice = BigDecimal.valueOf(20),
+    currency = "USD",
+    description = null,
+    history = emptyList(),
+    createdAt = Instant.fromEpochMilliseconds(0),
+    updatedAt = Instant.fromEpochMilliseconds(0)
+)

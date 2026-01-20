@@ -9,12 +9,12 @@ import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.subscribe
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.rabbitContainer
+import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.Json
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
-import kotlinx.coroutines.flow.first
-import kotlinx.serialization.json.Json
 
 val orderEventPublisherSpec by testSuite {
     val rabbit = testFixture { rabbitContainer()().connectionFactory() }
@@ -22,15 +22,14 @@ val orderEventPublisherSpec by testSuite {
     test("publish OrderCreatedEvent - successfully publishes message to RabbitMQ") {
         val exchangeName = "order.test.exchange"
         val queueName = "order.test.queue.created"
-        val event =
-            OrderCreatedEvent(
-                orderId = 1L,
-                buyerId = "user-1",
-                items = listOf(OrderItemSnapshot(1L, 2, BigDecimal.TEN)),
-                totalPrice = BigDecimal("20.00"),
-                currency = "USD",
-                createdAt = Instant.parse("2026-01-17T23:54:00Z"),
-            )
+        val event = OrderCreatedEvent(
+            orderId = 1L,
+            buyerId = "user-1",
+            items = listOf(OrderItemSnapshot(1L, 2, BigDecimal.TEN)),
+            totalPrice = BigDecimal("20.00"),
+            currency = "USD",
+            createdAt = Instant.parse("2026-01-17T23:54:00Z")
+        )
 
         rabbit().channel { channel ->
             channel.exchangeDeclare(exchangeName, "topic", true)
@@ -47,10 +46,7 @@ val orderEventPublisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message =
-                RabbitMQSubscriber(connection, exchangeName)
-                    .subscribe<OrderCreatedEvent>(queueName)
-                    .first()
+            val message = RabbitMQSubscriber(connection, exchangeName).subscribe<OrderCreatedEvent>(queueName).first()
             assertEquals(1L, message.value.orderId)
             assertEquals("order.created", event.key)
             message.ack()
@@ -60,13 +56,12 @@ val orderEventPublisherSpec by testSuite {
     test("publish OrderCancelledEvent - successfully publishes message to RabbitMQ") {
         val exchangeName = "order.test.exchange"
         val queueName = "order.test.queue.cancelled"
-        val event =
-            OrderCancelledEvent(
-                orderId = 1L,
-                buyerId = "user-1",
-                reason = "Customer changed mind",
-                cancelledAt = Instant.parse("2026-01-17T23:55:00Z"),
-            )
+        val event = OrderCancelledEvent(
+            orderId = 1L,
+            buyerId = "user-1",
+            reason = "Customer changed mind",
+            cancelledAt = Instant.parse("2026-01-17T23:55:00Z")
+        )
 
         rabbit().channel { channel ->
             channel.exchangeDeclare(exchangeName, "topic", true)
@@ -83,10 +78,7 @@ val orderEventPublisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message =
-                RabbitMQSubscriber(connection, exchangeName)
-                    .subscribe<OrderCancelledEvent>(queueName)
-                    .first()
+            val message = RabbitMQSubscriber(connection, exchangeName).subscribe<OrderCancelledEvent>(queueName).first()
             assertEquals(1L, message.value.orderId)
             assertEquals("order.cancelled", event.key)
             message.ack()
@@ -96,8 +88,10 @@ val orderEventPublisherSpec by testSuite {
     test("publish GracePeriodExpiredEvent - successfully publishes message to RabbitMQ") {
         val exchangeName = "order.test.exchange"
         val queueName = "order.test.queue.grace-period"
-        val event =
-            GracePeriodExpiredEvent(orderId = 1L, expiredAt = Instant.parse("2026-01-17T23:55:00Z"))
+        val event = GracePeriodExpiredEvent(
+            orderId = 1L,
+            expiredAt = Instant.parse("2026-01-17T23:55:00Z")
+        )
 
         rabbit().channel { channel ->
             channel.exchangeDeclare(exchangeName, "topic", true)
@@ -114,10 +108,7 @@ val orderEventPublisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message =
-                RabbitMQSubscriber(connection, exchangeName)
-                    .subscribe<GracePeriodExpiredEvent>(queueName)
-                    .first()
+            val message = RabbitMQSubscriber(connection, exchangeName).subscribe<GracePeriodExpiredEvent>(queueName).first()
             assertEquals(1L, message.value.orderId)
             assertEquals("order.grace-period.expired", event.key)
             message.ack()

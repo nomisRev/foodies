@@ -7,24 +7,19 @@ import io.ktor.foodies.order.domain.PaginatedOrders
 
 interface OrderRepository {
     fun findById(id: Long): Order?
-
     fun findByRequestId(requestId: String): Order?
-
     fun findByBuyerId(
         buyerId: String,
         offset: Long,
         limit: Int,
-        status: OrderStatus? = null,
+        status: OrderStatus? = null
     ): PaginatedOrders
-
     fun findAll(
         offset: Long,
         limit: Int,
         status: OrderStatus? = null,
-        buyerId: String? = null,
+        buyerId: String? = null
     ): PaginatedOrders
-
     fun create(order: CreateOrder): Order
-
     fun update(order: Order): Order
 }

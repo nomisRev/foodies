@@ -4,7 +4,6 @@ plugins {
 }
 
 application { mainClass = "io.ktor.foodies.basket.AppKt" }
-
 version = "0.0.6"
 
 ktor {
@@ -49,3 +48,4 @@ dependencies {
     testImplementation(libs.testcontainers.redis)
     testImplementation(libs.kotlinx.coroutines.reactor)
 }
+

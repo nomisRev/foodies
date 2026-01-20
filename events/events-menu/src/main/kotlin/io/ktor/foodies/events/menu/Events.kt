@@ -1,11 +1,14 @@
 package io.ktor.foodies.events.menu
 
 import io.ktor.foodies.rabbitmq.HasRoutingKey
-import kotlin.time.Instant
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
 @Serializable
-data class StockConfirmedEvent(val orderId: Long, val confirmedAt: Instant) : HasRoutingKey {
+data class StockConfirmedEvent(
+    val orderId: Long,
+    val confirmedAt: Instant,
+) : HasRoutingKey {
     override val key: String = "stock.confirmed"
 }
 

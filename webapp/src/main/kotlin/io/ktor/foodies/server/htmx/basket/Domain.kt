@@ -4,7 +4,10 @@ import io.ktor.foodies.server.SerializableBigDecimal
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class CustomerBasket(val buyerId: String, val items: List<BasketItem> = emptyList())
+data class CustomerBasket(
+    val buyerId: String,
+    val items: List<BasketItem> = emptyList()
+)
 
 @Serializable
 data class BasketItem(
@@ -14,9 +17,14 @@ data class BasketItem(
     val menuItemDescription: String,
     val menuItemImageUrl: String,
     val unitPrice: SerializableBigDecimal,
-    val quantity: Int,
+    val quantity: Int
 )
 
-@Serializable data class AddItemRequest(val menuItemId: Long, val quantity: Int)
+@Serializable
+data class AddItemRequest(
+    val menuItemId: Long,
+    val quantity: Int
+)
 
-@Serializable data class UpdateQuantityRequest(val quantity: Int)
+@Serializable
+data class UpdateQuantityRequest(val quantity: Int)

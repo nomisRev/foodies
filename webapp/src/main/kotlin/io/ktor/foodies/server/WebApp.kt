@@ -22,10 +22,9 @@ import kotlinx.coroutines.Dispatchers
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
-            val (_, openTelemetry) = monitoring(config.telemetry)
-            app(config, module(config, openTelemetry))
-        }
-        .start(wait = true)
+        val (_, openTelemetry) = monitoring(config.telemetry)
+        app(config, module(config, openTelemetry))
+    }.start(wait = true)
 }
 
 suspend fun Application.app(config: Config, module: WebAppModule) {

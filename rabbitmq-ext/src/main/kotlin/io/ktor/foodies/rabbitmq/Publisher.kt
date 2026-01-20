@@ -18,10 +18,8 @@ interface Publisher {
     )
 }
 
-inline fun <reified A : HasRoutingKey> Publisher.publish(
-    message: A,
-    props: AMQP.BasicProperties? = null,
-) = publish(serializer<A>(), message, props)
+inline fun <reified A : HasRoutingKey> Publisher.publish(message: A, props: AMQP.BasicProperties? = null) =
+    publish(serializer<A>(), message, props)
 
 fun Publisher(channel: Channel, exchange: String, format: StringFormat): Publisher =
     PublisherImpl(channel, exchange, format)
@@ -29,12 +27,12 @@ fun Publisher(channel: Channel, exchange: String, format: StringFormat): Publish
 private class PublisherImpl(
     private val channel: Channel,
     private val exchange: String,
-    private val format: StringFormat,
+    private val format: StringFormat
 ) : Publisher {
     override fun <A : HasRoutingKey> publish(
         serializer: KSerializer<A>,
         message: A,
-        props: AMQP.BasicProperties?,
+        props: AMQP.BasicProperties?
     ) {
         val json = format.encodeToString(serializer, message)
         channel.basicPublish(exchange, message.key, props, json.toByteArray())

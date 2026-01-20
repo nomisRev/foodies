@@ -4,7 +4,6 @@ plugins {
 }
 
 application { mainClass = "io.ktor.foodies.server.AppKt" }
-
 version = "0.0.4"
 
 ktor {
@@ -37,3 +36,4 @@ dependencies {
     testImplementation(libs.testcontainers.rabbitmq)
     testImplementation(libs.testcontainers.postgresql)
 }
+

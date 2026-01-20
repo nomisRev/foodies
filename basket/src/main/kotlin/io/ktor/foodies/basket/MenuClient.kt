@@ -7,8 +7,11 @@ import io.ktor.client.request.get
 import io.ktor.foodies.server.SerializableBigDecimal
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
+import kotlin.time.Instant
 
-/** Menu item data from the Menu service. */
+/**
+ * Menu item data from the Menu service.
+ */
 @Serializable
 data class MenuItem(
     val id: Long,
@@ -16,16 +19,23 @@ data class MenuItem(
     val description: String,
     val imageUrl: String,
     val price: SerializableBigDecimal,
-    val stock: Int,
+    val stock: Int
 )
 
-/** Client interface for the Menu service. */
+/**
+ * Client interface for the Menu service.
+ */
 interface MenuClient {
     suspend fun getMenuItem(id: Long): MenuItem?
 }
 
-/** HTTP-based implementation of MenuClient. */
-class HttpMenuClient(private val httpClient: HttpClient, private val baseUrl: String) : MenuClient {
+/**
+ * HTTP-based implementation of MenuClient.
+ */
+class HttpMenuClient(
+    private val httpClient: HttpClient,
+    private val baseUrl: String
+) : MenuClient {
 
     private val menuBaseUrl = baseUrl.trimEnd('/')
 
@@ -33,14 +43,18 @@ class HttpMenuClient(private val httpClient: HttpClient, private val baseUrl: St
         return try {
             httpClient.get("$menuBaseUrl/menu/$id").body<MenuItem>()
         } catch (e: ClientRequestException) {
-            if (e.response.status == HttpStatusCode.NotFound) null else throw e
+            if (e.response.status == HttpStatusCode.NotFound) null
+            else throw e
         }
     }
 }
 
-/** In-memory implementation for testing purposes. */
-class InMemoryMenuClient(private val menuItems: MutableMap<Long, MenuItem> = mutableMapOf()) :
-    MenuClient {
+/**
+ * In-memory implementation for testing purposes.
+ */
+class InMemoryMenuClient(
+    private val menuItems: MutableMap<Long, MenuItem> = mutableMapOf()
+) : MenuClient {
 
     fun addMenuItem(item: MenuItem) {
         menuItems[item.id] = item
