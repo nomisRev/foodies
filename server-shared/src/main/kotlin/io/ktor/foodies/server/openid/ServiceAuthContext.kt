@@ -35,3 +35,11 @@ fun validateServiceRequest(
         )
     )
 }
+
+fun ServiceAuthContext.requireScope(scope: String): AuthorizationResult {
+    return if (scopes.contains(scope)) {
+        AuthorizationResult.Authorized
+    } else {
+        AuthorizationResult.Unauthorized(scope)
+    }
+}
