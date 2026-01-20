@@ -6,6 +6,7 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
+import io.ktor.server.request.header
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -41,9 +42,11 @@ fun Route.basketRoutes(basketService: BasketService) = authenticate {
             // POST /basket/items - Add item to basket
             post {
                 val buyerId = call.principal<JWTPrincipal>()!!.buyerId()
+                val token = call.request.header("Authorization")?.removePrefix("Bearer ")
+                    ?: throw IllegalStateException("No Authorization header")
                 val request = call.receive<AddItemRequest>()
                 val validatedRequest = validate { request.validate() }
-                val basket = basketService.addItem(buyerId, validatedRequest)
+                val basket = basketService.addItem(buyerId, validatedRequest, token)
                 if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
             }
 

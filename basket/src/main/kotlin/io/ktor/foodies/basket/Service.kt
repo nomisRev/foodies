@@ -16,7 +16,7 @@ interface BasketService {
      *
      * @return null if the menu item doesn't exist
      */
-    suspend fun addItem(buyerId: String, request: ValidatedAddItem): CustomerBasket?
+    suspend fun addItem(buyerId: String, request: ValidatedAddItem, token: String): CustomerBasket?
 
     /**
      * Updates the quantity of a specific basket item.
@@ -47,9 +47,9 @@ class BasketServiceImpl(
         return repository.getBasket(buyerId) ?: CustomerBasket(buyerId)
     }
 
-    override suspend fun addItem(buyerId: String, request: ValidatedAddItem): CustomerBasket? {
+    override suspend fun addItem(buyerId: String, request: ValidatedAddItem, token: String): CustomerBasket? {
         // Fetch menu item to validate existence and get current details
-        val menuItem = menuClient.getMenuItem(request.menuItemId) ?: return null
+        val menuItem = menuClient.getMenuItem(request.menuItemId, token) ?: return null
 
         val basket = repository.getBasket(buyerId) ?: CustomerBasket(buyerId)
 

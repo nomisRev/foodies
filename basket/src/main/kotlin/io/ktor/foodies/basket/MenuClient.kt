@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.foodies.server.SerializableBigDecimal
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
@@ -26,7 +27,7 @@ data class MenuItem(
  * Client interface for the Menu service.
  */
 interface MenuClient {
-    suspend fun getMenuItem(id: Long): MenuItem?
+    suspend fun getMenuItem(id: Long, token: String): MenuItem?
 }
 
 /**
@@ -39,9 +40,11 @@ class HttpMenuClient(
 
     private val menuBaseUrl = baseUrl.trimEnd('/')
 
-    override suspend fun getMenuItem(id: Long): MenuItem? {
+    override suspend fun getMenuItem(id: Long, token: String): MenuItem? {
         return try {
-            httpClient.get("$menuBaseUrl/menu/$id").body<MenuItem>()
+            httpClient.get("$menuBaseUrl/menu/$id") {
+                header("Authorization", "Bearer $token")
+            }.body<MenuItem>()
         } catch (e: ClientRequestException) {
             if (e.response.status == HttpStatusCode.NotFound) null
             else throw e
@@ -60,5 +63,5 @@ class InMemoryMenuClient(
         menuItems[item.id] = item
     }
 
-    override suspend fun getMenuItem(id: Long): MenuItem? = menuItems[id]
+    override suspend fun getMenuItem(id: Long, token: String): MenuItem? = menuItems[id]
 }

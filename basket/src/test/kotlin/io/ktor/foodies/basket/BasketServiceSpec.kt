@@ -47,7 +47,8 @@ val basketServiceSpec by testSuite {
 
         val basket = ctx.service.addItem(
             buyerId = "user-123",
-            request = ValidatedAddItem(menuItemId = 1L, quantity = 2)
+            request = ValidatedAddItem(menuItemId = 1L, quantity = 2),
+            token = "test-token"
         )
 
         assertNotNull(basket)
@@ -72,8 +73,8 @@ val basketServiceSpec by testSuite {
             )
         )
 
-        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 2))
-        val basket = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 3))
+        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 2), "test-token")
+        val basket = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 3), "test-token")
 
         assertNotNull(basket)
         assertEquals(1, basket.items.size)
@@ -103,8 +104,8 @@ val basketServiceSpec by testSuite {
             )
         )
 
-        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1))
-        val basket = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 2L, quantity = 2))
+        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1), "test-token")
+        val basket = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 2L, quantity = 2), "test-token")
 
         assertNotNull(basket)
         assertEquals(2, basket.items.size)
@@ -116,7 +117,7 @@ val basketServiceSpec by testSuite {
 
     test("addItem returns null when menu item does not exist") {
         val ctx = createTestContext()
-        val basket = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 999L, quantity = 1))
+        val basket = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 999L, quantity = 1), "test-token")
 
         assertNull(basket)
     }
@@ -133,7 +134,7 @@ val basketServiceSpec by testSuite {
                 stock = 100
             )
         )
-        val initialBasket = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1))
+        val initialBasket = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1), "test-token")
         assertNotNull(initialBasket)
         val itemId = initialBasket.items[0].id
 
@@ -164,7 +165,7 @@ val basketServiceSpec by testSuite {
                 stock = 100
             )
         )
-        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1))
+        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1), "test-token")
 
         val basket = ctx.service.updateItemQuantity("user-123", "wrong-item-id", ValidatedUpdateQuantity(quantity = 5))
 
@@ -193,8 +194,8 @@ val basketServiceSpec by testSuite {
                 stock = 100
             )
         )
-        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1))
-        val basketWithTwo = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 2L, quantity = 2))
+        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1), "test-token")
+        val basketWithTwo = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 2L, quantity = 2), "test-token")
         assertNotNull(basketWithTwo)
         val itemToRemove = basketWithTwo.items[0].id
 
@@ -224,7 +225,7 @@ val basketServiceSpec by testSuite {
                 stock = 100
             )
         )
-        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1))
+        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 1), "test-token")
 
         val basket = ctx.service.removeItem("user-123", "wrong-item-id")
 
@@ -243,7 +244,7 @@ val basketServiceSpec by testSuite {
                 stock = 100
             )
         )
-        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 3))
+        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 3), "test-token")
 
         ctx.service.clearBasket("user-123")
         val basket = ctx.service.getBasket("user-123")
@@ -280,8 +281,8 @@ val basketServiceSpec by testSuite {
             )
         )
 
-        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 2)) // 20.00
-        val basket = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 2L, quantity = 3)) // 25.50
+        ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 1L, quantity = 2), "test-token") // 20.00
+        val basket = ctx.service.addItem("user-123", ValidatedAddItem(menuItemId = 2L, quantity = 3), "test-token") // 25.50
 
         assertNotNull(basket)
         assertEquals(BigDecimal("45.50"), basket.totalPrice())
