@@ -6,28 +6,17 @@ import kotlin.time.Instant
 
 interface MenuService {
     fun list(offset: Int? = null, limit: Int? = null): List<MenuItem>
-
     fun get(id: Long): MenuItem?
-
     fun create(request: CreateMenuItemRequest): MenuItem
-
     fun update(id: Long, request: UpdateMenuItemRequest): MenuItem?
-
     fun delete(id: Long): Boolean
-
-    fun validateAndReserveStock(
-        orderId: Long,
-        items: List<StockValidationItem>,
-    ): StockValidationResult
-
+    fun validateAndReserveStock(orderId: Long, items: List<StockValidationItem>): StockValidationResult
     fun returnStock(orderId: Long, items: List<StockValidationItem>)
 }
 
 sealed interface StockValidationResult {
     data class Success(val confirmedAt: Instant) : StockValidationResult
-
-    data class Failure(val rejectedItems: List<RejectedItem>, val rejectedAt: Instant) :
-        StockValidationResult
+    data class Failure(val rejectedItems: List<RejectedItem>, val rejectedAt: Instant) : StockValidationResult
 }
 
 class MenuServiceImpl(private val repository: MenuRepository) : MenuService {
@@ -47,10 +36,7 @@ class MenuServiceImpl(private val repository: MenuRepository) : MenuService {
 
     override fun delete(id: Long): Boolean = repository.delete(id)
 
-    override fun validateAndReserveStock(
-        orderId: Long,
-        items: List<StockValidationItem>,
-    ): StockValidationResult {
+    override fun validateAndReserveStock(orderId: Long, items: List<StockValidationItem>): StockValidationResult {
         return repository.validateAndReserveStock(items)
     }
 

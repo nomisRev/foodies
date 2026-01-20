@@ -21,7 +21,7 @@ private const val TEST_SECRET = "test-secret"
 val adminRoutesSpec by testSuite {
     test("should return 403 Forbidden when user is not an admin") {
         val orderService = createTestContext().service
-
+        
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
@@ -31,15 +31,18 @@ val adminRoutesSpec by testSuite {
                         validate { credential -> JWTPrincipal(credential.payload) }
                     }
                 }
-                routing { adminRoutes(orderService) }
+                routing {
+                    adminRoutes(orderService)
+                }
             }
 
-            val token =
-                JWT.create()
-                    .withClaim("realm_access", mapOf("roles" to listOf("user")))
-                    .sign(Algorithm.HMAC256(TEST_SECRET))
+            val token = JWT.create()
+                .withClaim("realm_access", mapOf("roles" to listOf("user")))
+                .sign(Algorithm.HMAC256(TEST_SECRET))
 
-            val response = client.get("/admin/orders") { header("Authorization", "Bearer $token") }
+            val response = client.get("/admin/orders") {
+                header("Authorization", "Bearer $token")
+            }
 
             assertEquals(HttpStatusCode.Forbidden, response.status)
         }
@@ -47,7 +50,7 @@ val adminRoutesSpec by testSuite {
 
     test("should return 200 OK when user is an admin") {
         val orderService = createTestContext().service
-
+        
         testApplication {
             application {
                 install(ContentNegotiation) { json() }
@@ -57,21 +60,20 @@ val adminRoutesSpec by testSuite {
                         validate { credential -> JWTPrincipal(credential.payload) }
                     }
                 }
-                routing { adminRoutes(orderService) }
+                routing {
+                    adminRoutes(orderService)
+                }
             }
 
-            val token =
-                JWT.create()
-                    .withClaim("realm_access", mapOf("roles" to listOf("admin")))
-                    .sign(Algorithm.HMAC256(TEST_SECRET))
+            val token = JWT.create()
+                .withClaim("realm_access", mapOf("roles" to listOf("admin")))
+                .sign(Algorithm.HMAC256(TEST_SECRET))
 
-            val response = client.get("/admin/orders") { header("Authorization", "Bearer $token") }
+            val response = client.get("/admin/orders") {
+                header("Authorization", "Bearer $token")
+            }
 
-            assertEquals(
-                HttpStatusCode.OK,
-                response.status,
-                "Response status should be OK, but was ${response.status}",
-            )
+            assertEquals(HttpStatusCode.OK, response.status, "Response status should be OK, but was ${response.status}")
         }
     }
 }

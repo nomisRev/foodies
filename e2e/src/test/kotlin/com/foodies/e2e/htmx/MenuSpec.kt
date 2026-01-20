@@ -15,10 +15,7 @@ val browseMenuSpec by e2eSuite {
 
         menuItems.first().waitFor(Locator.WaitForOptions().setTimeout(5000.0))
 
-        assertTrue(
-            menuItems.count() > 0,
-            "Should display at least one menu item. Current count: ${menuItems.count()}",
-        )
+        assertTrue(menuItems.count() > 0, "Should display at least one menu item. Current count: ${menuItems.count()}")
     }
 
     test("Menu Pagination - should load more items on scroll") {
@@ -30,11 +27,9 @@ val browseMenuSpec by e2eSuite {
 
         val initialItems = p.locator(".menu-card")
 
-        val countBefore =
-            initialItems
-                .first()
-                .also { it.waitFor(Locator.WaitForOptions().setTimeout(5000.0)) }
-                .count()
+        val countBefore = initialItems.first()
+            .also { it.waitFor(Locator.WaitForOptions().setTimeout(5000.0)) }
+            .count()
 
         val sentinel = p.locator("#feed-sentinel")
         assertTrue(sentinel.isVisible, "Sentinel should be visible")
@@ -46,7 +41,7 @@ val browseMenuSpec by e2eSuite {
 
         assertTrue(
             countAfter >= countBefore,
-            "Should have at least the same number of items. Current count: $countAfter",
+            "Should have at least the same number of items. Current count: $countAfter"
         )
     }
 }

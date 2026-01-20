@@ -6,11 +6,11 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
-import java.net.URI
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonIgnoreUnknownKeys
+import java.net.URI
 import org.slf4j.LoggerFactory
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -18,10 +18,14 @@ import org.slf4j.LoggerFactory
 @JsonIgnoreUnknownKeys
 data class OpenIdConfiguration(
     val issuer: String,
-    @SerialName("authorization_endpoint") val authorizationEndpoint: String,
-    @SerialName("token_endpoint") val tokenEndpoint: String,
-    @SerialName("jwks_uri") val jwksUri: String,
-    @SerialName("end_session_endpoint") val endSessionEndpoint: String,
+    @SerialName("authorization_endpoint")
+    val authorizationEndpoint: String,
+    @SerialName("token_endpoint")
+    val tokenEndpoint: String,
+    @SerialName("jwks_uri")
+    val jwksUri: String,
+    @SerialName("end_session_endpoint")
+    val endSessionEndpoint: String
 ) {
     fun jwks() = JwkProviderBuilder(URI(jwksUri).toURL()).build()
 }
@@ -38,8 +42,6 @@ suspend fun HttpClient.discover(issuer: String): OpenIdConfiguration {
     } else {
         val status = response.status
         val message = response.bodyAsText()
-        throw IllegalStateException(
-            "Failed to discover OpenId configuration from: $status, $message"
-        )
+        throw IllegalStateException("Failed to discover OpenId configuration from: $status, $message")
     }
 }

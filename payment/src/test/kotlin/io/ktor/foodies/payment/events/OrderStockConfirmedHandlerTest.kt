@@ -31,23 +31,24 @@ private class InMemoryPaymentRepository : PaymentRepository {
         payments.values.find { it.orderId == orderId }
 
     override fun findByBuyerId(buyerId: String, limit: Int, offset: Int): List<PaymentRecord> =
-        payments.values.filter { it.buyerId == buyerId }.drop(offset).take(limit)
+        payments.values.filter { it.buyerId == buyerId }
+            .drop(offset)
+            .take(limit)
 
     override fun updateStatus(
         paymentId: Long,
         status: PaymentStatus,
         transactionId: String?,
         failureReason: String?,
-        processedAt: Instant?,
+        processedAt: Instant?
     ): Boolean {
         val payment = payments[paymentId] ?: return false
-        payments[paymentId] =
-            payment.copy(
-                status = status,
-                transactionId = transactionId ?: payment.transactionId,
-                failureReason = failureReason ?: payment.failureReason,
-                processedAt = processedAt ?: payment.processedAt,
-            )
+        payments[paymentId] = payment.copy(
+            status = status,
+            transactionId = transactionId ?: payment.transactionId,
+            failureReason = failureReason ?: payment.failureReason,
+            processedAt = processedAt ?: payment.processedAt
+        )
         return true
     }
 }
@@ -72,10 +73,7 @@ private data class TestContext(
 
 private fun createTestContext(alwaysSucceed: Boolean): TestContext {
     val repository = InMemoryPaymentRepository()
-    val gateway =
-        SimulatedPaymentGateway(
-            PaymentGatewayConfig(alwaysSucceed = alwaysSucceed, processingDelayMs = 0)
-        )
+    val gateway = SimulatedPaymentGateway(PaymentGatewayConfig(alwaysSucceed = alwaysSucceed, processingDelayMs = 0))
     val service = PaymentServiceImpl(repository, gateway)
     val publisher = InMemoryEventPublisher()
     return TestContext(repository, service, publisher)
@@ -86,23 +84,21 @@ val orderStockConfirmedHandlerSpec by testSuite {
         val ctx = createTestContext(alwaysSucceed = true)
 
         OrderStockConfirmedEvent(
-                eventId = "evt-1",
-                orderId = 1L,
-                buyerId = "user-1",
-                totalAmount = BigDecimal("100.00"),
-                currency = "USD",
-                paymentMethod =
-                    PaymentMethodInfo(
-                        type = PaymentMethodType.CREDIT_CARD,
-                        cardLastFour = "4242",
-                        cardBrand = CardBrand.VISA,
-                        cardHolderName = "John Doe",
-                        expirationMonth = 12,
-                        expirationYear = 2025,
-                    ),
-                occurredAt = Instant.parse("2024-01-01T00:00:00Z"),
-            )
-            .handle(ctx.service, ctx.publisher)
+            eventId = "evt-1",
+            orderId = 1L,
+            buyerId = "user-1",
+            totalAmount = BigDecimal("100.00"),
+            currency = "USD",
+            paymentMethod = PaymentMethodInfo(
+                type = PaymentMethodType.CREDIT_CARD,
+                cardLastFour = "4242",
+                cardBrand = CardBrand.VISA,
+                cardHolderName = "John Doe",
+                expirationMonth = 12,
+                expirationYear = 2025
+            ),
+            occurredAt = Instant.parse("2024-01-01T00:00:00Z")
+        ).handle(ctx.service, ctx.publisher)
 
         assertEquals(1, ctx.publisher.publishedEvents.size)
         assertTrue(ctx.publisher.publishedEvents[0] is OrderPaymentSucceededEvent)
@@ -114,23 +110,21 @@ val orderStockConfirmedHandlerSpec by testSuite {
         val ctx = createTestContext(alwaysSucceed = false)
 
         OrderStockConfirmedEvent(
-                eventId = "evt-2",
-                orderId = 2L,
-                buyerId = "user-1",
-                totalAmount = BigDecimal("100.00"),
-                currency = "USD",
-                paymentMethod =
-                    PaymentMethodInfo(
-                        type = PaymentMethodType.CREDIT_CARD,
-                        cardLastFour = "0000", // Will fail in SimulatedPaymentGateway
-                        cardBrand = CardBrand.VISA,
-                        cardHolderName = "John Doe",
-                        expirationMonth = 12,
-                        expirationYear = 2025,
-                    ),
-                occurredAt = Instant.parse("2024-01-01T00:00:00Z"),
-            )
-            .handle(ctx.service, ctx.publisher)
+            eventId = "evt-2",
+            orderId = 2L,
+            buyerId = "user-1",
+            totalAmount = BigDecimal("100.00"),
+            currency = "USD",
+            paymentMethod = PaymentMethodInfo(
+                type = PaymentMethodType.CREDIT_CARD,
+                cardLastFour = "0000", // Will fail in SimulatedPaymentGateway
+                cardBrand = CardBrand.VISA,
+                cardHolderName = "John Doe",
+                expirationMonth = 12,
+                expirationYear = 2025
+            ),
+            occurredAt = Instant.parse("2024-01-01T00:00:00Z")
+        ).handle(ctx.service, ctx.publisher)
 
         assertEquals(1, ctx.publisher.publishedEvents.size)
         assertTrue(ctx.publisher.publishedEvents[0] is OrderPaymentFailedEvent)
@@ -142,24 +136,22 @@ val orderStockConfirmedHandlerSpec by testSuite {
     test("idempotent event handling") {
         val ctx = createTestContext(alwaysSucceed = true)
 
-        val event =
-            OrderStockConfirmedEvent(
-                eventId = "evt-3",
-                orderId = 3L,
-                buyerId = "user-1",
-                totalAmount = BigDecimal("100.00"),
-                currency = "USD",
-                paymentMethod =
-                    PaymentMethodInfo(
-                        type = PaymentMethodType.CREDIT_CARD,
-                        cardLastFour = "4242",
-                        cardBrand = CardBrand.VISA,
-                        cardHolderName = "John Doe",
-                        expirationMonth = 12,
-                        expirationYear = 2025,
-                    ),
-                occurredAt = Instant.parse("2024-01-01T00:00:00Z"),
-            )
+        val event = OrderStockConfirmedEvent(
+            eventId = "evt-3",
+            orderId = 3L,
+            buyerId = "user-1",
+            totalAmount = BigDecimal("100.00"),
+            currency = "USD",
+            paymentMethod = PaymentMethodInfo(
+                type = PaymentMethodType.CREDIT_CARD,
+                cardLastFour = "4242",
+                cardBrand = CardBrand.VISA,
+                cardHolderName = "John Doe",
+                expirationMonth = 12,
+                expirationYear = 2025
+            ),
+            occurredAt = Instant.parse("2024-01-01T00:00:00Z")
+        )
 
         event.handle(ctx.service, ctx.publisher)
         event.handle(ctx.service, ctx.publisher)

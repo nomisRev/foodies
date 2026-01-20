@@ -22,11 +22,8 @@ data class Profile(
 
 interface ProfileRepository {
     fun findBySubject(subject: String): Profile?
-
     fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Long?
-
     fun upsert(subject: String, email: String, firstName: String, lastName: String)
-
     fun deleteBySubject(subject: String): Boolean
 }
 
@@ -38,29 +35,22 @@ object ProfileTable : LongIdTable("profiles") {
 }
 
 class ExposedProfileRepository(private val database: Database) : ProfileRepository {
-    override fun findBySubject(subject: String): Profile? =
-        transaction(database) {
-            ProfileTable.selectAll()
-                .where { ProfileTable.subject eq subject }
-                .map { it.toCustomer() }
-                .singleOrNull()
-        }
+    override fun findBySubject(subject: String): Profile? = transaction(database) {
+        ProfileTable.selectAll()
+            .where { ProfileTable.subject eq subject }
+            .map { it.toCustomer() }
+            .singleOrNull()
+    }
 
-    override fun insertOrIgnore(
-        subject: String,
-        email: String,
-        firstName: String,
-        lastName: String,
-    ): Long? =
+    override fun insertOrIgnore(subject: String, email: String, firstName: String, lastName: String): Long? =
         transaction(database) {
-                ProfileTable.insertIgnoreAndGetId { row ->
-                    row[ProfileTable.subject] = subject
-                    row[ProfileTable.email] = email
-                    row[ProfileTable.firstName] = firstName
-                    row[ProfileTable.lastName] = lastName
-                }
+            ProfileTable.insertIgnoreAndGetId { row ->
+                row[ProfileTable.subject] = subject
+                row[ProfileTable.email] = email
+                row[ProfileTable.firstName] = firstName
+                row[ProfileTable.lastName] = lastName
             }
-            ?.value
+        }?.value
 
     override fun upsert(subject: String, email: String, firstName: String, lastName: String) {
         transaction(database) {
@@ -73,15 +63,15 @@ class ExposedProfileRepository(private val database: Database) : ProfileReposito
         }
     }
 
-    override fun deleteBySubject(subject: String): Boolean =
-        transaction(database) { ProfileTable.deleteWhere { ProfileTable.subject eq subject } == 1 }
+    override fun deleteBySubject(subject: String): Boolean = transaction(database) {
+        ProfileTable.deleteWhere { ProfileTable.subject eq subject } == 1
+    }
 
-    private fun ResultRow.toCustomer() =
-        Profile(
-            id = this[ProfileTable.id].value,
-            subject = this[ProfileTable.subject],
-            email = this[ProfileTable.email],
-            firstName = this[ProfileTable.firstName],
-            lastName = this[ProfileTable.lastName],
-        )
+    private fun ResultRow.toCustomer() = Profile(
+        id = this[ProfileTable.id].value,
+        subject = this[ProfileTable.subject],
+        email = this[ProfileTable.email],
+        firstName = this[ProfileTable.firstName],
+        lastName = this[ProfileTable.lastName],
+    )
 }

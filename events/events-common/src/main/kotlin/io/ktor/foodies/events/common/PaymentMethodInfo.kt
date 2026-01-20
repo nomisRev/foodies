@@ -9,5 +9,5 @@ data class PaymentMethodInfo(
     val cardBrand: CardBrand?,
     val cardHolderName: String?,
     val expirationMonth: Int?,
-    val expirationYear: Int?,
+    val expirationYear: Int?
 )

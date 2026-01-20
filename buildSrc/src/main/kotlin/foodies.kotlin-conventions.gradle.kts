@@ -3,30 +3,6 @@ plugins {
     id("org.jetbrains.kotlin.plugin.power-assert")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("de.infix.testBalloon")
-    id("com.diffplug.spotless")
-}
-
-spotless {
-    kotlin {
-        target("**/*.kt")
-        targetExclude(
-            "**/build/**/*.kt",
-            "**/RedisBasketRepositorySpec.kt",
-            "**/TestSyntax.kt",
-            "**/UserSessionScope.kt",
-            "**/OpenTelemetry.kt",
-            "**/UserAuthFlowSpec.kt",
-            "**/Utils.kt",
-            "**/PostgreSQLContainer.kt",
-            "**/TestSuiteWithContext.kt",
-            "**/TestApplication.kt"
-        )
-        ktfmt("0.54").kotlinlangStyle()
-    }
-    kotlinGradle {
-        target("**/*.gradle.kts")
-        ktfmt("0.54").kotlinlangStyle()
-    }
 }
 
 kotlin {

@@ -3,8 +3,9 @@ plugins {
     id("foodies.ktor-service-conventions")
 }
 
-application { mainClass.set("io.ktor.foodies.order.OrderAppKt") }
-
+application {
+    mainClass.set("io.ktor.foodies.order.OrderAppKt")
+}
 version = "0.0.1"
 
 ktor {
@@ -69,3 +70,4 @@ dependencies {
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.rabbitmq)
 }
+

@@ -1,10 +1,10 @@
 package io.ktor.foodies.order
 
 import io.ktor.foodies.events.common.CardBrand
-import io.ktor.foodies.events.order.OrderStatus
 import io.ktor.foodies.order.domain.CancelOrderRequest
 import io.ktor.foodies.order.domain.CardBrandResponse
 import io.ktor.foodies.order.domain.CreateOrderRequest
+import io.ktor.foodies.events.order.OrderStatus
 import io.ktor.foodies.order.service.OrderService
 import io.ktor.foodies.server.getValue
 import io.ktor.http.HttpStatusCode
@@ -21,17 +21,15 @@ import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 import io.ktor.util.collections.getValue
 
-private fun JWTPrincipal.buyerId(): String =
-    payload.subject ?: throw IllegalStateException("JWT subject claim is missing")
+private fun JWTPrincipal.buyerId(): String = payload.subject
+    ?: throw IllegalStateException("JWT subject claim is missing")
 
-private fun JWTPrincipal.buyerEmail(): String =
-    payload.getClaim("email").asString()
-        ?: throw IllegalStateException("JWT email claim is missing")
+private fun JWTPrincipal.buyerEmail(): String = payload.getClaim("email").asString()
+    ?: throw IllegalStateException("JWT email claim is missing")
 
-private fun JWTPrincipal.buyerName(): String =
-    payload.getClaim("name").asString()
-        ?: payload.getClaim("preferred_username").asString()
-        ?: "Unknown"
+private fun JWTPrincipal.buyerName(): String = payload.getClaim("name").asString()
+    ?: payload.getClaim("preferred_username").asString()
+    ?: "Unknown"
 
 fun Route.orderRoutes(orderService: OrderService) = authenticate {
     route("/orders") {
@@ -58,41 +56,35 @@ fun Route.orderRoutes(orderService: OrderService) = authenticate {
 
             when (val result = orderService.getOrder(id, buyerId)) {
                 is io.ktor.foodies.order.domain.GetOrderResult.Success -> call.respond(result.order)
-                is io.ktor.foodies.order.domain.GetOrderResult.NotFound ->
-                    call.respond(HttpStatusCode.NotFound, "Order not found")
-                is io.ktor.foodies.order.domain.GetOrderResult.Forbidden ->
-                    call.respond(HttpStatusCode.Forbidden, "Access denied to order")
+                is io.ktor.foodies.order.domain.GetOrderResult.NotFound -> call.respond(HttpStatusCode.NotFound, "Order not found")
+                is io.ktor.foodies.order.domain.GetOrderResult.Forbidden -> call.respond(HttpStatusCode.Forbidden, "Access denied to order")
             }
         }
 
         post {
-            val requestIdString =
-                call.request.header("X-Request-Id")
-                    ?: throw IllegalArgumentException("X-Request-Id header is required")
+            val requestIdString = call.request.header("X-Request-Id")
+                ?: throw IllegalArgumentException("X-Request-Id header is required")
             val requestId = java.util.UUID.fromString(requestIdString)
             val principal = call.principal<JWTPrincipal>()!!
             val buyerId = principal.buyerId()
             val buyerEmail = principal.buyerEmail()
             val buyerName = principal.buyerName()
-            val token =
-                call.request.header("Authorization")?.removePrefix("Bearer ")
-                    ?: throw IllegalStateException("No Authorization header")
+            val token = call.request.header("Authorization")?.removePrefix("Bearer ")
+                ?: throw IllegalStateException("No Authorization header")
 
             val request = call.receive<CreateOrderRequest>()
-            val order =
-                orderService.createOrder(requestId, buyerId, buyerEmail, buyerName, request, token)
+            val order = orderService.createOrder(requestId, buyerId, buyerEmail, buyerName, request, token)
             call.respond(HttpStatusCode.Created, order)
         }
 
         put("/{id}/cancel") {
-            val requestIdString =
-                call.request.header("X-Request-Id")
-                    ?: throw IllegalArgumentException("X-Request-Id header is required")
+            val requestIdString = call.request.header("X-Request-Id")
+                ?: throw IllegalArgumentException("X-Request-Id header is required")
             val requestId = java.util.UUID.fromString(requestIdString)
             val principal = call.principal<JWTPrincipal>()!!
             val buyerId = principal.buyerId()
             val id: Long by call.parameters
-
+            
             val body = runCatching { call.receive<CancelOrderRequest>() }.getOrNull()
             val reason = body?.reason ?: "Cancelled by user"
 

@@ -13,11 +13,10 @@ data class ChargeRequest(
     val currency: String,
     val paymentMethod: PaymentMethodInfo,
     val orderId: Long,
-    val buyerId: String,
+    val buyerId: String
 )
 
 sealed interface GatewayResult {
     data class Success(val transactionId: String) : GatewayResult
-
     data class Failed(val reason: String, val code: PaymentFailureCode) : GatewayResult
 }

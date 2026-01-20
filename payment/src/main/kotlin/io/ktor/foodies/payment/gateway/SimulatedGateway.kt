@@ -2,10 +2,12 @@ package io.ktor.foodies.payment.gateway
 
 import io.ktor.foodies.events.common.PaymentFailureCode
 import io.ktor.foodies.payment.PaymentGatewayConfig
-import java.util.UUID
 import kotlinx.coroutines.delay
+import java.util.UUID
 
-class SimulatedPaymentGateway(private val config: PaymentGatewayConfig) : PaymentGateway {
+class SimulatedPaymentGateway(
+    private val config: PaymentGatewayConfig
+) : PaymentGateway {
 
     override suspend fun charge(request: ChargeRequest): GatewayResult {
         // Simulate processing delay
@@ -13,7 +15,9 @@ class SimulatedPaymentGateway(private val config: PaymentGatewayConfig) : Paymen
 
         // Configurable success/failure for testing
         return if (config.alwaysSucceed) {
-            GatewayResult.Success(transactionId = "txn_${UUID.randomUUID()}")
+            GatewayResult.Success(
+                transactionId = "txn_${UUID.randomUUID()}"
+            )
         } else {
             // Simulate various failure scenarios based on card number patterns
             simulateCardBehavior(request)
@@ -29,7 +33,8 @@ class SimulatedPaymentGateway(private val config: PaymentGatewayConfig) : Paymen
                 GatewayResult.Failed("Insufficient funds", PaymentFailureCode.INSUFFICIENT_FUNDS)
             request.paymentMethod.cardLastFour == "2222" ->
                 GatewayResult.Failed("Card expired", PaymentFailureCode.CARD_EXPIRED)
-            else -> GatewayResult.Success(transactionId = "txn_${UUID.randomUUID()}")
+            else ->
+                GatewayResult.Success(transactionId = "txn_${UUID.randomUUID()}")
         }
     }
 }

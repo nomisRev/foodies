@@ -20,26 +20,22 @@ val menuServiceSpec by testSuite {
 
     testSuite(
         "tests",
-        testConfig =
-            TestConfig.aroundEachTest { test ->
-                transaction(dataSource().database) { MenuItemsTable.deleteAll() }
-                test()
-            },
-    ) {
+        testConfig = TestConfig.aroundEachTest { test ->
+            transaction(dataSource().database) { MenuItemsTable.deleteAll() }
+            test()
+        }) {
         test("list applies defaults and clamps pagination") {
-            val created =
-                (0 until 60).map {
-                    service()
-                        .create(
-                            CreateMenuItemRequest(
-                                name = "Item $it",
-                                description = "Description $it",
-                                imageUrl = "https://example.com/$it.jpg",
-                                price = BigDecimal("1.00"),
-                                stock = 10,
-                            )
-                        )
-                }
+            val created = (0 until 60).map {
+                service().create(
+                    CreateMenuItemRequest(
+                        name = "Item $it",
+                        description = "Description $it",
+                        imageUrl = "https://example.com/$it.jpg",
+                        price = BigDecimal("1.00"),
+                        stock = 10,
+                    )
+                )
+            }
 
             val defaultList = service().list()
             val clampedList = service().list(limit = 100)
@@ -53,53 +49,41 @@ val menuServiceSpec by testSuite {
         }
 
         test("create validates payload and update/delete respect existence") {
-            val validationError =
-                assertFailsWith<ValidationException> {
-                    service()
-                        .create(
-                            CreateMenuItemRequest(
-                                name = " ",
-                                description = "",
-                                imageUrl = " ",
-                                price = BigDecimal.ZERO,
-                                stock = -1,
-                            )
-                        )
-                }
+            val validationError = assertFailsWith<ValidationException> {
+                service().create(
+                    CreateMenuItemRequest(
+                        name = " ",
+                        description = "",
+                        imageUrl = " ",
+                        price = BigDecimal.ZERO,
+                        stock = -1,
+                    )
+                )
+            }
             // Kova collects all validation errors
             assertTrue(validationError.reasons.size >= 5, "Expected at least 5 validation errors")
-            assertTrue(
-                validationError.reasons.any { it.contains("blank") || it.contains("not be empty") }
-            )
-            assertTrue(
-                validationError.reasons.any {
-                    it.contains("greater") || it.contains("must be more than")
-                }
-            )
+            assertTrue(validationError.reasons.any { it.contains("blank") || it.contains("not be empty") })
+            assertTrue(validationError.reasons.any { it.contains("greater") || it.contains("must be more than") })
             assertTrue(validationError.reasons.any { it.contains("stock") })
 
-            val created =
-                service()
-                    .create(
-                        CreateMenuItemRequest(
-                            name = "Burger",
-                            description = "Juicy",
-                            imageUrl = "https://example.com/burger.jpg",
-                            price = BigDecimal("11.50"),
-                            stock = 10,
-                        )
-                    )
+            val created = service().create(
+                CreateMenuItemRequest(
+                    name = "Burger",
+                    description = "Juicy",
+                    imageUrl = "https://example.com/burger.jpg",
+                    price = BigDecimal("11.50"),
+                    stock = 10,
+                )
+            )
 
-            val updated =
-                service()
-                    .update(
-                        created.id,
-                        UpdateMenuItemRequest(
-                            name = "Updated Burger",
-                            price = BigDecimal("12.00"),
-                            stock = 5,
-                        ),
-                    )
+            val updated = service().update(
+                created.id,
+                UpdateMenuItemRequest(
+                    name = "Updated Burger",
+                    price = BigDecimal("12.00"),
+                    stock = 5,
+                )
+            )
 
             assertNotNull(updated)
             assertEquals("Updated Burger", updated.name)

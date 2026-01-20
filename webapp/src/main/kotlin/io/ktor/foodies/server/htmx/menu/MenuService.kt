@@ -13,7 +13,7 @@ data class MenuItem(
     val name: String,
     val description: String,
     val imageUrl: String,
-    val price: SerializableBigDecimal,
+    val price: SerializableBigDecimal
 )
 
 interface MenuService {
@@ -24,13 +24,10 @@ class HttpMenuService(baseUrl: String, private val httpClient: HttpClient) : Men
     private val menuBaseUrl = baseUrl.trimEnd('/')
 
     override suspend fun menuItems(offset: Int, limit: Int): List<MenuItem> =
-        httpClient
-            .get("$menuBaseUrl/menu") {
-                parameter("offset", offset)
-                parameter("limit", limit)
-            }
-            .body<List<MenuItemResponse>>()
-            .map { it.toDomain() }
+        httpClient.get("$menuBaseUrl/menu") {
+            parameter("offset", offset)
+            parameter("limit", limit)
+        }.body<List<MenuItemResponse>>().map { it.toDomain() }
 }
 
 @Serializable
@@ -40,8 +37,13 @@ private data class MenuItemResponse(
     val description: String,
     val imageUrl: String,
     val price: SerializableBigDecimal,
-    val stock: Int,
+    val stock: Int
 )
 
-private fun MenuItemResponse.toDomain(): MenuItem =
-    MenuItem(id = id, name = name, description = description, imageUrl = imageUrl, price = price)
+private fun MenuItemResponse.toDomain(): MenuItem = MenuItem(
+    id = id,
+    name = name,
+    description = description,
+    imageUrl = imageUrl,
+    price = price
+)

@@ -9,22 +9,20 @@ import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-private fun createRequest(cardLastFour: String) =
-    ChargeRequest(
-        amount = BigDecimal("49.99"),
-        currency = "USD",
-        paymentMethod =
-            PaymentMethodInfo(
-                type = PaymentMethodType.CREDIT_CARD,
-                cardLastFour = cardLastFour,
-                cardBrand = CardBrand.VISA,
-                cardHolderName = "John Doe",
-                expirationMonth = 12,
-                expirationYear = 2025,
-            ),
-        orderId = 1L,
-        buyerId = "user-123",
-    )
+private fun createRequest(cardLastFour: String) = ChargeRequest(
+    amount = BigDecimal("49.99"),
+    currency = "USD",
+    paymentMethod = PaymentMethodInfo(
+        type = PaymentMethodType.CREDIT_CARD,
+        cardLastFour = cardLastFour,
+        cardBrand = CardBrand.VISA,
+        cardHolderName = "John Doe",
+        expirationMonth = 12,
+        expirationYear = 2025
+    ),
+    orderId = 1L,
+    buyerId = "user-123"
+)
 
 val simulatedGatewaySpec by testSuite {
     test("alwaysSucceed returns success regardless of card number") {
