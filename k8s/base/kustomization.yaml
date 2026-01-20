@@ -44,6 +44,26 @@ secretGenerator:
     literals:
       - RABBITMQ_USERNAME=guest
       - RABBITMQ_PASSWORD=guest
+  - name: profile-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=profile_service
+      - RABBITMQ_PASSWORD=ns7cmt245Wd4czlR14loCOQC/QkSNrR2p0hfPXVvQJE=
+  - name: menu-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=menu_service
+      - RABBITMQ_PASSWORD=fp4UnNJ4vcSHdBGAyxzA8av/rQ0/DCerX/0xlY9ctsA=
+  - name: basket-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=basket_service
+      - RABBITMQ_PASSWORD=i6BUFwm2GiNOhCRo/jhDS0Jz8/SfJsCdNORFB90MqTY=
+  - name: order-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=order_service
+      - RABBITMQ_PASSWORD=p7yNOuj/7vvGH6dkfIW+6gRPyYzUcC0eybZHqvPuuC0=
+  - name: payment-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=payment_service
+      - RABBITMQ_PASSWORD=JcFLK9E3SKhIOd92U88td2Aqww5T5m+QsHOucv0VRK8=
   - name: webapp-auth
     literals:
       - AUTH_CLIENT_SECRET=foodies_client_secret
