@@ -11,6 +11,7 @@ import io.ktor.foodies.server.htmx.basket.BasketService
 import io.ktor.foodies.server.htmx.basket.HttpBasketService
 import io.ktor.foodies.server.htmx.menu.HttpMenuService
 import io.ktor.foodies.server.htmx.menu.MenuService
+import io.ktor.foodies.server.openid.withUserAuth
 import io.ktor.foodies.server.security.RedisSessionStorage
 import io.ktor.foodies.server.telemetry.Monitoring
 import io.ktor.foodies.server.telemetry.openTelemetry
@@ -43,8 +44,8 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
     }
     monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
-    val menuService = HttpMenuService(config.menu.baseUrl, httpClient)
-    val basketService = HttpBasketService(config.basket.baseUrl, httpClient)
+    val menuService = HttpMenuService(config.menu.baseUrl, httpClient.withUserAuth())
+    val basketService = HttpBasketService(config.basket.baseUrl, httpClient.withUserAuth())
 
     val auth = if (config.redis.password.isNotBlank()) ":${config.redis.password}@" else ""
     val client = RedisClient.create("redis://$auth${config.redis.host}:${config.redis.port}")

@@ -248,6 +248,72 @@
           }
         }
       ]
+    },
+    {
+      "name": "payment",
+      "description": "Access to payment service operations",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "payment-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "payment:read",
+      "description": "Read access to payments",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "payment-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "payment:write",
+      "description": "Write access to payments",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "payment-service",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
     }
   ],
   "clients": [
@@ -273,7 +339,10 @@
         "menu:read",
         "menu:write",
         "profile:read",
-        "profile:write"
+        "profile:write",
+        "payment",
+        "payment:read",
+        "payment:write"
       ],
       "attributes": {
         "post.logout.redirect.uris": "http://localhost:8080/*"
@@ -340,9 +409,12 @@
         "basket:read",
         "basket:write",
         "order:read",
+        "order:write",
         "menu:read",
         "profile:read",
-        "profile:write"
+        "profile:write",
+        "payment:read",
+        "payment:write"
       ]
     }
   ],

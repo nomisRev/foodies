@@ -9,21 +9,21 @@ import kotlin.test.assertEquals
 import kotlin.test.assertContains
 
 val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
-    testMenuService("startup probe returns 200 OK") {
+    testMenuService("startup probe returns 200 OK") { _ ->
         eventually {
             val response = client.get("/healthz/startup")
             assertEquals(HttpStatusCode.OK, response.status)
         }
     }
 
-    testMenuService("liveness probe returns 200 OK") {
+    testMenuService("liveness probe returns 200 OK") { _ ->
         eventually {
             val response = client.get("/healthz/liveness")
             assertEquals(HttpStatusCode.OK, response.status)
         }
     }
 
-    testMenuService("readiness probe returns 200 OK when database is healthy") {
+    testMenuService("readiness probe returns 200 OK when database is healthy") { _ ->
         eventually {
             val response = client.get("/healthz/readiness")
             assertEquals(HttpStatusCode.OK, response.status)

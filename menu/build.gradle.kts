@@ -42,6 +42,7 @@ dependencies {
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(ktorLibs.server.testHost)
     testImplementation(ktorLibs.client.contentNegotiation)
+    testImplementation(ktorLibs.client.apache5)
     testImplementation(ktorLibs.serialization.kotlinx.json)
 }
 

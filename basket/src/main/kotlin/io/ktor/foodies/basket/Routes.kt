@@ -1,10 +1,7 @@
 package io.ktor.foodies.basket
 
 import io.ktor.foodies.server.getValue
-import io.ktor.foodies.server.openid.authenticatedService
-import io.ktor.foodies.server.openid.authenticatedUser
-import io.ktor.foodies.server.openid.servicePrincipal
-import io.ktor.foodies.server.openid.userPrincipal
+import io.ktor.foodies.server.openid.*
 import io.ktor.foodies.server.validate
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
@@ -30,41 +27,46 @@ fun Route.basketRoutes(basketService: BasketService) {
  */
 fun Route.basketUserRoutes(basketService: BasketService) = authenticatedUser {
     route("/basket") {
-        get {
-            val user = userPrincipal()
-            val basket = basketService.getBasket(user.userId)
-            call.respond(basket)
+        requireAdminOrScope("basket:read") {
+            get {
+                val user = userPrincipal()
+                val basket = call.withAuthContext { basketService.getBasket(user.userId) }
+                call.respond(basket)
+            }
         }
 
-        delete {
-            val user = userPrincipal()
-            basketService.clearBasket(user.userId)
-            call.respond(HttpStatusCode.NoContent)
-        }
-
-        route("/items") {
-            post {
+        requireAdminOrScope("basket:write") {
+            delete {
                 val user = userPrincipal()
-                val request = call.receive<AddItemRequest>()
-                val validatedRequest = validate { request.validate() }
-                val basket = basketService.addItem(user.userId, validatedRequest)
-                if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
+                call.withAuthContext { basketService.clearBasket(user.userId) }
+                call.respond(HttpStatusCode.NoContent)
             }
 
-            put("/{itemId}") {
-                val user = userPrincipal()
-                val itemId: String by call.parameters
-                val request = call.receive<UpdateItemQuantityRequest>()
-                val validatedRequest = request.validate()
-                val basket = basketService.updateItemQuantity(user.userId, itemId, validatedRequest)
-                if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
-            }
+            route("/items") {
+                post {
+                    val user = userPrincipal()
+                    val request = call.receive<AddItemRequest>()
+                    val validatedRequest = validate { request.validate() }
+                    val basket = call.withAuthContext { basketService.addItem(user.userId, validatedRequest) }
+                    if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
+                }
 
-            delete("/{itemId}") {
-                val user = userPrincipal()
-                val itemId: String by call.parameters
-                val basket = basketService.removeItem(user.userId, itemId)
-                if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
+                put("/{itemId}") {
+                    val user = userPrincipal()
+                    val itemId: String by call.parameters
+                    val request = call.receive<UpdateItemQuantityRequest>()
+                    val validatedRequest = request.validate()
+                    val basket =
+                        call.withAuthContext { basketService.updateItemQuantity(user.userId, itemId, validatedRequest) }
+                    if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
+                }
+
+                delete("/{itemId}") {
+                    val user = userPrincipal()
+                    val itemId: String by call.parameters
+                    val basket = call.withAuthContext { basketService.removeItem(user.userId, itemId) }
+                    if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
+                }
             }
         }
     }
@@ -73,14 +75,21 @@ fun Route.basketUserRoutes(basketService: BasketService) = authenticatedUser {
 /**
  * Service-to-service API: Routes for internal service communication.
  * Read-only access - services cannot modify user baskets directly.
+ * Supports both user tokens (delegation) and service tokens.
  */
-fun Route.basketServiceRoutes(basketService: BasketService) = authenticatedService {
-    get("/internal/basket/{userId}") {
-        val servicePrincipal = servicePrincipal()
-        val userId: String by call.parameters
+fun Route.basketServiceRoutes(basketService: BasketService) = authenticated {
+    requireScope("basket:read") {
+        get("/internal/basket/{userId}") {
+            val userId: String by call.parameters
+            val principal = authPrincipal()
 
-        logger.info("Service {} accessing basket for user {}", servicePrincipal.serviceId, userId)
-        val basket = basketService.getBasket(userId)
-        call.respond(basket)
+            if (principal is UserPrincipal && principal.userId != userId && !principal.roles.contains("admin")) {
+                call.respond(HttpStatusCode.Forbidden, "Cannot access another user's basket")
+                return@get
+            }
+
+            val basket = basketService.getBasket(userId)
+            call.respond(basket)
+        }
     }
 }

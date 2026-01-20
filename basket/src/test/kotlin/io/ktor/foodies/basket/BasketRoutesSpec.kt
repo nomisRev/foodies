@@ -21,7 +21,7 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
     testSuite("GET /basket") {
         testBasketService("returns empty basket for new user") { module ->
             val testToken = module.authContext.createFoodLoverToken()
-            val testUserId = "39c7f1e0-5df0-40bb-b864-f761a42ac7d2"
+            val testUserId = "user-1"
 
             val response = jsonClient().get("/basket") {
                 bearerAuth(testToken)
@@ -74,7 +74,7 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
     testSuite("POST /basket/items") {
         testBasketService("adds item to empty basket") { module ->
             val testToken = module.authContext.createFoodLoverToken()
-            val testUserId = "39c7f1e0-5df0-40bb-b864-f761a42ac7d2"
+            val testUserId = "user-1"
 
             module.menuClient.addMenuItem(
                 MenuItem(

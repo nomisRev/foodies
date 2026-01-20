@@ -61,7 +61,6 @@ class KeycloakAuthContext(
                 append("client_secret", clientSecret)
                 append("username", username)
                 append("password", password)
-                append("scope", "openid profile email")
             }
         )
         return response.body<TokenResponse>().accessToken
@@ -71,9 +70,11 @@ class KeycloakAuthContext(
         createServiceToken("order-service", "order-service-secret", listOf("basket"))
 
     suspend fun createBasketServiceToken(): String =
-        createServiceToken("basket-service", "basket-service-secret", listOf("order"))
+        createServiceToken("basket-service", "basket-service-secret", listOf("order", "menu:read"))
 
     suspend fun createFoodLoverToken(): String = createUserToken("food_lover", "password")
 
     suspend fun createPizzaFanToken(): String = createUserToken("pizza_fan", "password")
+
+    suspend fun createAdminToken(): String = createUserToken("admin", "password")
 }

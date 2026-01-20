@@ -10,6 +10,7 @@ dependencies {
     implementation(ktorLibs.client.apache5)
     implementation(ktorLibs.client.contentNegotiation)
 
+    implementation(ktorLibs.server.auth)
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.config.yaml)
 

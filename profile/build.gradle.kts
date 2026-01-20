@@ -19,7 +19,11 @@ dependencies {
     implementation(project(":rabbitmq-ext"))
 
     implementation(ktorLibs.server.netty)
+    implementation(ktorLibs.server.auth)
+    implementation(ktorLibs.server.auth.jwt)
+    implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.serialization.kotlinx.json)
     implementation(libs.logback)
 
     implementation(libs.serialization.json)

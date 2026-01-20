@@ -7,19 +7,16 @@ import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.application.Application
-import io.ktor.server.application.createRouteScopedPlugin
-import io.ktor.server.application.install
-import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.jwt
-import io.ktor.server.auth.principal
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
 import io.ktor.server.routing.route
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.slf4j.LoggerFactory
 
 @Serializable
 data class Auth(
@@ -29,7 +26,31 @@ data class Auth(
 )
 
 const val AUTH_USER = "auth-user"
-private const val AUTH_SERVICE = "auth-service"
+const val AUTH_SERVICE = "auth-service"
+
+/**
+ * Global Audit Logging plugin.
+ * Logs the identity of the requester for every authenticated request.
+ */
+val AuditLogging = createApplicationPlugin(name = "AuditLogging") {
+    val logger = LoggerFactory.getLogger("AuditLogger")
+
+    on(AuthenticationChecked) { call ->
+        val principal = call.principal<AuthPrincipal>()
+        if (principal != null) {
+            val method = call.request.local.method.value
+            val uri = call.request.local.uri
+            when (principal) {
+                is UserPrincipal -> {
+                    logger.info("Audit: User ${principal.userId} (${principal.name ?: "unknown"}) accessed $method $uri")
+                }
+                is ServicePrincipal -> {
+                    logger.info("Audit: Service ${principal.serviceId} accessed $method $uri")
+                }
+            }
+        }
+    }
+}
 
 /**
  * User-authenticated routes.
@@ -52,6 +73,14 @@ fun Route.authenticatedService(build: Route.() -> Unit) = authenticate(AUTH_SERV
  * Ensures the request is authenticated with either a valid user or service token.
  */
 fun Route.authenticated(build: Route.() -> Unit) = authenticate(AUTH_USER, AUTH_SERVICE) {
+    build()
+}
+
+/**
+ * Public routes that optionally support authentication.
+ * If a token is provided, it will be validated and the principal will be available.
+ */
+fun Route.public(build: Route.() -> Unit) = authenticate(AUTH_USER, AUTH_SERVICE, optional = true) {
     build()
 }
 
@@ -109,6 +138,27 @@ fun Route.requireRole(role: String, build: Route.() -> Unit) {
     build()
 }
 
+/**
+ * Requires either the 'admin' role (for users) or a specific scope.
+ * This is a common pattern for routes that should be accessible by admins
+ * or by services/users with specific permissions.
+ */
+fun Route.requireAdminOrScope(scope: String, build: Route.() -> Unit) {
+    val plugin = createRouteScopedPlugin("RequireAdminOrScope-$scope") {
+        onCall { call ->
+            val principal = call.principal<AuthPrincipal>()
+            val isAdmin = (principal as? UserPrincipal)?.roles?.contains("admin") == true
+            val hasScope = principal?.scopes?.contains(scope) == true
+
+            if (!isAdmin && !hasScope) {
+                call.respond(HttpStatusCode.Forbidden, "Missing required role 'admin' or scope: $scope")
+            }
+        }
+    }
+    install(plugin)
+    build()
+}
+
 class AuthenticationException(message: String) : RuntimeException(message)
 
 suspend fun Application.security(auth: Auth) {
@@ -123,6 +173,8 @@ suspend fun Application.security(auth: Auth) {
 
 suspend fun Application.security(auth: Auth, client: HttpClient) {
     val config = client.discover(auth.issuer)
+
+    install(AuditLogging)
 
     install(Authentication) {
         jwt(AUTH_USER) {

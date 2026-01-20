@@ -13,6 +13,7 @@ import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.rabbitmq.subscribe
+import io.ktor.foodies.server.openid.withUserAuth
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.foodies.server.telemetry.Monitoring
 import io.ktor.server.application.Application
@@ -44,7 +45,7 @@ fun Application.module(config: Config, monitoring: Monitoring): BasketModule {
     }
     monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
-    val menuClient = HttpMenuClient(httpClient, config.menu.baseUrl)
+    val menuClient = HttpMenuClient(httpClient.withUserAuth(), config.menu.baseUrl)
 
     val (redisClient, redisCommands) = createRedisClient(config.redis)
     monitor.subscribe(ApplicationStopped) { redisClient.shutdown() }

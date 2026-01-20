@@ -36,6 +36,7 @@ dependencies {
 
     testImplementation(project(":server-shared-test"))
     testImplementation(ktorLibs.server.testHost)
+    testImplementation(ktorLibs.client.mock)
     testImplementation(libs.testcontainers.keycloak)
     testImplementation(libs.testballoon)
 }

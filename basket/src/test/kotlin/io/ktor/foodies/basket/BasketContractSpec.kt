@@ -82,7 +82,7 @@ private val SIMPLE_PIZZA = MenuItem(
 val basketContractSpec by ctxSuite(context = { serviceContext() }) {
     testBasketService("complete shopping flow: add items, update quantity, remove item, clear basket") { module ->
         val testToken = module.authContext.createFoodLoverToken()
-        val testUserId = "39c7f1e0-5df0-40bb-b864-f761a42ac7d2" // food_lover user ID from realm.json
+        val testUserId = "user-1" // food_lover user ID from realm.json
 
         module.menuClient.addMenuItem(MARGHERITA_PIZZA)
         module.menuClient.addMenuItem(PASTA_CARBONARA)

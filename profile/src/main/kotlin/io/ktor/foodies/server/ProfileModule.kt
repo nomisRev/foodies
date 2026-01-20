@@ -10,6 +10,7 @@ import io.ktor.foodies.server.consumers.userEventConsumer
 import io.ktor.foodies.server.profile.ExposedProfileRepository
 import io.ktor.foodies.events.user.UserEvent
 import io.ktor.foodies.server.telemetry.Monitoring
+import io.ktor.foodies.server.profile.ProfileRepository
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.opentelemetry.api.OpenTelemetry
@@ -20,6 +21,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class ProfileModule(
+    val profileRepository: ProfileRepository,
     val consumers: List<Flow<Unit>>,
     val readinessCheck: HealthCheckRegistry
 )
@@ -47,5 +49,9 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): ProfileModule 
         register(RabbitConnectionHealthCheck(connection), Duration.ZERO, 5.seconds)
     }
 
-    return ProfileModule(consumers = listOf(newUserConsumer), readinessCheck = readinessCheck)
+    return ProfileModule(
+        profileRepository = profileRepository,
+        consumers = listOf(newUserConsumer),
+        readinessCheck = readinessCheck
+    )
 }

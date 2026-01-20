@@ -2,9 +2,9 @@
 
 ## Issue tracking
 
-This project uses 'br' (rust beads) for task and issue tracking.
+This project uses 'br' (rust beads) for task management.
 
-When implementing always consult 'br', and try to break down your tasks.
+When implementing a feature always consult 'br' and try to break down your tasks first.
 Keep your task as short as possible, and prefer creating new tasks in 'br' for follow-up work.
 
 When reviewing create issues using 'br' for any issues you find. 

@@ -8,6 +8,7 @@ import io.ktor.foodies.server.htmx.respondHtmxFragment
 import io.ktor.foodies.server.security.UserSession
 import io.ktor.foodies.server.security.userSession
 import io.ktor.foodies.server.security.withUserSession
+import io.ktor.foodies.server.openid.withAuthContext
 import io.ktor.server.application.Application
 import io.ktor.server.html.respondHtml
 import io.ktor.server.htmx.hx
@@ -56,7 +57,9 @@ fun Application.cartRoutes(basketService: BasketService) {
             get("/cart/badge") {
                 val session = call.sessions.get<UserSession>()
                 val itemCount = if (session != null) {
-                    runCatching { basketService.getBasket(session.accessToken).items.sumOf { it.quantity } }.getOrDefault(0)
+                    call.withAuthContext(session.accessToken) {
+                        runCatching { basketService.getBasket().items.sumOf { it.quantity } }.getOrDefault(0)
+                    }
                 } else {
                     0
                 }
@@ -66,18 +69,17 @@ fun Application.cartRoutes(basketService: BasketService) {
 
         withUserSession {
             get("/cart") {
-                val basket = basketService.getBasket(userSession().accessToken)
+                val basket = basketService.getBasket()
                 call.respondHtml { cartPage(basket) }
             }
 
             hx {
                 post("/cart/items") {
-                    val session = userSession()
                     val form = call.receiveParameters()
                     val menuItemId: Long by form
                     val quantity: Int? by form
 
-                    val basket = basketService.addItem(session.accessToken, menuItemId, quantity ?: 1)
+                    val basket = basketService.addItem(menuItemId, quantity ?: 1)
                     val itemCount = basket.items.sumOf { it.quantity }
 
                     call.respondHtmxFragment {
@@ -87,11 +89,10 @@ fun Application.cartRoutes(basketService: BasketService) {
                 }
 
                 put("/cart/items/{itemId}") {
-                    val session = userSession()
                     val itemId: String by call.parameters
                     val quantity: Int by call.receiveParameters()
 
-                    val basket = basketService.updateItemQuantity(session.accessToken, itemId, quantity)
+                    val basket = basketService.updateItemQuantity(itemId, quantity)
 
                     call.respondHtmxFragment {
                         cartItemsFragment(basket)
@@ -101,10 +102,9 @@ fun Application.cartRoutes(basketService: BasketService) {
                 }
 
                 delete("/cart/items/{itemId}") {
-                    val session = userSession()
                     val itemId: String by call.parameters
 
-                    val basket = basketService.removeItem(session.accessToken, itemId)
+                    val basket = basketService.removeItem(itemId)
 
                     call.respondHtmxFragment {
                         cartItemsFragment(basket)
@@ -114,9 +114,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                 }
 
                 delete("/cart") {
-                    val session = userSession()
-
-                    basketService.clearBasket(session.accessToken)
+                    basketService.clearBasket()
 
                     call.respondHtmxFragment {
                         cartItemsFragment(CustomerBasket(buyerId = "", items = emptyList()))

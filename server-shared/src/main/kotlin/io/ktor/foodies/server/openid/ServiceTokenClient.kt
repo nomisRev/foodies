@@ -76,15 +76,26 @@ private data class TokenResponse(
 
 private data class CachedToken(val accessToken: String, val expiresAt: Instant, val scopes: List<String>)
 
+interface ServiceTokenClient {
+    suspend fun getAccessToken(): String
+}
+
+suspend fun HttpClient.serviceTokenClient(config: ServiceClientConfig): ServiceTokenClient {
+    val openIdConfig = discover(config.issuer)
+    return KeycloakServiceTokenClient(this, config, openIdConfig)
+}
+
 internal class KeycloakServiceTokenClient(
     private val httpClient: HttpClient,
     private val config: ServiceClientConfig,
     private val openIdConfig: OpenIdConfiguration,
     private val clock: Clock = Clock.System
-) : AutoCloseable {
+) : ServiceTokenClient, AutoCloseable {
     private val logger = LoggerFactory.getLogger(KeycloakServiceTokenClient::class.java)
     private val mutex = Mutex()
     private var cachedToken: CachedToken? = null
+
+    override suspend fun getAccessToken(): String = loadTokens().accessToken
 
     suspend fun loadTokens(): BearerTokens = mutex.withLock {
         val cached = cachedToken

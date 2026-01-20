@@ -11,7 +11,10 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
+@OptIn(ExperimentalUuidApi::class)
 fun Route.adminRoutes(orderService: OrderService) = authenticatedUser {
     requireRole("admin") {
         route("/admin/orders") {
@@ -29,7 +32,7 @@ fun Route.adminRoutes(orderService: OrderService) = authenticatedUser {
             put("/{id}/ship") {
                 val requestIdString = call.request.header("X-Request-Id")
                     ?: throw IllegalArgumentException("X-Request-Id header is required")
-                val requestId = java.util.UUID.fromString(requestIdString)
+                val requestId = Uuid.parse(requestIdString)
                 val id = call.parameters["id"]?.toLongOrNull()
                     ?: throw IllegalArgumentException("Order ID is required")
 

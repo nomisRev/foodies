@@ -1,6 +1,7 @@
 package io.ktor.foodies.menu
 
 import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
 import io.ktor.client.request.post
@@ -24,8 +25,10 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         price = BigDecimal("9.50"),
         stock = 10,
     )
-    testMenuService("Create Menu Item") {
+    testMenuService("Create Menu Item") { module ->
+        val token = module.authContext.createAdminToken()
         val response = jsonClient().post("/menu") {
+            bearerAuth(token)
             contentType(ContentType.Application.Json)
             setBody(sushi)
         }
@@ -39,32 +42,44 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         assertEquals(item.stock, sushi.stock)
     }
 
-    testMenuService("Get created item") {
+    testMenuService("Get created item") { module ->
+        val adminToken = module.authContext.createAdminToken()
+        val userToken = module.authContext.createFoodLoverToken()
         val created = jsonClient().post("/menu") {
+            bearerAuth(adminToken)
             contentType(ContentType.Application.Json)
             setBody(sushi)
         }.body<MenuItemResponse>()
-        val response = jsonClient().get("/menu/${created.id}")
+        val response = jsonClient().get("/menu/${created.id}") {
+            bearerAuth(userToken)
+        }
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals(created, response.body())
     }
 
-    testMenuService("Get list with pagination - default parameters") {
+    testMenuService("Get list with pagination - default parameters") { module ->
+        val adminToken = module.authContext.createAdminToken()
+        val userToken = module.authContext.createFoodLoverToken()
         // Create multiple items
         val item1 = jsonClient().post("/menu") {
+            bearerAuth(adminToken)
             contentType(ContentType.Application.Json)
             setBody(sushi.copy(name = "Item 1"))
         }.body<MenuItemResponse>()
         val item2 = jsonClient().post("/menu") {
+            bearerAuth(adminToken)
             contentType(ContentType.Application.Json)
             setBody(sushi.copy(name = "Item 2"))
         }.body<MenuItemResponse>()
         val item3 = jsonClient().post("/menu") {
+            bearerAuth(adminToken)
             contentType(ContentType.Application.Json)
             setBody(sushi.copy(name = "Item 3"))
         }.body<MenuItemResponse>()
 
-        val response = jsonClient().get("/menu?limit=50")
+        val response = jsonClient().get("/menu?limit=50") {
+            bearerAuth(userToken)
+        }
         assertEquals(HttpStatusCode.OK, response.status)
         val items = response.body<List<MenuItemResponse>>()
         assertContains(items, item1)
@@ -72,21 +87,28 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         assertContains(items, item3)
     }
 
-    testMenuService("Get list with pagination - limit parameter") {
+    testMenuService("Get list with pagination - limit parameter") { module ->
+        val adminToken = module.authContext.createAdminToken()
+        val userToken = module.authContext.createFoodLoverToken()
         jsonClient().post("/menu") {
+            bearerAuth(adminToken)
             contentType(ContentType.Application.Json)
             setBody(sushi.copy(name = "Item 1"))
         }
         jsonClient().post("/menu") {
+            bearerAuth(adminToken)
             contentType(ContentType.Application.Json)
             setBody(sushi.copy(name = "Item 2"))
         }
         jsonClient().post("/menu") {
+            bearerAuth(adminToken)
             contentType(ContentType.Application.Json)
             setBody(sushi.copy(name = "Item 3"))
         }
 
-        val response = jsonClient().get("/menu?limit=2")
+        val response = jsonClient().get("/menu?limit=2") {
+            bearerAuth(userToken)
+        }
         assertEquals(HttpStatusCode.OK, response.status)
         val items = response.body<List<MenuItemResponse>>()
         assertEquals(2, items.size)
@@ -109,13 +131,16 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
             }
         }
     }.forEach { updateRequest ->
-        testMenuService("Update existing menu item with ${Json.encodeToString(updateRequest)}") {
+        testMenuService("Update existing menu item with ${Json.encodeToString(updateRequest)}") { module ->
+            val token = module.authContext.createAdminToken()
             val created = jsonClient().post("/menu") {
+                bearerAuth(token)
                 contentType(ContentType.Application.Json)
                 setBody(sushi)
             }.body<MenuItemResponse>()
 
             val response = jsonClient().put("/menu/${created.id}") {
+                bearerAuth(token)
                 contentType(ContentType.Application.Json)
                 setBody(updateRequest)
             }
@@ -131,7 +156,8 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         }
     }
 
-    testMenuService("Update missing item returns 404") {
+    testMenuService("Update missing item returns 404") { module ->
+        val token = module.authContext.createAdminToken()
         val updateRequest = CreateMenuItemRequest(
             name = "Non-existent Item",
             description = "This should fail",
@@ -140,6 +166,7 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         )
 
         val response = jsonClient().put("/menu/-100") {
+            bearerAuth(token)
             contentType(ContentType.Application.Json)
             setBody(updateRequest)
         }
@@ -147,7 +174,8 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
-    testMenuService("Update with incorrect path param") {
+    testMenuService("Update with incorrect path param") { module ->
+        val token = module.authContext.createAdminToken()
         val updateRequest = CreateMenuItemRequest(
             name = "Invalid Update",
             description = "This should fail",
@@ -156,6 +184,7 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         )
 
         val response = jsonClient().put("/menu/not-an-id") {
+            bearerAuth(token)
             contentType(ContentType.Application.Json)
             setBody(updateRequest)
         }
@@ -163,22 +192,43 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
-    testMenuService("Delete created item") {
+    testMenuService("Delete created item") { module ->
+        val token = module.authContext.createAdminToken()
         val created = jsonClient().post("/menu") {
+            bearerAuth(token)
             contentType(ContentType.Application.Json)
             setBody(sushi)
         }.body<MenuItemResponse>()
-        val response = jsonClient().delete("/menu/${created.id}")
+        val response = jsonClient().delete("/menu/${created.id}") {
+            bearerAuth(token)
+        }
         assertEquals(HttpStatusCode.NoContent, response.status)
     }
 
-    testMenuService("Delete missing item returns 404") {
-        val response = jsonClient().delete("/menu/-100")
+    testMenuService("Delete missing item returns 404") { module ->
+        val token = module.authContext.createAdminToken()
+        val response = jsonClient().delete("/menu/-100") {
+            bearerAuth(token)
+        }
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
-    testMenuService("Delete incorrect path param") {
-        val response = jsonClient().delete("/menu/not-an-id")
+    testMenuService("Delete incorrect path param") { module ->
+        val token = module.authContext.createAdminToken()
+        val response = jsonClient().delete("/menu/not-an-id") {
+            bearerAuth(token)
+        }
         assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    testMenuService("Non-admin cannot create menu item") { module ->
+        val token = module.authContext.createFoodLoverToken()
+        val response = jsonClient().post("/menu") {
+            bearerAuth(token)
+            contentType(ContentType.Application.Json)
+            setBody(sushi)
+        }
+
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 }

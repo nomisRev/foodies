@@ -16,7 +16,8 @@ import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.server.openid.ServiceClientConfig
 import io.ktor.foodies.server.dataSource
-import io.ktor.foodies.server.openid.withServiceAuth
+import io.ktor.foodies.server.openid.serviceTokenClient
+import io.ktor.foodies.server.openid.withAuth
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
@@ -57,7 +58,8 @@ suspend fun Application.module(config: Config, telemetry: OpenTelemetry): OrderM
         defaultScopes = config.serviceClient.defaultScopes
     )
 
-    val basketHttpClient = httpClient.withServiceAuth(serviceClientConfig)
+    val serviceTokenClient = httpClient.serviceTokenClient(serviceClientConfig)
+    val basketHttpClient = httpClient.withAuth(serviceTokenClient)
 
     val basketClient = HttpBasketClient(basketHttpClient, config.basket.baseUrl)
 

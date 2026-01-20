@@ -1,6 +1,10 @@
 config:
   host: "$HOST:0.0.0.0"
   port: "$PORT:8081"
+  auth:
+    issuer: "$AUTH_ISSUER:http://localhost:9090/realms/foodies-keycloak"
+    service_audience: "$SERVICE_AUDIENCE:profile-service"
+    user_audience: "$USER_AUDIENCE:profile-service"
   data_source:
     url: "$DB_URL:jdbc:postgresql://localhost:5432/foodies-profile-database"
     username: "$DB_USERNAME:foodies_admin"

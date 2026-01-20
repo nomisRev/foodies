@@ -126,7 +126,20 @@ private fun AuthenticationConfig.oauth(
             requestMethod = HttpMethod.Post,
             clientId = config.clientId,
             clientSecret = config.clientSecret,
-            defaultScopes = listOf("openid", "profile", "email"),
+            defaultScopes = listOf(
+                "openid",
+                "profile",
+                "email",
+                "basket",
+                "basket:read",
+                "basket:write",
+                "order",
+                "order:read",
+                "order:write",
+                "menu",
+                "menu:read",
+                "menu:write"
+            ),
         )
     }
 }

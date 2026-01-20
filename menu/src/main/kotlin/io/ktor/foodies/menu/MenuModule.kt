@@ -22,6 +22,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 data class MenuModule(
+    val config: Config,
     val menuService: MenuService,
     val consumers: List<Flow<Unit>>,
     val readinessCheck: HealthCheckRegistry
@@ -62,6 +63,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
     }
 
     return MenuModule(
+        config = config,
         menuService = menuService,
         consumers = consumers,
         readinessCheck = readinessCheck
