@@ -4,9 +4,6 @@ import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
-import io.ktor.client.plugins.auth.Auth
-import io.ktor.client.plugins.auth.providers.BearerTokens
-import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 import io.ktor.foodies.order.client.HttpBasketClient
 import io.ktor.foodies.order.events.orderEventConsumers
@@ -17,10 +14,8 @@ import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
-import io.ktor.foodies.server.openid.KeycloakServiceTokenClient
 import io.ktor.foodies.server.openid.ServiceClientConfig
 import io.ktor.foodies.server.dataSource
-import io.ktor.foodies.server.openid.serviceAuth
 import io.ktor.foodies.server.openid.withServiceAuth
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
@@ -35,11 +30,8 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 class OrderModule(
-    val httpClient: HttpClient,
-    val basketHttpClient: HttpClient,
     val orderService: DefaultOrderService,
     val consumers: List<Flow<Unit>>,
-    val eventPublisher: RabbitOrderEventPublisher,
     val readinessCheck: HealthCheckRegistry
 )
 
@@ -91,6 +83,7 @@ suspend fun Application.module(config: Config, telemetry: OpenTelemetry): OrderM
     val notificationService = LoggingNotificationService()
 
     val subscriber = RabbitMQSubscriber(rabbitConnection, config.rabbit.exchange)
+
     val consumers = orderEventConsumers(
         subscriber,
         config.rabbit.exchange,
@@ -107,11 +100,8 @@ suspend fun Application.module(config: Config, telemetry: OpenTelemetry): OrderM
     }
 
     return OrderModule(
-        httpClient = httpClient,
-        basketHttpClient = basketHttpClient,
         orderService = orderService,
         consumers = consumers,
-        eventPublisher = eventPublisher,
         readinessCheck = readinessCheck
     )
 }

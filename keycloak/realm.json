@@ -60,9 +60,28 @@
       "secret": "foodies_client_secret",
       "redirectUris": ["http://localhost:8080/oauth/callback"],
       "webOrigins": ["http://localhost:8080"],
+      "defaultClientScopes": [
+        "openid",
+        "profile",
+        "email",
+        "roles"
+      ],
       "attributes": {
         "post.logout.redirect.uris": "http://localhost:8080/*"
-      }
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "foodies",
+            "id.token.claim": "false",
+            "access.token.claim": "true"
+          }
+        }
+      ]
     },
     {
       "clientId": "order-service",
@@ -112,6 +131,36 @@
         }
       ],
       "realmRoles": ["user"]
+    },
+    {
+      "username": "pizza_fan",
+      "enabled": true,
+      "email": "pizza_fan@gmail.com",
+      "firstName": "Pizza",
+      "lastName": "Fan",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "admin",
+      "enabled": true,
+      "email": "admin@gmail.com",
+      "firstName": "Admin",
+      "lastName": "Foodies",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["admin"]
     }
   ],
   "roles": {
@@ -119,6 +168,10 @@
       {
         "name": "user",
         "description": "Regular user with standard permissions"
+      },
+      {
+        "name": "admin",
+        "description": "Admin user with all permissions"
       }
     ]
   }

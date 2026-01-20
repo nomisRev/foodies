@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-ITERATIONS=${1:-10}
+ITERATIONS=${1:-5}
 
 TASK_CONTENT=$(cat prompt.md)
 

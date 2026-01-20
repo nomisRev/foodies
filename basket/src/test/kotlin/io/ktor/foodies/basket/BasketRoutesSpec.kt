@@ -1,9 +1,6 @@
 package io.ktor.foodies.basket
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
 import io.ktor.client.call.body
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -16,19 +13,16 @@ import io.ktor.foodies.server.test.jsonClient
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
-import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.testing.ApplicationTestBuilder
 import java.math.BigDecimal
-import java.util.Date
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
-    val testUserId = "user-123"
-    val testToken = createTestToken(testUserId)
-
     testSuite("GET /basket") {
-        testBasketService("returns empty basket for new user") { _ ->
+        testBasketService("returns empty basket for new user") { module ->
+            val testToken = module.authContext.createFoodLoverToken()
+            val testUserId = "39c7f1e0-5df0-40bb-b864-f761a42ac7d2"
+
             val response = jsonClient().get("/basket") {
                 bearerAuth(testToken)
             }
@@ -45,6 +39,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
         }
 
         testBasketService("returns existing basket with items") { module ->
+            val testToken = module.authContext.createFoodLoverToken()
+
             module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
@@ -77,6 +73,9 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
 
     testSuite("POST /basket/items") {
         testBasketService("adds item to empty basket") { module ->
+            val testToken = module.authContext.createFoodLoverToken()
+            val testUserId = "39c7f1e0-5df0-40bb-b864-f761a42ac7d2"
+
             module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
@@ -105,6 +104,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
         }
 
         testBasketService("increments quantity when item already in basket") { module ->
+            val testToken = module.authContext.createFoodLoverToken()
+
             module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
@@ -136,7 +137,9 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
             assertEquals(5, basket.items[0].quantity) // 2 + 3 = 5
         }
 
-        testBasketService("returns 404 when menu item does not exist") { _ ->
+        testBasketService("returns 404 when menu item does not exist") { module ->
+            val testToken = module.authContext.createFoodLoverToken()
+
             val response = jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
                 contentType(ContentType.Application.Json)
@@ -146,7 +149,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
             assertEquals(HttpStatusCode.NotFound, response.status)
         }
 
-        testBasketService("returns 400 for invalid quantity (zero)") { _ ->
+        testBasketService("returns 400 for invalid quantity (zero)") {module ->
+            val testToken = module.authContext.createFoodLoverToken()
             val response = jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
                 contentType(ContentType.Application.Json)
@@ -158,7 +162,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
             assertTrue(error.contains("quantity"))
         }
 
-        testBasketService("returns 400 for negative quantity") { _ ->
+        testBasketService("returns 400 for negative quantity") {module ->
+            val testToken = module.authContext.createFoodLoverToken()
             val response = jsonClient().post("/basket/items") {
                 bearerAuth(testToken)
                 contentType(ContentType.Application.Json)
@@ -168,7 +173,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
             assertEquals(HttpStatusCode.BadRequest, response.status)
         }
 
-        testBasketService("returns 401 when not authenticated") { _ ->
+        testBasketService("returns 401 when not authenticated") {module ->
+            val testToken = module.authContext.createFoodLoverToken()
             val response = jsonClient().post("/basket/items") {
                 contentType(ContentType.Application.Json)
                 setBody(AddItemRequest(menuItemId = 1L, quantity = 1))
@@ -180,6 +186,7 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
 
     testSuite("PUT /basket/items/{itemId}") {
         testBasketService("updates item quantity") { module ->
+            val testToken = module.authContext.createFoodLoverToken()
             module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
@@ -213,7 +220,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
             assertEquals(10, basket.items[0].quantity)
         }
 
-        testBasketService("returns 404 when item not in basket") { _ ->
+        testBasketService("returns 404 when item not in basket") {module ->
+            val testToken = module.authContext.createFoodLoverToken()
             val response = jsonClient().put("/basket/items/non-existent-id") {
                 bearerAuth(testToken)
                 contentType(ContentType.Application.Json)
@@ -223,7 +231,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
             assertEquals(HttpStatusCode.NotFound, response.status)
         }
 
-        testBasketService("returns 400 for invalid quantity") { _ ->
+        testBasketService("returns 400 for invalid quantity") {module ->
+            val testToken = module.authContext.createFoodLoverToken()
             val response = jsonClient().put("/basket/items/some-id") {
                 bearerAuth(testToken)
                 contentType(ContentType.Application.Json)
@@ -233,7 +242,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
             assertEquals(HttpStatusCode.BadRequest, response.status)
         }
 
-        testBasketService("returns 401 when not authenticated") { _ ->
+        testBasketService("returns 401 when not authenticated") { module ->
+            val testToken = module.authContext.createFoodLoverToken()
             val response = jsonClient().put("/basket/items/some-id") {
                 contentType(ContentType.Application.Json)
                 setBody(UpdateItemQuantityRequest(quantity = 5))
@@ -245,6 +255,7 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
 
     testSuite("DELETE /basket/items/{itemId}") {
         testBasketService("removes item from basket") { module ->
+            val testToken = module.authContext.createFoodLoverToken()
             module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
@@ -291,7 +302,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
             assertEquals(2L, basket.items[0].menuItemId)
         }
 
-        testBasketService("returns 404 when item not in basket") { _ ->
+        testBasketService("returns 404 when item not in basket") {module ->
+            val testToken = module.authContext.createFoodLoverToken()
             val response = jsonClient().delete("/basket/items/non-existent-id") {
                 bearerAuth(testToken)
             }
@@ -307,6 +319,7 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
 
     testSuite("DELETE /basket") {
         testBasketService("clears entire basket") { module ->
+            val testToken = module.authContext.createFoodLoverToken()
             module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
@@ -340,7 +353,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
             assertTrue(basket.items.isEmpty())
         }
 
-        testBasketService("returns 204 even when basket is already empty") { _ ->
+        testBasketService("returns 204 even when basket is already empty") {module ->
+            val testToken = module.authContext.createFoodLoverToken()
             val response = jsonClient().delete("/basket") {
                 bearerAuth(testToken)
             }
@@ -356,6 +370,9 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
 
     testSuite("User isolation") {
         testBasketService("different users have separate baskets") { module ->
+            val user1Token = module.authContext.createFoodLoverToken()
+            val user2Token = module.authContext.createPizzaFanToken()
+
             module.menuClient.addMenuItem(
                 MenuItem(
                     id = 1L,
@@ -366,9 +383,6 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
                     stock = 100
                 )
             )
-
-            val user1Token = createTestToken("user-1")
-            val user2Token = createTestToken("user-2")
 
             // User 1 adds item
             jsonClient().post("/basket/items") {

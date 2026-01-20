@@ -1,5 +1,6 @@
 package io.ktor.foodies.server.openid
 
+import com.auth0.jwt.interfaces.Claim
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.HttpRequestRetry
@@ -20,11 +21,39 @@ import kotlinx.serialization.Serializable
 data class Auth(
     val issuer: String,
     @SerialName("service_audience") val serviceAudience: String,
-    @SerialName("user_audience") val userAudience: String = "account"
+    @SerialName("user_audience") val userAudience: String
 )
 
 const val AUTH_USER = "auth-user"
-const val AUTH_SERVICE = "auth-service"
+private const val AUTH_SERVICE = "auth-service"
+
+fun interface ServerSessionSCope {
+    context(ctx: RoutingContext)
+    suspend fun serviceCredentials(): ServicePrincipal
+}
+
+context(scope: ServerSessionSCope)
+suspend fun RoutingContext.serviceCredentials(): ServicePrincipal = scope.serviceCredentials()
+
+fun Route.withServiceScope(build: context(ServerSessionSCope) Route.() -> Unit): Route = authenticate(AUTH_SERVICE) {
+    build.invoke(ServerSessionSCope { contextOf<RoutingContext>().call.principal<ServicePrincipal>()!! }, this)
+}
+
+fun interface UserSessionSope {
+    context(ctx: RoutingContext)
+    suspend fun userCredentials(): UserPrincipal
+}
+
+context(scope: UserSessionSope)
+suspend fun RoutingContext.userCredentials(): UserPrincipal = scope.userCredentials()
+
+fun Route.withUserScope(build: context(UserSessionSope) Route.() -> Unit): Route = authenticate(AUTH_USER) {
+    build.invoke(UserSessionSope {
+        requireNotNull(contextOf<RoutingContext>().call.principal<UserPrincipal>()) {
+            "User principal not found"
+        }
+    }, this)
+}
 
 suspend fun Application.security(auth: Auth) {
     HttpClient(Apache5) {
@@ -37,7 +66,7 @@ suspend fun Application.security(auth: Auth) {
 }
 
 suspend fun Application.security(auth: Auth, client: HttpClient) {
-    val config = client.use { it.discover(auth.issuer) }
+    val config = client.discover(auth.issuer)
 
     install(Authentication) {
         jwt(AUTH_USER) {
@@ -48,16 +77,15 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
                 val sub = credential.payload.subject
                 if (sub != null) {
                     UserPrincipal(
-                        userId = sub,
+                        subject = sub,
                         email = credential.payload.getClaim("email")?.asString(),
                         name = credential.payload.getClaim("name")?.asString()
                             ?: credential.payload.getClaim("preferred_username")?.asString(),
                         roles = extractRoles(credential.payload.getClaim("realm_access")),
-                        scopes = credential.payload.getClaim("scope")?.asString()
-                            ?.split(" ")?.toSet() ?: emptySet()
+                        scopes = credential.payload.getClaim("scope")?.asString()?.split(" ")?.toSet() ?: emptySet()
                     )
                 } else {
-                    null
+                 null
                 }
             }
         }
@@ -81,35 +109,21 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
     }
 }
 
-private fun extractRoles(realmAccessClaim: com.auth0.jwt.interfaces.Claim?): Set<String> {
-    return try {
+fun extractRoles(realmAccessClaim: Claim?): Set<String> =
+    try {
         @Suppress("UNCHECKED_CAST")
-        val realmAccess = realmAccessClaim?.asMap() as? Map<String, Any>
-        val roles = realmAccess?.get("roles") as? List<String>
-        roles?.toSet() ?: emptySet()
-    } catch (e: Exception) {
+        val realmAccess = realmAccessClaim?.asMap()
+        (realmAccess?.get("roles") as? List<String>)?.toSet() ?: emptySet()
+    } catch (_: Exception) {
         emptySet()
     }
-}
 
-data class ServicePrincipal(
-    val serviceId: String,
-    val scopes: Set<String> = emptySet()
-) {
-    fun hasScope(scope: String): Boolean = scope in scopes
-    fun hasAllScopes(vararg scopes: String): Boolean = scopes.all { it in this.scopes }
-}
+data class ServicePrincipal(val serviceId: String, val scopes: Set<String>)
 
 data class UserPrincipal(
-    val userId: String,
+    val subject: String,
     val email: String? = null,
     val name: String? = null,
-    val roles: Set<String> = emptySet(),
-    val scopes: Set<String> = emptySet()
-) {
-    fun hasRole(role: String): Boolean = role in roles
-    fun hasScope(scope: String): Boolean = scope in scopes
-    fun hasAllScopes(vararg scopes: String): Boolean = scopes.all { it in this.scopes }
-    fun hasAnyScope(vararg scopes: String): Boolean = scopes.any { it in this.scopes }
-}
-
+    val roles: Set<String>,
+    val scopes: Set<String>,
+)

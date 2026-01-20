@@ -5,6 +5,7 @@ plugins {
 dependencies {
     implementation(ktorLibs.client.apache5)
     implementation(ktorLibs.client.contentNegotiation)
+    implementation(ktorLibs.client.auth)
 
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.auth)
@@ -35,6 +36,7 @@ dependencies {
 
     testImplementation(project(":server-shared-test"))
     testImplementation(ktorLibs.server.testHost)
+    testImplementation(libs.testcontainers.keycloak)
     testImplementation(libs.testballoon)
 }
 

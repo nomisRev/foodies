@@ -9,70 +9,69 @@ val userPrincipalSpec by testSuite {
 
     test("hasScope returns true for existing scope") {
         val principal = UserPrincipal(
-            userId = "test-user",
-            scopes = setOf("read", "write")
+            subject = "test-user",
+            scopes = setOf("read", "write"),
+            roles = emptySet()
         )
 
-        assertTrue(principal.hasScope("read"))
-        assertTrue(principal.hasScope("write"))
-        assertFalse(principal.hasScope("admin"))
+        assertTrue("read" in principal.scopes)
+        assertTrue("write" in principal.scopes)
+        assertFalse("admin" in principal.scopes)
     }
 
     test("hasRole returns true for existing role") {
         val principal = UserPrincipal(
-            userId = "test-user",
-            roles = setOf("user", "admin")
+            subject = "test-user",
+            roles = setOf("user", "admin"),
+            scopes = emptySet()
         )
 
-        assertTrue(principal.hasRole("user"))
-        assertTrue(principal.hasRole("admin"))
-        assertFalse(principal.hasRole("super-admin"))
+        assertTrue("user" in principal.roles)
+        assertTrue("admin" in principal.roles)
+        assertFalse("super-admin" in principal.roles)
     }
 
     test("hasAllScopes checks all scopes") {
         val principal = UserPrincipal(
-            userId = "test-user",
-            scopes = setOf("read", "write", "delete")
+            subject = "test-user",
+            scopes = setOf("read", "write", "delete"),
+            roles = emptySet()
         )
 
-        assertTrue(principal.hasAllScopes("read", "write"))
-        assertTrue(principal.hasAllScopes("read"))
-        assertFalse(principal.hasAllScopes("read", "admin"))
+        val scopes = arrayOf("read", "write")
+        assertTrue(scopes.all { it in principal.scopes })
+        val scopes1 = arrayOf("read")
+        assertTrue(scopes1.all { it in principal.scopes })
+        val scopes2 = arrayOf("read", "admin")
+        assertFalse(scopes2.all { it in principal.scopes })
     }
 
     test("hasAnyScope checks any scope") {
         val principal = UserPrincipal(
-            userId = "test-user",
-            scopes = setOf("read", "write")
+            subject = "test-user",
+            scopes = setOf("read", "write"),
+            roles = emptySet()
         )
 
-        assertTrue(principal.hasAnyScope("read", "admin"))
-        assertTrue(principal.hasAnyScope("write"))
-        assertFalse(principal.hasAnyScope("admin", "super"))
+        val scopes = arrayOf("read", "admin")
+        assertTrue(scopes.any { it in principal.scopes })
+        val scopes1 = arrayOf("write")
+        assertTrue(scopes1.any { it in principal.scopes })
+        val scopes2 = arrayOf("admin", "super")
+        assertFalse(scopes2.any { it in principal.scopes })
     }
 
-    test("UserPrincipal with null optional fields") {
-        val principal = UserPrincipal(
-            userId = "test-user"
-        )
-
-        assertEquals("test-user", principal.userId)
-        assertEquals(null, principal.email)
-        assertEquals(null, principal.name)
-        assertEquals(emptySet(), principal.roles)
-        assertEquals(emptySet(), principal.scopes)
-    }
 
     test("UserPrincipal with all fields populated") {
         val principal = UserPrincipal(
-            userId = "user-123",
+            subject = "user-123",
             email = "test@example.com",
             name = "Test User",
             roles = setOf("user", "admin"),
             scopes = setOf("openid", "profile", "email")
         )
 
-        assertEquals("user-123", principal.userId)
+        assertEquals("user-123", principal.subject)
         assertEquals("test@example.com", principal.email)
         assertEquals("Test User", principal.name)
         assertEquals(setOf("user", "admin"), principal.roles)

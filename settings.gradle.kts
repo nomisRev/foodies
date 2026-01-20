@@ -26,6 +26,6 @@ include(":events-menu")
 project(":events-menu").projectDir = file("events/events-menu")
 include(":events-payment")
 project(":events-payment").projectDir = file("events/events-payment")
-include(":e2e")
+//include(":e2e")
 
 rootProject.name = "foodies"

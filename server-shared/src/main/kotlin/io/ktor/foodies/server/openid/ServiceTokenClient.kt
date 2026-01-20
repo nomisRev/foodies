@@ -76,7 +76,7 @@ private data class TokenResponse(
 
 private data class CachedToken(val accessToken: String, val expiresAt: Instant, val scopes: List<String>)
 
-private class KeycloakServiceTokenClient(
+internal class KeycloakServiceTokenClient(
     private val httpClient: HttpClient,
     private val config: ServiceClientConfig,
     private val openIdConfig: OpenIdConfiguration,
@@ -139,17 +139,6 @@ private class KeycloakServiceTokenClient(
     }
 
     override fun close() = httpClient.close()
-
-    companion object {
-        suspend fun create(
-            config: ServiceClientConfig,
-            clock: Clock = Clock.System
-        ): KeycloakServiceTokenClient {
-            val httpClient = HttpClient(Apache5) { install(ContentNegotiation) { json() } }
-            val openIdConfig = httpClient.discover(config.issuer)
-            return KeycloakServiceTokenClient(httpClient, config, openIdConfig, clock)
-        }
-    }
 }
 
 class ServiceTokenException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)

@@ -30,7 +30,7 @@ val serviceTokenClientSpec by testSuite(testConfig = TestConfig.testScope(true, 
         }
     } closeWith { stop() }
 
-    suspend fun create(config: ServiceClientConfig, ): KeycloakServiceTokenClient {
+    suspend fun create(config: ServiceClientConfig): KeycloakServiceTokenClient {
         val httpClient = HttpClient(Apache5) { install(ContentNegotiation) { json() } }
         val openIdConfig = httpClient.discover(config.issuer)
         return KeycloakServiceTokenClient(httpClient, config, openIdConfig, Clock.System)

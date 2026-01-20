@@ -6,8 +6,9 @@ dependencies {
     implementation(project(":server-shared"))
     implementation(ktorLibs.serialization.kotlinx.json)
 
-    implementation(ktorLibs.client.contentNegotiation)
+    implementation(ktorLibs.client.core)
     implementation(ktorLibs.client.apache5)
+    implementation(ktorLibs.client.contentNegotiation)
 
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.config.yaml)
@@ -20,9 +21,9 @@ dependencies {
 
     api(ktorLibs.server.testHost)
     api(libs.testcontainers.postgresql)
+    api(libs.testcontainers.keycloak)
     api(libs.rabbitmq)
     api(libs.testcontainers.rabbitmq)
-    api(libs.testcontainers.keycloak)
     api(libs.testballoon)
 }
 

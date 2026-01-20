@@ -46,6 +46,7 @@ dependencies {
     testImplementation(ktorLibs.serialization.kotlinx.json)
     testImplementation(libs.testcontainers.core)
     testImplementation(libs.testcontainers.redis)
+    testImplementation(libs.testcontainers.keycloak)
     testImplementation(libs.kotlinx.coroutines.reactor)
 }
 
