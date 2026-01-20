@@ -1,9 +1,12 @@
 package io.ktor.foodies.menu
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.DataSource
+import io.ktor.foodies.server.openid.Auth
 import io.ktor.foodies.server.telemetry.MonitoringConfig
 import io.ktor.foodies.server.test.PostgreSQLContainer
 import io.ktor.foodies.server.test.RabbitContainer
@@ -11,9 +14,18 @@ import io.ktor.foodies.server.test.dataSource
 import io.ktor.foodies.server.test.postgresContainer
 import io.ktor.foodies.server.test.rabbitContainer
 import io.ktor.foodies.server.test.testApplication
+import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.opentelemetry.api.OpenTelemetry
 import org.flywaydb.core.Flyway
+import java.util.Date
+
+private const val TEST_SECRET = "test-jwt-secret-for-end-to-end-testing"
+private const val TEST_ISSUER = "test-issuer"
+private const val TEST_AUDIENCE = "test-audience"
 
 fun TestSuite.migratedMenuDataSource(): TestSuite.Fixture<DataSource> =
     testFixture {
@@ -41,6 +53,17 @@ fun TestSuite.serviceContext(): ServiceContext {
     return ServiceContext(container, rabbitContainer, ds, service)
 }
 
+fun createTestToken(
+    subject: String,
+    issuer: String = TEST_ISSUER,
+    audience: String = TEST_AUDIENCE,
+): String = JWT.create()
+    .withSubject(subject)
+    .withIssuer(issuer)
+    .withAudience(audience)
+    .withExpiresAt(Date(System.currentTimeMillis() + 60_000))
+    .sign(Algorithm.HMAC256(TEST_SECRET))
+
 @TestRegistering
 context(ctx: ServiceContext)
 fun TestSuite.testMenuService(
@@ -49,13 +72,27 @@ fun TestSuite.testMenuService(
 ) {
     testApplication(name) {
         application {
+            install(Authentication) {
+                jwt {
+                    verifier(
+                        JWT.require(Algorithm.HMAC256(TEST_SECRET))
+                            .withIssuer(TEST_ISSUER)
+                            .withAudience(TEST_AUDIENCE)
+                            .build()
+                    )
+                    validate { credential ->
+                        if (credential.payload.subject != null) JWTPrincipal(credential.payload) else null
+                    }
+                }
+            }
             app(
                 module(
                     Config(
                         host = "0.0.0.0",
                         port = 8080,
-                        ctx.container().config(),
-                        RabbitConfig(
+                        auth = Auth(issuer = "http://localhost:9090/realms/foodies-keycloak"),
+                        dataSource = ctx.container().config(),
+                        rabbit = RabbitConfig(
                             ctx.rabbitContainer().host,
                             ctx.rabbitContainer().amqpPort,
                             ctx.rabbitContainer().adminUsername,
