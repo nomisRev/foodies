@@ -1,5 +1,7 @@
 package io.ktor.foodies.payment
 
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import de.infix.testBalloon.framework.core.TestExecutionScope
@@ -18,11 +20,16 @@ import io.ktor.foodies.server.test.PostgreSQLContainer
 import io.ktor.foodies.server.test.RabbitContainer
 import io.ktor.foodies.server.test.rabbitContainer
 import io.ktor.foodies.server.test.testApplication
+import io.ktor.server.application.install
+import io.ktor.server.auth.Authentication
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.testing.ApplicationTestBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
+import java.util.Date
 
 data class ServiceContext(
     val postgresContainer: TestSuite.Fixture<PostgreSQLContainer>,
@@ -55,6 +62,21 @@ fun TestSuite.serviceContext(): ServiceContext {
 
     return ServiceContext(container, database, rabbit)
 }
+
+private const val TEST_SECRET = "test-jwt-secret-for-end-to-end-testing"
+private const val TEST_ISSUER = "test-issuer"
+private const val TEST_AUDIENCE = "test-audience"
+
+fun createTestToken(
+    subject: String,
+    issuer: String = TEST_ISSUER,
+    audience: String = TEST_AUDIENCE,
+): String = JWT.create()
+    .withSubject(subject)
+    .withIssuer(issuer)
+    .withAudience(audience)
+    .withExpiresAt(Date(System.currentTimeMillis() + 60_000))
+    .sign(Algorithm.HMAC256(TEST_SECRET))
 
 @TestRegistering
 context(ctx: ServiceContext)
@@ -117,6 +139,19 @@ fun TestSuite.testPaymentService(
         )
 
         application {
+            install(Authentication) {
+                jwt {
+                    verifier(
+                        JWT.require(Algorithm.HMAC256(TEST_SECRET))
+                            .withIssuer(TEST_ISSUER)
+                            .withAudience(TEST_AUDIENCE)
+                            .build()
+                    )
+                    validate { credential ->
+                        if (credential.payload.subject != null) JWTPrincipal(credential.payload) else null
+                    }
+                }
+            }
             app(module)
         }
 

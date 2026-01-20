@@ -2,6 +2,7 @@ package io.ktor.foodies.payment
 
 import io.ktor.foodies.events.common.*
 import io.ktor.client.call.body
+import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
 import io.ktor.client.request.setBody
 import io.ktor.foodies.server.test.ctxSuite
@@ -49,6 +50,7 @@ private val DECLINED_CARD = PaymentMethodInfo(
  * to actual PostgreSQL storage and event publishing, ensuring all components work together correctly.
  */
 val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
+    val testToken = createTestToken("test-user")
     testPaymentService("process payment successfully and verify storage") { module ->
         val request = ProcessPaymentRequest(
             eventId = "evt-001",
@@ -117,7 +119,9 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
         module.paymentService.processPayment(request)
 
         // Retrieve via HTTP
-        val response = jsonClient().get("/payments/${request.orderId}")
+        val response = jsonClient().get("/payments/${request.orderId}") {
+            bearerAuth(testToken)
+        }
         assertEquals(HttpStatusCode.OK, response.status)
 
         val payment = response.body<PaymentRecord>()
@@ -129,12 +133,16 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
     }
 
     testPaymentService("HTTP endpoint returns 404 for non-existent payment") { module ->
-        val response = jsonClient().get("/payments/999999")
+        val response = jsonClient().get("/payments/999999") {
+            bearerAuth(testToken)
+        }
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
     testPaymentService("HTTP endpoint returns 400 for invalid order ID") { module ->
-        val response = jsonClient().get("/payments/invalid")
+        val response = jsonClient().get("/payments/invalid") {
+            bearerAuth(testToken)
+        }
         assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 

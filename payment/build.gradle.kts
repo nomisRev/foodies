@@ -22,6 +22,8 @@ dependencies {
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.server.auth)
+    implementation(ktorLibs.server.auth.jwt)
 
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.datetime)

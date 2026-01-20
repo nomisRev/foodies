@@ -2,6 +2,7 @@ package io.ktor.foodies.payment
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
+import io.ktor.foodies.server.openid.security
 import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.launchIn
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
+        security(config.auth)
         val (_, openTelemetry) = openTelemetry(config.telemetry.otlpEndpoint)
         app(module(config, openTelemetry))
     }.start(wait = true)
