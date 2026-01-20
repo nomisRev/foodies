@@ -66,6 +66,30 @@ fun Application.app(module: MenuModule) {
                 call.respondText("Token is not valid or has expired", status = HttpStatusCode.Unauthorized)
             }
         }
+
+        jwt("service-to-service-auth-jwt") {
+            realm = "foodies-service-to-service"
+            verifier(
+                // This verifier is for service-to-service communication.
+                // Replace with actual secret/public key, ideally fetched from a secure configuration service.
+                JWT
+                    .require(Algorithm.HMAC256("super-secret-key-for-s2s-that-should-be-in-config")) // Use a distinct secret for S2S
+                    .withAudience("foodies-internal-services") // Audience for internal service tokens
+                    .build()
+            )
+            validate { credential ->
+                if (credential.payload.audience.contains("foodies-internal-services")) {
+                    // In a real scenario, you might want to check for additional claims
+                    // specific to service-to-service communication, e.g., 'clientId' or 'sourceService'.
+                    JWTPrincipal(credential.payload)
+                } else {
+                    null
+                }
+            }
+            challenge { defaultScheme, realm ->
+                call.respondText("Service-to-service token is not valid or has expired", status = HttpStatusCode.Unauthorized)
+            }
+        }
     }
 
     install(Cohort) {
