@@ -234,7 +234,7 @@ val basketContractSpec by ctxSuite(context = { serviceContext() }) {
 
     testBasketService("data persists correctly: basket survives Redis reconnection simulation") { module ->
         val testToken = module.authContext.createFoodLoverToken()
-        val testUserId = "39c7f1e0-5df0-40bb-b864-f761a42ac7d2"
+        val testUserId = "user-1"
 
         module.menuClient.addMenuItem(SIMPLE_PIZZA)
 
@@ -253,5 +253,65 @@ val basketContractSpec by ctxSuite(context = { serviceContext() }) {
         assertEquals(1, persistedBasket.items.size)
         assertEquals(1L, persistedBasket.items[0].menuItemId)
         assertEquals(7, persistedBasket.items[0].quantity)
+    }
+
+    testBasketService("hybrid authentication: service can access user basket via internal route") { module ->
+        val userToken = module.authContext.createFoodLoverToken()
+        val serviceToken = module.authContext.createServiceToken(
+            "order-service",
+            "order-service-secret",
+            listOf("basket:read")
+        )
+
+        // 1. User adds item to their basket
+        module.menuClient.addMenuItem(SIMPLE_PIZZA)
+        jsonClient().post("/basket/items") {
+            bearerAuth(userToken)
+            contentType(ContentType.Application.Json)
+            setBody(AddItemRequest(menuItemId = 1L, quantity = 3))
+        }
+
+        // 2. Service accesses user's basket via internal route
+        val basket = jsonClient().get("/internal/basket/user-1") {
+            bearerAuth(serviceToken)
+        }.body<CustomerBasket>()
+
+        assertEquals("user-1", basket.buyerId)
+        assertEquals(1, basket.items.size)
+        assertEquals(3, basket.items[0].quantity)
+    }
+
+    testBasketService("authorization: admin can access any user basket via internal route") { module ->
+        val userToken = module.authContext.createFoodLoverToken()
+        val adminToken = module.authContext.createAdminToken()
+
+        // 1. User adds item
+        module.menuClient.addMenuItem(SIMPLE_PIZZA)
+        jsonClient().post("/basket/items") {
+            bearerAuth(userToken)
+            contentType(ContentType.Application.Json)
+            setBody(AddItemRequest(menuItemId = 1L, quantity = 2))
+        }
+
+        // 2. Admin accesses user's basket
+        val response = jsonClient().get("/internal/basket/user-1") {
+            bearerAuth(adminToken)
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val basket = response.body<CustomerBasket>()
+        assertEquals("user-1", basket.buyerId)
+    }
+
+    testBasketService("authorization: user cannot access another user's basket via internal route") { module ->
+        val user1Token = module.authContext.createFoodLoverToken()
+        val user2Token = module.authContext.createPizzaFanToken()
+
+        // User 2 tries to access User 1's basket
+        val response = jsonClient().get("/internal/basket/user-1") {
+            bearerAuth(user2Token)
+        }
+
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 }

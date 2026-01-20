@@ -10,6 +10,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import io.ktor.server.request.header
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
@@ -38,14 +39,15 @@ val AuditLogging = createApplicationPlugin(name = "AuditLogging") {
     on(AuthenticationChecked) { call ->
         val principal = call.principal<AuthPrincipal>()
         if (principal != null) {
+            val requestId = call.request.header("X-Request-Id") ?: "no-request-id"
             val method = call.request.local.method.value
             val uri = call.request.local.uri
             when (principal) {
                 is UserPrincipal -> {
-                    logger.info("Audit: User ${principal.userId} (${principal.name ?: "unknown"}) accessed $method $uri")
+                    logger.info("Audit: [$requestId] User ${principal.userId} (${principal.name ?: "unknown"}) accessed $method $uri")
                 }
                 is ServicePrincipal -> {
-                    logger.info("Audit: Service ${principal.serviceId} accessed $method $uri")
+                    logger.info("Audit: [$requestId] Service ${principal.serviceId} accessed $method $uri")
                 }
             }
         }
