@@ -19,7 +19,8 @@ fun orderEventConsumers(
     stockRejectedHandler: StockRejectedEventHandler,
     paymentSucceededHandler: PaymentSucceededEventHandler,
     paymentFailedHandler: PaymentFailedEventHandler,
-    orderStatusChangedHandler: OrderStatusChangedEventHandler
+    orderStatusChangedHandler: OrderStatusChangedEventHandler,
+    gracePeriodExpiredHandler: GracePeriodExpiredEventHandler
 ): List<Flow<Unit>> = listOf(
     run {
         val queueName = "order.stock-confirmed"
@@ -60,5 +61,16 @@ fun orderEventConsumers(
             queueDeclare(queueName, true, false, false, null)
             queueBind(queueName, exchange, routingKey)
         }.parConsumeMessage { orderStatusChangedHandler.handle(it) }
+    },
+    run {
+        val queueName = "order.grace-period-expired"
+        val routingKey = "order.grace-period.expired"
+        subscriber.subscribe<GracePeriodExpiredEvent>(queueName) {
+            val args = mapOf("x-delayed-type" to "direct")
+            exchangeDeclare(exchange, "x-delayed-message", true, false, args)
+
+            queueDeclare(queueName, true, false, false, null)
+            queueBind(queueName, exchange, routingKey)
+        }.parConsumeMessage { gracePeriodExpiredHandler.handle(it) }
     }
 )

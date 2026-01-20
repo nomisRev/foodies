@@ -17,23 +17,23 @@ val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
         }
     }
 
-    testProfileService("readiness probe checks database connectivity") {
-        val response = client.get("/healthz/readiness")
-        assertEquals(HttpStatusCode.OK, response.status)
+        testProfileService("readiness probe checks database connectivity") {
+            val response = client.get("/healthz/readiness")
 
         eventually {
-            val body = response.bodyAsText()
-            assertContains(body, "hikari_open_connections", ignoreCase = true)
+            assertEquals(HttpStatusCode.OK, response.status)
+                val body = response.bodyAsText()
+                assertContains(body, "hikari_open_connections", ignoreCase = true)
+            }
         }
-    }
 
-    testProfileService("readiness probe checks database connectivity") {
-        val response = client.get("/healthz/readiness")
-        assertEquals(HttpStatusCode.OK, response.status)
+        testProfileService("readiness probe checks database connectivity") {
+            val response = client.get("/healthz/readiness")
 
         eventually {
-            val body = response.bodyAsText()
-            assertContains(body, "rabbitmq", ignoreCase = true)
+            assertEquals(HttpStatusCode.OK, response.status)
+                val body = response.bodyAsText()
+                assertContains(body, "rabbitmq", ignoreCase = true)
+            }
         }
     }
-}

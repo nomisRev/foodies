@@ -2,7 +2,7 @@
 
 ## Issue tracking
 
-This project uses 'br' (rust beads) for task management.
+This project uses 'br' command line tool for task management.
 
 When implementing a feature always consult 'br' and try to break down your tasks first.
 Keep your task as short as possible, and prefer creating new tasks in 'br' for follow-up work.

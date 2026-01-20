@@ -7,6 +7,7 @@ import io.ktor.foodies.events.order.*
 import io.ktor.foodies.order.repository.OrderRepository
 import io.ktor.foodies.order.service.DefaultOrderService
 import io.ktor.foodies.order.service.OrderEventPublisher
+import kotlin.time.Duration
 import kotlin.time.Instant
 
 /**
@@ -23,7 +24,7 @@ fun createTestContext(): TestContext {
     val orderRepository = InMemoryOrderRepository()
     val basketClient = InMemoryBasketClient()
     val eventPublisher = InMemoryOrderEventPublisher()
-    val service = DefaultOrderService(orderRepository, basketClient, eventPublisher)
+    val service = DefaultOrderService(orderRepository, basketClient, eventPublisher, OrderConfig(30))
     return TestContext(
         orderRepository = orderRepository,
         basketClient = basketClient,
@@ -67,7 +68,8 @@ class InMemoryOrderRepository : OrderRepository {
         status: OrderStatus?,
         buyerId: String?
     ): PaginatedOrders {
-        val filtered = orders.filter { (buyerId == null || it.buyerId == buyerId) && (status == null || it.status == status) }
+        val filtered =
+            orders.filter { (buyerId == null || it.buyerId == buyerId) && (status == null || it.status == status) }
         val sorted = filtered.sortedByDescending { it.createdAt }
         val paged = sorted.drop(offset.toInt()).take(limit)
         val summaries = paged.map {
@@ -150,6 +152,7 @@ class InMemoryOrderEventPublisher : OrderEventPublisher {
     val stockConfirmedEvents = mutableListOf<OrderStockConfirmedEvent>()
     val awaitingValidationEvents = mutableListOf<OrderAwaitingValidationEvent>()
     val stockReturnedEvents = mutableListOf<StockReturnedEvent>()
+    val delayedEvents = mutableListOf<Pair<GracePeriodExpiredEvent, Int>>()
 
     override suspend fun publish(event: OrderCreatedEvent) {
         createdEvents.add(event)
@@ -173,5 +176,12 @@ class InMemoryOrderEventPublisher : OrderEventPublisher {
 
     override suspend fun publish(event: StockReturnedEvent) {
         stockReturnedEvents.add(event)
+    }
+
+    override suspend fun publish(
+        event: GracePeriodExpiredEvent,
+        delay: Duration
+    ) {
+        delayedEvents.add(event to delay.inWholeMilliseconds.toInt())
     }
 }

@@ -78,9 +78,7 @@ suspend fun Application.module(config: Config, telemetry: OpenTelemetry): OrderM
         Publisher(rabbitChannel, config.rabbit.exchange, Json)
     )
     val orderRepository = ExposedOrderRepository(dataSource.database)
-    val orderService = DefaultOrderService(orderRepository, basketClient, eventPublisher)
-    val gracePeriodService = GracePeriodService(config.order, orderService, this)
-    orderService.setGracePeriodService(gracePeriodService)
+    val orderService = DefaultOrderService(orderRepository, basketClient, eventPublisher, config.order)
 
     val notificationService = LoggingNotificationService()
 
@@ -93,7 +91,8 @@ suspend fun Application.module(config: Config, telemetry: OpenTelemetry): OrderM
         StockRejectedEventHandler(orderService),
         PaymentSucceededEventHandler(orderService),
         PaymentFailedEventHandler(orderService),
-        OrderStatusChangedEventHandler(orderRepository, notificationService)
+        OrderStatusChangedEventHandler(orderRepository, notificationService),
+        GracePeriodExpiredEventHandler(orderService)
     )
 
     val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
