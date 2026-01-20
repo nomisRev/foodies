@@ -1,13 +1,9 @@
-# Guidelines
+# Issue tracking
 
-## Issue tracking
+This project uses 'br' command line tool for issue tracking.
+Always try to break down your tasks, and keep your task as short as possible.
 
-This project uses 'br' (rust beads) for task and issue tracking.
-
-When implementing always consult 'br', and try to break down your tasks.
-Keep your task as short as possible, and prefer creating new tasks in 'br' for follow-up work.
-
-When reviewing create issues using 'br' for any issues you find. 
+When reviewing code, create issues using 'br' for any issues you find.
 
 # Build with Gradle
 
@@ -16,8 +12,7 @@ When reviewing create issues using 'br' for any issues you find.
     - Test selection accepts the pipe | character to separate test elements:
       `./gradlew cleanJvmTest jvmTest --tests "com.example.TestSuite|inner suite|*" --no-build-cache`
 - Run `./gradlew publishImageToLocalRegistry` to publish images for local deployment
-- Always use Gradle's Version Catalog, never hardcode dependencies in build.gradle.kts
-- 
+
 # Code Style
 
 - No comments unless code is complex and requires context for future developers.
@@ -37,5 +32,27 @@ Everything runs in the foodies namespace:
 - Pod logs: `kubectl logs <pod-name> -n foodies`
 - Delete stuck pod: `kubectl delete pod <pod-name> -n foodies`
 
-## WebApp
- - If you get stuck with Playwright clear the USER_SESSION.
+## Landing the Plane (Session Completion)
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds
