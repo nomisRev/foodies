@@ -2,10 +2,55 @@
   "realm": "foodies-keycloak",
   "enabled": true,
   "registrationAllowed": true,
+  "accessTokenLifespan": 900,
   "resetPasswordAllowed": true,
   "eventsEnabled": true,
   "eventsListeners": ["jboss-logging", "profile-webhook"],
   "enabledEventTypes": ["REGISTER"],
+  "clientScopes": [
+    {
+      "name": "basket:items:read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      }
+    },
+    {
+      "name": "basket:items:write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      }
+    },
+    {
+      "name": "order:orders:read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      }
+    },
+    {
+      "name": "order:orders:write",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      }
+    },
+    {
+      "name": "menu:items:read",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      }
+    },
+    {
+      "name": "payment:transactions:initiate",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true"
+      }
+    }
+  ],
   "clients": [
     {
       "clientId": "foodies",
@@ -17,6 +62,61 @@
       "attributes": {
         "post.logout.redirect.uris": "http://localhost:8080/*"
       }
+    },
+    {
+      "clientId": "service-webapp",
+      "secret": "webapp-service-secret",
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "defaultClientScopes": [
+        "basket:items:read",
+        "basket:items:write",
+        "menu:items:read",
+        "order:orders:read",
+        "order:orders:write"
+      ]
+    },
+    {
+      "clientId": "service-order",
+      "secret": "order-service-secret",
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "defaultClientScopes": [
+        "basket:items:read"
+      ]
+    },
+    {
+      "clientId": "service-basket",
+      "secret": "basket-service-secret",
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect",
+      "defaultClientScopes": [
+        "menu:items:read"
+      ]
+    },
+    {
+      "clientId": "service-menu",
+      "secret": "menu-service-secret",
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "service-profile",
+      "secret": "profile-service-secret",
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect"
+    },
+    {
+      "clientId": "service-payment",
+      "secret": "payment-service-secret",
+      "serviceAccountsEnabled": true,
+      "publicClient": false,
+      "protocol": "openid-connect"
     }
   ],
   "users": [
