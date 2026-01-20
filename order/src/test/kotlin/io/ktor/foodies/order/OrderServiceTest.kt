@@ -39,7 +39,7 @@ val orderServiceSpec by testSuite {
             )
         )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
 
         assertEquals(1, order.id)
         assertEquals("buyer-1", order.buyerId)
@@ -74,8 +74,8 @@ val orderServiceSpec by testSuite {
         )
 
         val requestId = UUID.randomUUID()
-        val order1 = ctx.service.createOrder(requestId, "buyer-1", "buyer@test.com", "John", request, "token")
-        val order2 = ctx.service.createOrder(requestId, "buyer-1", "buyer@test.com", "John", request, "token")
+        val order1 = ctx.service.createOrder(requestId, "buyer-1", "buyer@test.com", "John", request)
+        val order2 = ctx.service.createOrder(requestId, "buyer-1", "buyer@test.com", "John", request)
 
         assertEquals(order1.id, order2.id)
         assertEquals(1, ctx.orderRepository.orders.size)
@@ -107,8 +107,8 @@ val orderServiceSpec by testSuite {
             )
         )
 
-        ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
-        ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
+        ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
 
         val paginated = ctx.service.getOrders("buyer-1", 0, 10)
 
@@ -141,7 +141,7 @@ val orderServiceSpec by testSuite {
             )
         )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
 
         val cancelledOrder = ctx.service.cancelOrder(UUID.randomUUID(), order.id, "buyer-1", "Changed my mind")
 
@@ -181,7 +181,7 @@ val orderServiceSpec by testSuite {
             )
         )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
 
         // Manually set status to Cancelled
         val cancelledOrder = order.copy(status = OrderStatus.Cancelled)
@@ -219,7 +219,7 @@ val orderServiceSpec by testSuite {
             )
         )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
 
         // Manually set status to Paid
         val paidOrder = order.copy(status = OrderStatus.Paid)
@@ -259,7 +259,7 @@ val orderServiceSpec by testSuite {
             )
         )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
 
         // Manually set status to Shipped
         val shippedOrder = order.copy(status = OrderStatus.Shipped)
@@ -297,7 +297,7 @@ val orderServiceSpec by testSuite {
             )
         )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
 
         assertFailsWith<IllegalArgumentException> {
             ctx.service.shipOrder(UUID.randomUUID(), order.id)
@@ -329,7 +329,7 @@ val orderServiceSpec by testSuite {
             )
         )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
 
         // Manually set status to Paid
         val paidOrder = order.copy(status = OrderStatus.Paid)
@@ -365,7 +365,7 @@ val orderServiceSpec by testSuite {
             )
         )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
 
         // Manually set status to Shipped
         val shippedOrder = order.copy(status = OrderStatus.Shipped)
@@ -401,7 +401,7 @@ val orderServiceSpec by testSuite {
             )
         )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
 
         val updatedOrder = ctx.service.transitionToAwaitingValidation(order.id)
 
@@ -443,7 +443,7 @@ val orderServiceSpec by testSuite {
             )
         )
 
-        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        val order = ctx.service.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request)
 
         // Move to StockConfirmed
         val stockConfirmedOrder = order.copy(status = OrderStatus.StockConfirmed)

@@ -7,6 +7,7 @@ dependencies {
     implementation(ktorLibs.serialization.kotlinx.json)
 
     implementation(ktorLibs.client.contentNegotiation)
+    implementation(ktorLibs.client.apache5)
 
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.config.yaml)
@@ -21,6 +22,7 @@ dependencies {
     api(libs.testcontainers.postgresql)
     api(libs.rabbitmq)
     api(libs.testcontainers.rabbitmq)
+    api(libs.testcontainers.keycloak)
     api(libs.testballoon)
 }
 

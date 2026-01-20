@@ -3,7 +3,10 @@ package io.ktor.foodies.order
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
+import io.ktor.client.engine.apache5.Apache5
+import io.ktor.client.plugins.auth.Auth
+import io.ktor.client.plugins.auth.providers.BearerTokens
+import io.ktor.client.plugins.auth.providers.bearer
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 import io.ktor.foodies.order.client.HttpBasketClient
 import io.ktor.foodies.order.events.orderEventConsumers
@@ -14,8 +17,11 @@ import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
+import io.ktor.foodies.server.openid.KeycloakServiceTokenClient
+import io.ktor.foodies.server.openid.ServiceClientConfig
 import io.ktor.foodies.server.dataSource
-import io.ktor.foodies.server.telemetry.Monitoring
+import io.ktor.foodies.server.openid.serviceAuth
+import io.ktor.foodies.server.openid.withServiceAuth
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
@@ -30,13 +36,14 @@ import kotlin.time.Duration.Companion.seconds
 
 class OrderModule(
     val httpClient: HttpClient,
+    val basketHttpClient: HttpClient,
     val orderService: DefaultOrderService,
     val consumers: List<Flow<Unit>>,
     val eventPublisher: RabbitOrderEventPublisher,
     val readinessCheck: HealthCheckRegistry
 )
 
-fun Application.module(config: Config, telemetry: OpenTelemetry): OrderModule {
+suspend fun Application.module(config: Config, telemetry: OpenTelemetry): OrderModule {
     val dataSource = dataSource(config.database, telemetry)
 
     Flyway.configure()
@@ -44,14 +51,23 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): OrderModule {
         .load()
         .migrate()
 
-    val httpClient = HttpClient(CIO) {
+    val httpClient = HttpClient(Apache5) {
         install(ClientContentNegotiation) { json() }
         install(KtorClientTelemetry) {
             setOpenTelemetry(telemetry)
         }
     }
 
-    val basketClient = HttpBasketClient(httpClient, config.basket.baseUrl)
+    val serviceClientConfig = ServiceClientConfig(
+        issuer = config.auth.issuer,
+        clientId = config.serviceClient.clientId,
+        clientSecret = config.serviceClient.clientSecret,
+        defaultScopes = config.serviceClient.defaultScopes
+    )
+
+    val basketHttpClient = httpClient.withServiceAuth(serviceClientConfig)
+
+    val basketClient = HttpBasketClient(basketHttpClient, config.basket.baseUrl)
 
     val rabbitFactory =
         rabbitConnectionFactory(config.rabbit.host, config.rabbit.port, config.rabbit.username, config.rabbit.password)
@@ -92,6 +108,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): OrderModule {
 
     return OrderModule(
         httpClient = httpClient,
+        basketHttpClient = basketHttpClient,
         orderService = orderService,
         consumers = consumers,
         eventPublisher = eventPublisher,

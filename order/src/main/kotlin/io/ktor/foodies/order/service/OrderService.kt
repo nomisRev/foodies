@@ -20,8 +20,7 @@ interface OrderService {
         buyerId: String,
         buyerEmail: String,
         buyerName: String,
-        request: CreateOrderRequest,
-        token: String
+        request: CreateOrderRequest
     ): Order
 
     suspend fun getOrders(
@@ -64,13 +63,12 @@ class DefaultOrderService(
         buyerId: String,
         buyerEmail: String,
         buyerName: String,
-        request: CreateOrderRequest,
-        token: String
+        request: CreateOrderRequest
     ): Order {
         orderRepository.findByRequestId(requestId.toString())?.let { return it }
 
         val address = request.validate()
-        val basket = basketClient.getBasket(buyerId, token) ?: throw IllegalArgumentException("Basket not found")
+        val basket = basketClient.getBasket(buyerId) ?: throw IllegalArgumentException("Basket not found")
         if (basket.items.isEmpty()) throw IllegalArgumentException("Basket is empty")
 
         val createOrder = CreateOrder(

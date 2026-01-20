@@ -3,6 +3,11 @@ config:
   port: "$PORT:8084"
   auth:
     issuer: "$AUTH_ISSUER:http://localhost:8000/realms/foodies-keycloak"
+  service_client:
+    client_id: "$SERVICE_CLIENT_ID:order-service"
+    client_secret: "$SERVICE_CLIENT_SECRET:order-service-secret"
+    default_scopes:
+      - basket
   database:
     url: "$DB_URL:jdbc:postgresql://localhost:5433/foodies-order-database"
     username: "$DB_USERNAME:foodies_admin"

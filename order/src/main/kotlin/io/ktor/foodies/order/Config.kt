@@ -10,12 +10,24 @@ data class Config(
     val host: String,
     val port: Int,
     val auth: Auth,
+    @SerialName("service_client")
+    val serviceClient: ServiceClientConfig,
     val database: DataSource.Config,
     val basket: BasketServiceConfig,
     val payment: PaymentServiceConfig,
     val rabbit: RabbitConfig,
     val order: OrderConfig,
     val telemetry: Telemetry,
+)
+
+@Serializable
+data class ServiceClientConfig(
+    @SerialName("client_id")
+    val clientId: String,
+    @SerialName("client_secret")
+    val clientSecret: String,
+    @SerialName("default_scopes")
+    val defaultScopes: List<String> = emptyList(),
 )
 
 @Serializable

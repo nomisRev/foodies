@@ -69,11 +69,9 @@ fun Route.orderRoutes(orderService: OrderService) = authenticate {
             val buyerId = principal.buyerId()
             val buyerEmail = principal.buyerEmail()
             val buyerName = principal.buyerName()
-            val token = call.request.header("Authorization")?.removePrefix("Bearer ")
-                ?: throw IllegalStateException("No Authorization header")
 
             val request = call.receive<CreateOrderRequest>()
-            val order = orderService.createOrder(requestId, buyerId, buyerEmail, buyerName, request, token)
+            val order = orderService.createOrder(requestId, buyerId, buyerEmail, buyerName, request)
             call.respond(HttpStatusCode.Created, order)
         }
 

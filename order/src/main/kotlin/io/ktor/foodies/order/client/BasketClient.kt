@@ -4,10 +4,10 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
-import io.ktor.client.request.header
 import io.ktor.foodies.server.SerializableBigDecimal
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
+import org.slf4j.LoggerFactory
 
 @Serializable
 data class BasketItem(
@@ -25,7 +25,7 @@ data class CustomerBasket(
 )
 
 interface BasketClient {
-    suspend fun getBasket(buyerId: String, token: String): CustomerBasket?
+    suspend fun getBasket(buyerId: String): CustomerBasket?
 }
 
 class HttpBasketClient(
@@ -33,12 +33,13 @@ class HttpBasketClient(
     private val baseUrl: String
 ) : BasketClient {
     private val basketBaseUrl = baseUrl.trimEnd('/')
+    private val logger = LoggerFactory.getLogger(HttpBasketClient::class.java)
 
-    override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? {
+    override suspend fun getBasket(buyerId: String): CustomerBasket? {
         return try {
-            httpClient.get("$basketBaseUrl/basket") {
-                header("Authorization", "Bearer $token")
-            }.body<CustomerBasket>()
+            logger.debug("Fetching basket for buyer {}", buyerId)
+
+            httpClient.get("$basketBaseUrl/internal/basket/$buyerId").body<CustomerBasket>()
         } catch (e: ClientRequestException) {
             if (e.response.status == HttpStatusCode.NotFound) null
             else throw e

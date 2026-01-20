@@ -1,6 +1,9 @@
 package io.ktor.foodies.basket
 
 import io.ktor.foodies.server.getValue
+import io.ktor.foodies.server.openid.AUTH_SERVICE
+import io.ktor.foodies.server.openid.AUTH_USER
+import io.ktor.foodies.server.openid.ServicePrincipal
 import io.ktor.foodies.server.validate
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
@@ -14,23 +17,30 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import org.slf4j.LoggerFactory
 
-/**
- * Extracts the buyer ID (subject claim) from the JWT principal.
- */
+private val logger = LoggerFactory.getLogger("BasketRoutes")
+
 private fun JWTPrincipal.buyerId(): String = payload.subject
     ?: throw IllegalStateException("JWT subject claim is missing")
 
-fun Route.basketRoutes(basketService: BasketService) = authenticate {
+fun Route.basketRoutes(basketService: BasketService) {
+    basketUserRoutes(basketService)
+    basketServiceRoutes(basketService)
+}
+
+/**
+ * User-to-service API: Routes for end-user interactions with their basket.
+ * Users can only access and modify their own basket (buyerId derived from JWT subject).
+ */
+fun Route.basketUserRoutes(basketService: BasketService) = authenticate(AUTH_USER) {
     route("/basket") {
-        // GET /basket - Get current user's basket
         get {
             val buyerId = call.principal<JWTPrincipal>()!!.buyerId()
             val basket = basketService.getBasket(buyerId)
             call.respond(basket)
         }
 
-        // DELETE /basket - Clear entire basket
         delete {
             val buyerId = call.principal<JWTPrincipal>()!!.buyerId()
             basketService.clearBasket(buyerId)
@@ -38,7 +48,6 @@ fun Route.basketRoutes(basketService: BasketService) = authenticate {
         }
 
         route("/items") {
-            // POST /basket/items - Add item to basket
             post {
                 val buyerId = call.principal<JWTPrincipal>()!!.buyerId()
                 val request = call.receive<AddItemRequest>()
@@ -47,7 +56,6 @@ fun Route.basketRoutes(basketService: BasketService) = authenticate {
                 if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
             }
 
-            // PUT /basket/items/{itemId} - Update item quantity
             put("/{itemId}") {
                 val buyerId = call.principal<JWTPrincipal>()!!.buyerId()
                 val itemId: String by call.parameters
@@ -57,7 +65,6 @@ fun Route.basketRoutes(basketService: BasketService) = authenticate {
                 if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
             }
 
-            // DELETE /basket/items/{itemId} - Remove item from basket
             delete("/{itemId}") {
                 val buyerId = call.principal<JWTPrincipal>()!!.buyerId()
                 val itemId: String by call.parameters
@@ -65,5 +72,20 @@ fun Route.basketRoutes(basketService: BasketService) = authenticate {
                 if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
             }
         }
+    }
+}
+
+/**
+ * Service-to-service API: Routes for internal service communication.
+ * Read-only access - services cannot modify user baskets directly.
+ */
+fun Route.basketServiceRoutes(basketService: BasketService) = authenticate(AUTH_SERVICE) {
+    get("/internal/basket/{userId}") {
+        val servicePrincipal = call.principal<ServicePrincipal>()!!
+        val userId: String by call.parameters
+
+        logger.info("Service {} accessing basket for user {}", servicePrincipal.serviceId, userId)
+        val basket = basketService.getBasket(userId)
+        call.respond(basket)
     }
 }

@@ -211,45 +211,45 @@ spec:
               echo "Assigning 'foodies-audience' scope to client as default scope..."
               /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/default-client-scopes/$SCOPE_ID -r foodies-keycloak 2>/dev/null || echo "Scope already assigned or assignment created"
 
-              echo "Checking if user 'food3_lover' exists..."
+              echo "Checking if user 'food_lover' exists..."
               # Use query parameter for more reliable lookup
-              USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak -q username=food3_lover --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+              USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak -q username=food_lover --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
 
               if [ -n "$USER_ID" ]; then
-                echo "User 'food3_lover' already exists (ID: $USER_ID), updating..."
+                echo "User 'food_lover' already exists (ID: $USER_ID), updating..."
                 /opt/keycloak/bin/kcadm.sh update users/$USER_ID -r foodies-keycloak \
                   -s enabled=true \
                   -s email=food_lover@gmail.com \
                   -s firstName=Food \
                   -s lastName=Lover
 
-                echo "Resetting password for user 'food3_lover'..."
+                echo "Resetting password for user 'food_lover'..."
                 /opt/keycloak/bin/kcadm.sh set-password -r foodies-keycloak \
-                  --username food3_lover \
+                  --username food_lover \
                   --new-password password
               else
-                echo "Creating user 'food3_lover'..."
+                echo "Creating user 'food_lover'..."
                 /opt/keycloak/bin/kcadm.sh create users -r foodies-keycloak \
-                  -s username=food3_lover \
+                  -s username=food_lover \
                   -s enabled=true \
                   -s email=food_lover@gmail.com \
                   -s firstName=Food \
                   -s lastName=Lover
 
-                echo "Setting password for user 'food3_lover'..."
+                echo "Setting password for user 'food_lover'..."
                 /opt/keycloak/bin/kcadm.sh set-password -r foodies-keycloak \
-                  --username food3_lover \
+                  --username food_lover \
                   --new-password password
 
-                USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak -q username=food3_lover --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/')
+                USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak -q username=food_lover --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/')
               fi
 
-              echo "Checking if role 'user' is assigned to user 'food3_lover'..."
+              echo "Checking if role 'user' is assigned to user 'food_lover'..."
               # Check if role is already assigned to avoid duplicate role assignment errors
               if /opt/keycloak/bin/kcadm.sh get-roles -r foodies-keycloak --uid "$USER_ID" 2>/dev/null | grep -q '"name" *: *"user"'; then
-                echo "Role 'user' already assigned to user 'food3_lover', skipping..."
+                echo "Role 'user' already assigned to user 'food_lover', skipping..."
               else
-                echo "Assigning role 'user' to user 'food3_lover'..."
+                echo "Assigning role 'user' to user 'food_lover'..."
                 /opt/keycloak/bin/kcadm.sh add-roles -r foodies-keycloak \
                   --uid "$USER_ID" \
                   --rolename user

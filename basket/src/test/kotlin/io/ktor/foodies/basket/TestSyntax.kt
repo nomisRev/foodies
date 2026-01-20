@@ -7,6 +7,9 @@ import com.sksamuel.cohort.HealthCheckRegistry
 import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
+import io.ktor.foodies.server.openid.AUTH_SERVICE
+import io.ktor.foodies.server.openid.AUTH_USER
+import io.ktor.foodies.server.openid.ServicePrincipal
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
@@ -22,6 +25,7 @@ import java.util.Date
 private const val TEST_SECRET = "test-jwt-secret-for-end-to-end-testing"
 private const val TEST_ISSUER = "test-issuer"
 private const val TEST_AUDIENCE = "test-audience"
+private const val TEST_SERVICE_AUDIENCE = "basket-service"
 
 data class ServiceContext(
     val redisContainer: TestSuite.Fixture<RedisContainer>,
@@ -75,7 +79,7 @@ fun TestSuite.testBasketService(
 
             application {
                 install(Authentication) {
-                    jwt {
+                    jwt(AUTH_USER) {
                         verifier(
                             JWT.require(Algorithm.HMAC256(TEST_SECRET))
                                 .withIssuer(TEST_ISSUER)
@@ -84,6 +88,25 @@ fun TestSuite.testBasketService(
                         )
                         validate { credential ->
                             if (credential.payload.subject != null) JWTPrincipal(credential.payload) else null
+                        }
+                    }
+                    jwt(AUTH_SERVICE) {
+                        verifier(
+                            JWT.require(Algorithm.HMAC256(TEST_SECRET))
+                                .withIssuer(TEST_ISSUER)
+                                .withAudience(TEST_SERVICE_AUDIENCE)
+                                .build()
+                        )
+                        validate { credential ->
+                            val azp = credential.payload.getClaim("azp")?.asString()
+                            if (azp != null) {
+                                ServicePrincipal(
+                                    serviceId = azp,
+                                    scopes = credential.payload.getClaim("scope")?.asString()?.split(" ")?.toSet() ?: emptySet()
+                                )
+                            } else {
+                                null
+                            }
                         }
                     }
                 }

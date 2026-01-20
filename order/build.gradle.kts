@@ -16,7 +16,6 @@ ktor {
 }
 
 dependencies {
-    // Ktor Server
     implementation(ktorLibs.server.core)
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.config.yaml)
@@ -27,10 +26,10 @@ dependencies {
     implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.callId)
 
-    // Ktor Client (for Basket service)
     implementation(ktorLibs.client.core)
-    implementation(ktorLibs.client.cio)
+    implementation(ktorLibs.client.apache5)
     implementation(ktorLibs.client.contentNegotiation)
+    implementation(ktorLibs.client.auth)
 
     // Database
     implementation(libs.exposed.jdbc)
