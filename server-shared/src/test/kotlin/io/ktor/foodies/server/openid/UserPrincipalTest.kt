@@ -9,7 +9,7 @@ val userPrincipalSpec by testSuite {
 
     test("hasScope returns true for existing scope") {
         val principal = UserPrincipal(
-            subject = "test-user",
+            userId = "test-user",
             scopes = setOf("read", "write"),
             roles = emptySet()
         )
@@ -21,7 +21,7 @@ val userPrincipalSpec by testSuite {
 
     test("hasRole returns true for existing role") {
         val principal = UserPrincipal(
-            subject = "test-user",
+            userId = "test-user",
             roles = setOf("user", "admin"),
             scopes = emptySet()
         )
@@ -33,7 +33,7 @@ val userPrincipalSpec by testSuite {
 
     test("hasAllScopes checks all scopes") {
         val principal = UserPrincipal(
-            subject = "test-user",
+            userId = "test-user",
             scopes = setOf("read", "write", "delete"),
             roles = emptySet()
         )
@@ -48,7 +48,7 @@ val userPrincipalSpec by testSuite {
 
     test("hasAnyScope checks any scope") {
         val principal = UserPrincipal(
-            subject = "test-user",
+            userId = "test-user",
             scopes = setOf("read", "write"),
             roles = emptySet()
         )
@@ -64,14 +64,14 @@ val userPrincipalSpec by testSuite {
 
     test("UserPrincipal with all fields populated") {
         val principal = UserPrincipal(
-            subject = "user-123",
+            userId = "user-123",
             email = "test@example.com",
             name = "Test User",
             roles = setOf("user", "admin"),
             scopes = setOf("openid", "profile", "email")
         )
 
-        assertEquals("user-123", principal.subject)
+        assertEquals("user-123", principal.userId)
         assertEquals("test@example.com", principal.email)
         assertEquals("Test User", principal.name)
         assertEquals(setOf("user", "admin"), principal.roles)

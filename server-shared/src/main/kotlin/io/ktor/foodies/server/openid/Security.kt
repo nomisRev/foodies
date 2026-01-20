@@ -5,15 +5,19 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
+import io.ktor.server.application.createRouteScopedPlugin
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.principal
+import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
+import io.ktor.server.routing.route
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -27,33 +31,85 @@ data class Auth(
 const val AUTH_USER = "auth-user"
 private const val AUTH_SERVICE = "auth-service"
 
-fun interface ServerSessionSCope {
-    context(ctx: RoutingContext)
-    suspend fun serviceCredentials(): ServicePrincipal
+/**
+ * User-authenticated routes.
+ * Ensures the request is authenticated with a valid user token.
+ */
+fun Route.authenticatedUser(build: Route.() -> Unit) = authenticate(AUTH_USER) {
+    build()
 }
 
-context(scope: ServerSessionSCope)
-suspend fun RoutingContext.serviceCredentials(): ServicePrincipal = scope.serviceCredentials()
-
-fun Route.withServiceScope(build: context(ServerSessionSCope) Route.() -> Unit): Route = authenticate(AUTH_SERVICE) {
-    build.invoke(ServerSessionSCope { contextOf<RoutingContext>().call.principal<ServicePrincipal>()!! }, this)
+/**
+ * Service-authenticated routes.
+ * Ensures the request is authenticated with a valid service token.
+ */
+fun Route.authenticatedService(build: Route.() -> Unit) = authenticate(AUTH_SERVICE) {
+    build()
 }
 
-fun interface UserSessionSope {
-    context(ctx: RoutingContext)
-    suspend fun userCredentials(): UserPrincipal
+/**
+ * Hybrid authenticated routes.
+ * Ensures the request is authenticated with either a valid user or service token.
+ */
+fun Route.authenticated(build: Route.() -> Unit) = authenticate(AUTH_USER, AUTH_SERVICE) {
+    build()
 }
 
-context(scope: UserSessionSope)
-suspend fun RoutingContext.userCredentials(): UserPrincipal = scope.userCredentials()
+suspend fun RoutingContext.userPrincipal(): UserPrincipal =
+    call.principal<UserPrincipal>() ?: throw AuthenticationException("User principal not found")
 
-fun Route.withUserScope(build: context(UserSessionSope) Route.() -> Unit): Route = authenticate(AUTH_USER) {
-    build.invoke(UserSessionSope {
-        requireNotNull(contextOf<RoutingContext>().call.principal<UserPrincipal>()) {
-            "User principal not found"
+suspend fun RoutingContext.servicePrincipal(): ServicePrincipal =
+    call.principal<ServicePrincipal>() ?: throw AuthenticationException("Service principal not found")
+
+suspend fun RoutingContext.authPrincipal(): AuthPrincipal =
+    call.principal<AuthPrincipal>() ?: throw AuthenticationException("Principal not found")
+
+suspend fun RoutingContext.hasScope(scope: String): Boolean =
+    call.principal<AuthPrincipal>()?.scopes?.contains(scope) == true
+
+suspend fun RoutingContext.hasRole(role: String): Boolean =
+    call.principal<UserPrincipal>()?.roles?.contains(role) == true
+
+fun AuthPrincipal.requireScope(scope: String) {
+    if (scope !in scopes) {
+        throw AuthenticationException("Missing required scope: $scope")
+    }
+}
+
+/**
+ * Requires a specific scope to be present in the principal's scopes.
+ */
+fun Route.requireScope(scope: String, build: Route.() -> Unit) {
+    val plugin = createRouteScopedPlugin("RequireScope-$scope") {
+        onCall { call ->
+            val principal = call.principal<AuthPrincipal>()
+            if (principal == null || scope !in principal.scopes) {
+                call.respond(HttpStatusCode.Forbidden, "Missing required scope: $scope")
+            }
         }
-    }, this)
+    }
+    install(plugin)
+    build()
 }
+
+/**
+ * Requires a specific role to be present in the UserPrincipal's roles.
+ * Only works for UserPrincipal.
+ */
+fun Route.requireRole(role: String, build: Route.() -> Unit) {
+    val plugin = createRouteScopedPlugin("RequireRole-$role") {
+        onCall { call ->
+            val principal = call.principal<UserPrincipal>()
+            if (principal == null || role !in principal.roles) {
+                call.respond(HttpStatusCode.Forbidden, "Missing required role: $role")
+            }
+        }
+    }
+    install(plugin)
+    build()
+}
+
+class AuthenticationException(message: String) : RuntimeException(message)
 
 suspend fun Application.security(auth: Auth) {
     HttpClient(Apache5) {
@@ -77,7 +133,7 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
                 val sub = credential.payload.subject
                 if (sub != null) {
                     UserPrincipal(
-                        subject = sub,
+                        userId = sub,
                         email = credential.payload.getClaim("email")?.asString(),
                         name = credential.payload.getClaim("name")?.asString()
                             ?: credential.payload.getClaim("preferred_username")?.asString(),
@@ -109,21 +165,26 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
     }
 }
 
-fun extractRoles(realmAccessClaim: Claim?): Set<String> =
-    try {
-        @Suppress("UNCHECKED_CAST")
-        val realmAccess = realmAccessClaim?.asMap()
-        (realmAccess?.get("roles") as? List<String>)?.toSet() ?: emptySet()
-    } catch (_: Exception) {
+fun extractRoles(realmAccessClaim: Claim?): Set<String> {
+    val realmAccess = realmAccessClaim?.asMap()
+    val roles = realmAccess?.get("roles")
+    return if (roles is List<*>) {
+        roles.filterIsInstance<String>().toSet()
+    } else {
         emptySet()
     }
+}
 
-data class ServicePrincipal(val serviceId: String, val scopes: Set<String>)
+sealed interface AuthPrincipal {
+    val scopes: Set<String>
+}
+
+data class ServicePrincipal(val serviceId: String, override val scopes: Set<String>) : AuthPrincipal
 
 data class UserPrincipal(
-    val subject: String,
+    val userId: String,
     val email: String? = null,
     val name: String? = null,
     val roles: Set<String>,
-    val scopes: Set<String>,
-)
+    override val scopes: Set<String>,
+) : AuthPrincipal
