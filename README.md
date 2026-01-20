@@ -165,6 +165,7 @@ This setup assumes '127.0.0.1 foodies.local' in /etc/hosts
 
 - [Project Setup Guide](docs/PROJECT_SETUP.md) - Ktor server setup best practices
 - [Security Guidelines](docs/SECURITY.md) - Security best practices and guidelines
+- [Authentication Patterns](docs/AUTH_PATTERNS.md) - Service-to-service auth and result types
 - [Kubernetes Deployment](k8s/README.md) - Detailed Kubernetes deployment instructions
 
 ### Service Documentation
