@@ -57,11 +57,13 @@ fun createTestToken(
     subject: String,
     issuer: String = TEST_ISSUER,
     audience: String = TEST_AUDIENCE,
+    roles: List<String> = listOf("admin")
 ): String = JWT.create()
     .withSubject(subject)
     .withIssuer(issuer)
     .withAudience(audience)
     .withExpiresAt(Date(System.currentTimeMillis() + 60_000))
+    .withClaim("realm_access", mapOf("roles" to roles))
     .sign(Algorithm.HMAC256(TEST_SECRET))
 
 @TestRegistering

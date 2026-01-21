@@ -1,6 +1,7 @@
 package io.ktor.foodies.menu
 
 import io.ktor.foodies.server.getValue
+import io.ktor.foodies.server.openid.withRole
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
 import io.ktor.server.request.receive
@@ -27,23 +28,25 @@ fun Route.menuRoutes(menuService: MenuService) = route("/menu") {
     }
 
     authenticate {
-        post {
-            val request = call.receive<CreateMenuItemRequest>()
-            val created = menuService.create(request)
-            call.respond(HttpStatusCode.Created, created.toResponse())
-        }
+        withRole("admin") {
+            post {
+                val request = call.receive<CreateMenuItemRequest>()
+                val created = menuService.create(request)
+                call.respond(HttpStatusCode.Created, created.toResponse())
+            }
 
-        put("/{id}") {
-            val id: Long by call.parameters
-            val request = call.receive<UpdateMenuItemRequest>()
-            val updated = menuService.update(id, request)
-            if (updated == null) call.respond(HttpStatusCode.NotFound) else call.respond(updated.toResponse())
-        }
+            put("/{id}") {
+                val id: Long by call.parameters
+                val request = call.receive<UpdateMenuItemRequest>()
+                val updated = menuService.update(id, request)
+                if (updated == null) call.respond(HttpStatusCode.NotFound) else call.respond(updated.toResponse())
+            }
 
-        delete("/{id}") {
-            val id: Long by call.parameters
-            val deleted = menuService.delete(id)
-            if (deleted) call.respond(HttpStatusCode.NoContent) else call.respond(HttpStatusCode.NotFound)
+            delete("/{id}") {
+                val id: Long by call.parameters
+                val deleted = menuService.delete(id)
+                if (deleted) call.respond(HttpStatusCode.NoContent) else call.respond(HttpStatusCode.NotFound)
+            }
         }
     }
 }
