@@ -108,6 +108,6 @@ get("/oauth/callback") {
 }
 ```
 
-With all this setup the 
+With all this setup the system is secure for user interactions. For a more detailed view of the entire system's security, including service-to-service communication, see the [Hybrid Authentication Architecture](hybrid-auth-architecture.md).
 
 

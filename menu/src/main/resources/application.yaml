@@ -8,9 +8,9 @@ config:
   rabbit:
     host: "$RABBITMQ_HOST:localhost"
     port: "$RABBITMQ_PORT:5672"
-    username: "$RABBITMQ_USERNAME:guest"
-    password: "$RABBITMQ_PASSWORD:guest"
-    exchange: "$RABBITMQ_EXCHANGE:foodies"
+    username: "$RABBITMQ_USERNAME:menu"
+    password: "$RABBITMQ_PASSWORD:menu-password"
+    exchange: "$RABBITMQ_EXCHANGE:foodies.events"
     queue: "$RABBITMQ_QUEUE:menu.stock-validation"
   telemetry:
     otlp_endpoint: "$OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317"

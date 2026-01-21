@@ -19,6 +19,7 @@ dependencies {
 
     api(ktorLibs.server.testHost)
     api(libs.testcontainers.postgresql)
+    api(libs.testcontainers.keycloak)
     api(libs.rabbitmq)
     api(libs.testcontainers.rabbitmq)
     api(libs.testballoon)

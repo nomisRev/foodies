@@ -40,6 +40,16 @@ spec:
                 configMapKeyRef:
                   name: basket-config
                   key: AUTH_AUDIENCE
+            - name: SERVICE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: basket-service-credentials
+                  key: client-id
+            - name: SERVICE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: basket-service-credentials
+                  key: client-secret
             - name: REDIS_HOST
               valueFrom:
                 configMapKeyRef:
@@ -73,12 +83,12 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-credentials
+                  name: basket-rabbitmq-credentials
                   key: RABBITMQ_USERNAME
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-credentials
+                  name: basket-rabbitmq-credentials
                   key: RABBITMQ_PASSWORD
             - name: RABBITMQ_QUEUE
               valueFrom:

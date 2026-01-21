@@ -141,8 +141,12 @@ class InMemoryOrderRepository : OrderRepository {
 
 class InMemoryBasketClient : BasketClient {
     var basket: CustomerBasket? = null
+    var lastToken: String? = null
 
-    override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? = basket
+    override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? {
+        lastToken = token
+        return basket
+    }
 }
 
 class InMemoryOrderEventPublisher : OrderEventPublisher {

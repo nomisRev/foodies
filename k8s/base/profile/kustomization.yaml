@@ -11,6 +11,8 @@ configMapGenerator:
     literals:
       - HOST=0.0.0.0
       - PORT=8081
+      - AUTH_ISSUER=http://keycloak:8000/auth/realms/foodies-keycloak
+      - AUTH_AUDIENCE=foodies
       - DB_URL=jdbc:postgresql://profile-postgres:5432/foodies-profile-database
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672

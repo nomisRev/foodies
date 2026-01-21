@@ -1,6 +1,7 @@
 package io.ktor.foodies.order
 
 import io.ktor.foodies.server.DataSource
+import io.ktor.foodies.server.auth.ServiceClientConfig
 import io.ktor.foodies.server.openid.Auth
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -10,6 +11,7 @@ data class Config(
     val host: String,
     val port: Int,
     val auth: Auth,
+    val serviceClient: ServiceClientConfig,
     val database: DataSource.Config,
     val basket: BasketServiceConfig,
     val payment: PaymentServiceConfig,

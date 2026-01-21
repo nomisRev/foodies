@@ -1,0 +1,154 @@
+{
+  "users": [
+    {
+      "name": "admin",
+      "password": "admin-password",
+      "tags": "administrator"
+    },
+    {
+      "name": "basket",
+      "password": "basket-password",
+      "tags": ""
+    },
+    {
+      "name": "order",
+      "password": "order-password",
+      "tags": ""
+    },
+    {
+      "name": "menu",
+      "password": "menu-password",
+      "tags": ""
+    },
+    {
+      "name": "profile",
+      "password": "profile-password",
+      "tags": ""
+    },
+    {
+      "name": "payment",
+      "password": "payment-password",
+      "tags": ""
+    },
+    {
+      "name": "keycloak",
+      "password": "keycloak-password",
+      "tags": ""
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "/"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "basket",
+      "vhost": "/",
+      "configure": "^basket\\..*$",
+      "write": "^$",
+      "read": "^(basket\\..*|foodies\\.events)$"
+    },
+    {
+      "user": "order",
+      "vhost": "/",
+      "configure": "^(order\\..*|foodies\\.events)$",
+      "write": "^(order\\..*|foodies\\.events)$",
+      "read": "^(order\\..*|foodies\\.events)$"
+    },
+    {
+      "user": "menu",
+      "vhost": "/",
+      "configure": "^menu\\..*$",
+      "write": "^$",
+      "read": "^(menu\\..*|foodies\\.events)$"
+    },
+    {
+      "user": "profile",
+      "vhost": "/",
+      "configure": "^profile\\..*$",
+      "write": "^$",
+      "read": "^profile\\..*$"
+    },
+    {
+      "user": "payment",
+      "vhost": "/",
+      "configure": "^(payment\\..*|foodies\\.events)$",
+      "write": "^(payment\\..*|foodies\\.events)$",
+      "read": "^(payment\\..*|foodies\\.events)$"
+    },
+    {
+      "user": "keycloak",
+      "vhost": "/",
+      "configure": "^profile\\.registration$",
+      "write": "^(profile\\.registration|)$",
+      "read": "^$"
+    }
+  ],
+  "exchanges": [
+    {
+      "name": "foodies.events",
+      "vhost": "/",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+  "queues": [
+    {
+      "name": "basket.order-created",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "menu.stock-validation",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "profile.registration",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    },
+    {
+      "name": "payment.stock-confirmed",
+      "vhost": "/",
+      "durable": true,
+      "auto_delete": false,
+      "arguments": {}
+    }
+  ],
+  "bindings": [
+    {
+      "source": "foodies.events",
+      "vhost": "/",
+      "destination": "basket.order-created",
+      "destination_type": "queue",
+      "routing_key": "order.created",
+      "arguments": {}
+    },
+    {
+      "source": "foodies.events",
+      "vhost": "/",
+      "destination": "menu.stock-validation",
+      "destination_type": "queue",
+      "routing_key": "order.created",
+      "arguments": {}
+    }
+  ]
+}

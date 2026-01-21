@@ -58,6 +58,26 @@ spec:
                 configMapKeyRef:
                   name: profile-config
                   key: PORT
+            - name: AUTH_ISSUER
+              valueFrom:
+                configMapKeyRef:
+                  name: profile-config
+                  key: AUTH_ISSUER
+            - name: AUTH_AUDIENCE
+              valueFrom:
+                configMapKeyRef:
+                  name: profile-config
+                  key: AUTH_AUDIENCE
+            - name: SERVICE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: profile-service-credentials
+                  key: client-id
+            - name: SERVICE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: profile-service-credentials
+                  key: client-secret
             - name: DB_URL
               valueFrom:
                 configMapKeyRef:
@@ -86,12 +106,12 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-credentials
+                  name: profile-rabbitmq-credentials
                   key: RABBITMQ_USERNAME
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-credentials
+                  name: profile-rabbitmq-credentials
                   key: RABBITMQ_PASSWORD
             - name: RABBITMQ_QUEUE
               valueFrom:

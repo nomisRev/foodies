@@ -33,3 +33,48 @@ patches:
       - op: replace
         path: /spec/storageClassName
         value: hostpath
+
+secretGenerator:
+  - name: keycloak-admin
+    literals:
+      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
+      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
+  - name: postgres-credentials
+    literals:
+      - POSTGRES_USER=foodies_admin
+      - POSTGRES_PASSWORD=foodies_password
+  - name: order-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+  - name: basket-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+  - name: menu-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+  - name: profile-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+  - name: payment-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+  - name: keycloak-rabbitmq-credentials
+    literals:
+      - RABBITMQ_USERNAME=guest
+      - RABBITMQ_PASSWORD=guest
+  - name: webapp-auth
+    literals:
+      - AUTH_CLIENT_SECRET=foodies_client_secret
+  - name: order-service-credentials
+    literals:
+      - client-id=order-service
+      - client-secret=order-service-secret
+  - name: basket-service-credentials
+    literals:
+      - client-id=basket-service
+      - client-secret=basket-service-secret

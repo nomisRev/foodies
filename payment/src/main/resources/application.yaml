@@ -8,8 +8,8 @@ config:
   rabbit:
     host: "$RABBITMQ_HOST:localhost"
     port: "$RABBITMQ_PORT:5672"
-    username: "$RABBITMQ_USERNAME:guest"
-    password: "$RABBITMQ_PASSWORD:guest"
+    username: "$RABBITMQ_USERNAME:payment"
+    password: "$RABBITMQ_PASSWORD:payment-password"
     consume_queue: "$RABBITMQ_CONSUME_QUEUE:payment.stock-confirmed"
     publish_exchange: "$RABBITMQ_PUBLISH_EXCHANGE:foodies.events"
   gateway:

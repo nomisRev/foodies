@@ -18,6 +18,21 @@ resources:
   - otel-collector
   - jaeger
   - prometheus
+  - secrets/keycloak-admin.yaml
+  - secrets/postgres-credentials.yaml
+  - secrets/rabbitmq-credentials.yaml
+  - secrets/webapp-auth.yaml
+  - secrets/order-service-credentials.yaml
+  - secrets/basket-service-credentials.yaml
+  - secrets/menu-service-credentials.yaml
+  - secrets/payment-service-credentials.yaml
+  - secrets/profile-service-credentials.yaml
+  - secrets/order-rabbitmq-credentials.yaml
+  - secrets/basket-rabbitmq-credentials.yaml
+  - secrets/menu-rabbitmq-credentials.yaml
+  - secrets/profile-rabbitmq-credentials.yaml
+  - secrets/payment-rabbitmq-credentials.yaml
+  - secrets/keycloak-rabbitmq-credentials.yaml
 
 configMapGenerator:
   - name: foodies-config
@@ -29,21 +44,3 @@ configMapGenerator:
       - KEYCLOAK_HTTP_PORT=8000
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
 
-secretGenerator:
-  - name: keycloak-admin
-    options:
-      disableNameSuffixHash: true
-    literals:
-      - KC_BOOTSTRAP_ADMIN_USERNAME=admin
-      - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
-  - name: postgres-credentials
-    literals:
-      - POSTGRES_USER=foodies_admin
-      - POSTGRES_PASSWORD=foodies_password
-  - name: rabbitmq-credentials
-    literals:
-      - RABBITMQ_USERNAME=guest
-      - RABBITMQ_PASSWORD=guest
-  - name: webapp-auth
-    literals:
-      - AUTH_CLIENT_SECRET=foodies_client_secret

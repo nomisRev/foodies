@@ -3,6 +3,10 @@ config:
   port: "$PORT:8084"
   auth:
     issuer: "$AUTH_ISSUER:http://localhost:8000/realms/foodies-keycloak"
+  serviceClient:
+    issuer: "$SERVICE_AUTH_ISSUER:http://localhost:8000/realms/foodies-keycloak"
+    clientId: "$SERVICE_CLIENT_ID"
+    clientSecret: "$SERVICE_CLIENT_SECRET"
   database:
     url: "$DB_URL:jdbc:postgresql://localhost:5433/foodies-order-database"
     username: "$DB_USERNAME:foodies_admin"
@@ -14,8 +18,8 @@ config:
   rabbit:
     host: "$RABBITMQ_HOST:localhost"
     port: "$RABBITMQ_PORT:5672"
-    username: "$RABBITMQ_USERNAME:guest"
-    password: "$RABBITMQ_PASSWORD:guest"
+    username: "$RABBITMQ_USERNAME:order"
+    password: "$RABBITMQ_PASSWORD:order-password"
     exchange: "$RABBITMQ_EXCHANGE:foodies.events"
     routingKey: "$RABBITMQ_ROUTING_KEY:order.created"
   order:

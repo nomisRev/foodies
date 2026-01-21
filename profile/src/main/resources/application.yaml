@@ -8,8 +8,8 @@ config:
   rabbit:
     host: "$RABBITMQ_HOST:localhost"
     port: "$RABBITMQ_PORT:5672"
-    username: "$RABBITMQ_USERNAME:guest"
-    password: "$RABBITMQ_PASSWORD:guest"
+    username: "$RABBITMQ_USERNAME:profile"
+    password: "$RABBITMQ_PASSWORD:profile-password"
     queue: "$RABBITMQ_QUEUE:profile.registration"
   telemetry:
     otlp_endpoint: "$OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317"

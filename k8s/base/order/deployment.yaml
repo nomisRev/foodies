@@ -68,6 +68,16 @@ spec:
                 configMapKeyRef:
                   name: order-config
                   key: AUTH_AUDIENCE
+            - name: SERVICE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: order-service-credentials
+                  key: client-id
+            - name: SERVICE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: order-service-credentials
+                  key: client-secret
             - name: DB_URL
               valueFrom:
                 configMapKeyRef:
@@ -106,12 +116,12 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-credentials
+                  name: order-rabbitmq-credentials
                   key: RABBITMQ_USERNAME
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-credentials
+                  name: order-rabbitmq-credentials
                   key: RABBITMQ_PASSWORD
             - name: RABBITMQ_EXCHANGE
               valueFrom:

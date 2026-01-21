@@ -4,3 +4,9 @@ kind: Kustomization
 resources:
   - rabbitmq.yaml
   - statefulset.yaml
+
+configMapGenerator:
+  - name: rabbitmq-config
+    files:
+      - rabbitmq.conf
+      - definitions.json
