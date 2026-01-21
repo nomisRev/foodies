@@ -50,3 +50,7 @@ TODO.MD
 /specs/
 .junie/
 buildSrc/build/
+
+# RabbitMQ Passwords - NEVER commit
+**/PASSWORDS.txt
+**/rabbitmq-passwords.*
