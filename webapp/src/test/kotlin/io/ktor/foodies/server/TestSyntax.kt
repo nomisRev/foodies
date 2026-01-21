@@ -69,7 +69,8 @@ fun TestSuite.testWebAppService(
         security = Config.Security(
             issuer = "${keycloak.authServerUrl}/realms/foodies-keycloak",
             clientId = "foodies",
-            clientSecret = "foodies_client_secret"
+            clientSecret = "foodies_client_secret",
+            audience = "foodies-webapp"
         ),
         menu = Config.Menu(baseUrl = "http://localhost:8081"),
         basket = Config.Basket(baseUrl = "http://localhost:8082"),

@@ -63,6 +63,62 @@ services:
       - start-dev
       - --import-realm
 
+  menu:
+    image: menu:0.0.1
+    container_name: foodies-menu
+    environment:
+      - DB_URL=jdbc:postgresql://postgres-menu:5432/foodies-menu-database
+      - RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - postgres-menu
+      - rabbitmq
+
+  basket:
+    image: basket:0.0.6
+    container_name: foodies-basket
+    ports:
+      - "8083:8083" # Using 8083 because the webapp is configured to reach it on 8083 (see application.yaml)
+    environment:
+      - AUTH_ISSUER=http://keycloak:8000/realms/foodies-keycloak
+      - REDIS_HOST=redis
+      - MENU_SERVICE_URL=http://menu:8080
+      - RABBITMQ_HOST=rabbitmq
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - redis
+      - rabbitmq
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.91.0
+    container_name: otel-collector
+    ports:
+      - "4317:4317" # OTLP gRPC receiver
+      - "4318:4318" # OTLP HTTP receiver
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./k8s/base/otel-collector/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+
+  webapp:
+    image: webapp:0.0.3
+    container_name: foodies-webapp
+    ports:
+      - "8080:8080"
+    environment:
+      - KEYCLOAK_BASE_URL=http://keycloak:8000
+      - AUTH_ISSUER=http://keycloak:8000/realms/foodies-keycloak
+      - MENU_BASE_URL=http://menu:8080
+      - BASKET_BASE_URL=http://basket:8083
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4317
+    depends_on:
+      - redis
+      - keycloak
+      - menu
+      - basket
+      - otel-collector
+
 volumes:
   postgres_data:
   postgres_menu_data:

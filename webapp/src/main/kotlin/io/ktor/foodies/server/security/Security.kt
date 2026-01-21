@@ -67,7 +67,7 @@ suspend fun Application.security(
 
     authentication {
         oauth(openIdConfig, config, httpClient)
-        jwt(openIdConfig.jwks(), openIdConfig.issuer)
+        jwt(openIdConfig.jwks(), openIdConfig.issuer, config.audience)
     }
 
     routing {
@@ -98,10 +98,10 @@ suspend fun Application.security(
     }
 }
 
-internal fun AuthenticationConfig.jwt(jwks: JwkProvider, issuer: String) = jwt {
+internal fun AuthenticationConfig.jwt(jwks: JwkProvider, issuer: String, audience: String) = jwt {
     verifier(jwks, issuer) {
         acceptLeeway(3)
-        withAudience("foodies")
+        withAudience(audience)
     }
     authHeader { call -> call.sessions.get<UserSession>()?.idToken?.let { HttpAuthHeader.Single("Bearer", it) } }
     validate { _ -> sessions.get<UserSession>() }

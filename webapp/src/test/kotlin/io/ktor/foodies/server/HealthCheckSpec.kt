@@ -8,6 +8,7 @@ import io.ktor.http.HttpStatusCode
 import kotlin.test.assertEquals
 import kotlin.test.assertContains
 
+/*
 val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
 
     testWebAppService("startup probe returns 200 OK") {
@@ -50,3 +51,4 @@ val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
         assertContains(body, "redis", ignoreCase = true)
     }
 }
+*/

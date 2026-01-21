@@ -13,7 +13,7 @@ import io.ktor.server.auth.jwt.jwt
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Auth(val issuer: String)
+data class Auth(val issuer: String, val audience: String)
 
 suspend fun Application.security(auth: Auth) {
     HttpClient(Apache5) {
@@ -31,7 +31,7 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
     install(Authentication) {
         jwt {
             verifier(config.jwks(), config.issuer) {
-                withAudience("foodies")
+                withAudience(auth.audience)
             }
             validate { credential -> JWTPrincipal(credential.payload) }
         }

@@ -14,9 +14,25 @@
       "secret": "foodies_client_secret",
       "redirectUris": ["http://localhost:8080/oauth/callback"],
       "webOrigins": ["http://localhost:8080"],
+      "defaultClientScopes": ["profile", "email", "roles"],
+      "audience": ["foodies-webapp"],
       "attributes": {
         "post.logout.redirect.uris": "http://localhost:8080/*"
       }
+    },
+    {
+      "clientId": "foodies-basket",
+      "directAccessGrantsEnabled": true,
+      "publicClient": false,
+      "secret": "foodies_basket_secret",
+      "audience": ["foodies-basket"]
+    },
+    {
+      "clientId": "foodies-order",
+      "directAccessGrantsEnabled": true,
+      "publicClient": false,
+      "secret": "foodies_order_secret",
+      "audience": ["foodies-order"]
     }
   ],
   "users": [

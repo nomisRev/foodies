@@ -13,6 +13,17 @@ ktor {
     }
 }
 
+jib {
+    from {
+        platforms {
+            platform {
+                os = "linux"
+                architecture = "arm64"
+            }
+        }
+    }
+}
+
 dependencies {
     implementation(project(":server-shared"))
     implementation(project(":rabbitmq-ext"))

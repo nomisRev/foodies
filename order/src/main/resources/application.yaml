@@ -3,6 +3,7 @@ config:
   port: "$PORT:8084"
   auth:
     issuer: "$AUTH_ISSUER:http://localhost:8000/realms/foodies-keycloak"
+    audience: "$AUTH_AUDIENCE:foodies-order"
   database:
     url: "$DB_URL:jdbc:postgresql://localhost:5433/foodies-order-database"
     username: "$DB_USERNAME:foodies_admin"

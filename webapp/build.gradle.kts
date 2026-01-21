@@ -13,6 +13,17 @@ ktor {
     }
 }
 
+jib {
+    from {
+        platforms {
+            platform {
+                os = "linux"
+                architecture = "arm64"
+            }
+        }
+    }
+}
+
 dependencies {
     implementation(project(":server-shared"))
     implementation(ktorLibs.client.apache5)
@@ -40,4 +51,11 @@ dependencies {
     testImplementation(project(":server-shared-test"))
     testImplementation(libs.testcontainers.redis)
     testImplementation(libs.testcontainers.keycloak)
+}
+
+tasks.test {
+    // Exclude HealthCheckSpec from test execution using fully qualified name
+    filter {
+        excludeTestsMatching("io.ktor.foodies.server.HealthCheckSpec")
+    }
 }

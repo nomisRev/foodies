@@ -61,7 +61,7 @@ val userSessionScopeSpec by testSuite {
 
     testApplication("returns 401 and HX-Redirect when no session") {
         install(Authentication) {
-            jwt(provider, "issuer")
+            jwt(provider, "issuer", "foodies")
         }
         install(Sessions) { cookie<UserSession>("USER_SESSION", SessionStorageMemory()) }
         routing {
@@ -81,7 +81,7 @@ val userSessionScopeSpec by testSuite {
     }
 
     testApplication("returns 200 and session data when session exists") {
-        install(Authentication) { jwt(provider, "issuer") }
+        install(Authentication) { jwt(provider, "issuer", "foodies") }
         install(Sessions) { cookie<UserSession>("USER_SESSION", SessionStorageMemory()) }
         routing {
             get("/set-session") {
