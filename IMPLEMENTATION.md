@@ -1120,6 +1120,257 @@ dependencies {
 | `withServiceAuth { }` | Executes block with ServiceAuth context |
 | `withServiceAuth(userToken) { }` | Executes with ServiceAuth preserving user context |
 
+## Testing OpenTelemetry Nocode for Keycloak User Registration Flow
+
+This section describes how to test the end-to-end distributed tracing for the Keycloak user registration flow using OpenTelemetry's automatic instrumentation (nocode/javaagent).
+
+### Architecture Overview
+
+The user registration flow involves multiple components that should be traced:
+
+```
+User Registration → Keycloak → RabbitMQ → Profile Service → PostgreSQL
+                       │           │            │              │
+                       └───────────┴────────────┴──────────────┘
+                              OpenTelemetry Traces
+```
+
+### Components in the Registration Flow
+
+1. **Keycloak**: User registration event (REGISTER event type)
+2. **Keycloak RabbitMQ Publisher**: Transforms event to `UserEvent.Registration` and publishes to queue
+3. **RabbitMQ**: Message broker with queue `profile.registration`
+4. **Profile Service**: Consumes registration event and persists to database
+5. **PostgreSQL**: Stores user profile data
+
+### OpenTelemetry Instrumentation
+
+The application uses both manual and automatic instrumentation:
+
+#### Manual Instrumentation (Existing)
+
+Located in `server-shared/src/main/kotlin/io/ktor/foodies/server/telemetry/OpenTelemetry.kt`:
+
+- **Ktor Server**: `KtorServerTelemetry` plugin for HTTP request tracing
+- **OTLP Exporters**: Configured for traces and metrics export
+- **W3C Trace Context Propagation**: Standard trace context propagation across services
+
+```kotlin
+val openTelemetry = OpenTelemetrySdk.builder()
+    .setTracerProvider(tracerProvider)
+    .setMeterProvider(meterProvider)
+    .setPropagators(ContextPropagators.create(W3CTraceContextPropagator.getInstance()))
+    .buildAndRegisterGlobal()
+```
+
+#### Automatic Instrumentation (Nocode/JavaAgent)
+
+The OpenTelemetry Java agent provides automatic instrumentation for:
+
+- **JDBC/PostgreSQL**: Database queries and connections (via `opentelemetry-jdbc`)
+- **HikariCP**: Connection pool metrics (via `opentelemetry-hikaricp-3.0`)
+- **RabbitMQ**: Message publishing and consumption
+- **HTTP Clients**: Outbound HTTP calls
+
+Service name and version are configured via environment variables:
+- `OTEL_SERVICE_NAME`: Identifies the service in traces
+- `OTEL_RESOURCE_ATTRIBUTES`: Additional resource attributes (e.g., `service.version=0.0.4`)
+
+### Testing the Registration Flow
+
+#### Prerequisites
+
+1. **Deploy the full stack** to Kubernetes:
+   ```bash
+   ./gradlew publishImageToLocalRegistry
+   kubectl apply -k k8s/base
+   ```
+
+2. **Verify OTEL Collector** is running:
+   ```bash
+   kubectl get pods -n foodies | grep otel-collector
+   kubectl logs -n foodies <otel-collector-pod> -f
+   ```
+
+3. **Access services**:
+   - Keycloak: `http://foodies.local/auth` (via Ingress)
+   - Jaeger UI: Port-forward to view traces
+     ```bash
+     kubectl port-forward -n foodies svc/jaeger 16686:16686
+     ```
+     Access at `http://localhost:16686`
+
+#### Test Procedure
+
+1. **Register a new user** via Keycloak:
+   - Navigate to `http://foodies.local/auth/realms/foodies/account`
+   - Complete user registration form with:
+     - Email: `test@example.com`
+     - First Name: `Test`
+     - Last Name: `User`
+
+2. **Verify event flow** through logs:
+   ```bash
+   # Keycloak publisher logs
+   kubectl logs -n foodies <keycloak-pod> | grep "profile-webhook"
+
+   # RabbitMQ queue status
+   kubectl port-forward -n foodies svc/rabbitmq 15672:15672
+   # Access http://localhost:15672, login (guest/guest)
+   # Check queue: profile.registration
+
+   # Profile service logs
+   kubectl logs -n foodies -l app=profile --tail=100
+   ```
+
+3. **Inspect distributed trace** in Jaeger:
+   - Open Jaeger UI: `http://localhost:16686`
+   - Select service: `profile` (from dropdown)
+   - Search for traces containing operation: `profile.registration consume`
+   - Expected trace spans:
+
+     ```
+     profile.registration consume                    [RabbitMQ Consumer]
+     ├── INSERT INTO profiles                        [JDBC/PostgreSQL]
+     │   └── HikariCP.getConnection                  [Connection Pool]
+     └── profile.registration.ack                    [RabbitMQ ACK]
+     ```
+
+4. **Verify trace context propagation**:
+   - Trace ID should be consistent across all spans
+   - Parent-child relationships should be correctly established
+   - Service name should appear as `profile` (from `OTEL_SERVICE_NAME`)
+   - Database queries should include statement details (parameterized)
+
+5. **Check database insertion**:
+   ```bash
+   kubectl port-forward -n foodies svc/postgres 5432:5432
+   psql -h localhost -U foodies_admin -d foodies-profile-database \
+     -c "SELECT * FROM profiles ORDER BY id DESC LIMIT 1;"
+   ```
+
+#### Expected Trace Attributes
+
+**RabbitMQ Consumer Span**:
+- `messaging.system`: `rabbitmq`
+- `messaging.destination.name`: `profile.registration`
+- `messaging.operation.type`: `receive`
+- `messaging.message.id`: Message ID
+- `messaging.rabbitmq.routing_key`: Routing key
+
+**Database Query Span**:
+- `db.system`: `postgresql`
+- `db.name`: `foodies-profile-database`
+- `db.statement`: SQL statement (may be parameterized)
+- `db.operation.name`: `INSERT`
+- `db.sql.table`: `profiles`
+
+**HikariCP Span**:
+- `pool.name`: `HikariPool-1`
+- `db.pool.operation`: `acquire`
+
+#### Troubleshooting
+
+**No traces appearing in Jaeger**:
+1. Verify OTEL Collector is receiving spans:
+   ```bash
+   kubectl logs -n foodies <otel-collector-pod> | grep -i "trace"
+   ```
+
+2. Check Profile service environment variables:
+   ```bash
+   kubectl get deployment profile -n foodies -o yaml | grep -A5 OTEL
+   ```
+
+   Should include:
+   ```yaml
+   - name: OTEL_EXPORTER_OTLP_ENDPOINT
+     value: http://otel-collector:4317
+   ```
+
+3. Verify OpenTelemetry SDK initialization in service logs:
+   ```bash
+   kubectl logs -n foodies -l app=profile | grep -i "opentelemetry"
+   ```
+
+**Missing database spans**:
+- Ensure `opentelemetry-jdbc` instrumentation is active
+- Check that HikariCP is wrapped with JDBC instrumentation
+- Verify database URL includes required parameters
+
+**RabbitMQ spans missing**:
+- Confirm RabbitMQ client library version supports automatic instrumentation
+- Check that trace context is properly propagated in message headers
+- Verify consumer is using instrumented RabbitMQ client
+
+#### Additional Testing Scenarios
+
+1. **Profile Update Flow**:
+   - Update user profile in Keycloak
+   - Verify `UserEvent.UpdateProfile` trace shows upsert operation
+
+2. **Account Deletion Flow**:
+   - Delete user account
+   - Verify `UserEvent.Delete` trace shows DELETE operation
+
+3. **Error Scenarios**:
+   - Invalid message format → Check error span attributes
+   - Database constraint violation → Verify exception details in span
+   - RabbitMQ connection failure → Check retry traces
+
+4. **Performance Analysis**:
+   - Measure end-to-end latency from event publish to database commit
+   - Identify bottlenecks in trace flamegraph
+   - Analyze connection pool wait times
+
+### Configuration Reference
+
+#### Profile Service Deployment
+
+OpenTelemetry configuration in `k8s/base/profile/deployment.yaml`:
+
+```yaml
+env:
+  - name: OTEL_EXPORTER_OTLP_ENDPOINT
+    valueFrom:
+      configMapKeyRef:
+        name: foodies-config
+        key: OTEL_EXPORTER_OTLP_ENDPOINT
+```
+
+Additional environment variables for automatic instrumentation (if using Java agent):
+
+```yaml
+env:
+  - name: OTEL_SERVICE_NAME
+    value: profile
+  - name: OTEL_RESOURCE_ATTRIBUTES
+    value: service.version=0.0.4,deployment.environment=dev
+  - name: OTEL_TRACES_EXPORTER
+    value: otlp
+  - name: OTEL_METRICS_EXPORTER
+    value: otlp
+  - name: OTEL_EXPORTER_OTLP_PROTOCOL
+    value: grpc
+```
+
+#### Application Configuration
+
+From `profile/src/main/resources/application.yaml`:
+
+```yaml
+monitoring:
+  otlpEndpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4317}
+```
+
+### Benefits of Nocode Instrumentation
+
+1. **Zero code changes**: Automatic instrumentation via Java agent
+2. **Comprehensive coverage**: Database, messaging, HTTP automatically traced
+3. **Consistent metadata**: Service name, version, environment automatically added
+4. **Performance overhead**: Minimal impact with sampling strategies
+5. **Standards compliance**: W3C Trace Context for cross-service correlation
+
 ## Future Enhancements
 
 1. ~~**Token exchange**: Support for exchanging user tokens to service tokens with user context~~ ✅ Implemented via `X-User-Context` header
