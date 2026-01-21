@@ -8,7 +8,8 @@ data:
       "users": [
         {
           "name": "guest",
-          "password": "guest",
+          "password_hash": "pC11sXPITcMGl4isu+46hUdihaf62sXzmvaHxrOGefnTrZyO",
+          "hashing_algorithm": "rabbit_password_hashing_sha256",
           "tags": ["administrator"]
         },
         {

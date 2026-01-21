@@ -43,7 +43,7 @@ secretGenerator:
   - name: rabbitmq-credentials
     literals:
       - RABBITMQ_USERNAME=guest
-      - RABBITMQ_PASSWORD=guest
+      - RABBITMQ_PASSWORD=HFew781YLPdyMqic4Wk76k2XlVmxLrVMgX/B5h7DSKU=
   - name: profile-rabbitmq-credentials
     literals:
       - RABBITMQ_USERNAME=profile_service
