@@ -10,7 +10,15 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import kotlinx.coroutines.withContext
 
-fun Route.secureUser(build: Route.() -> Unit): Route {
+fun interface SecuredUser {
+    suspend fun userPrincipal(call: ApplicationCall): UserPrincipal
+}
+
+fun interface SecuredService {
+    suspend fun servicePrincipal(call: ApplicationCall): ServicePrincipal
+}
+
+fun Route.secureUser(build: context(SecuredUser) Route.() -> Unit): Route {
     return authenticate("user") {
         intercept(ApplicationCallPipeline.Call) {
             val principal = call.principal<UserPrincipal>()
@@ -19,13 +27,19 @@ fun Route.secureUser(build: Route.() -> Unit): Route {
                 proceed()
             }
         }
-        build()
+        val securedUser = SecuredUser { applicationCall ->
+            applicationCall.principal<UserPrincipal>()
+                ?: error("UserPrincipal not found - route not properly secured with secureUser")
+        }
+        with(securedUser) {
+            build()
+        }
     }
 }
 
 fun Route.secureService(
     vararg requiredRoles: String,
-    build: Route.() -> Unit
+    build: context(SecuredService) Route.() -> Unit
 ): Route {
     return authenticate("service") {
         intercept(ApplicationCallPipeline.Call) {
@@ -47,14 +61,18 @@ fun Route.secureService(
                 proceed()
             }
         }
-        build()
+        val securedService = SecuredService { applicationCall ->
+            applicationCall.principal<ServicePrincipal>()
+                ?: error("ServicePrincipal not found - route not properly secured with secureService")
+        }
+        with(securedService) {
+            build()
+        }
     }
 }
 
-fun ApplicationCall.userPrincipal(): UserPrincipal =
-    principal<UserPrincipal>()
-        ?: error("UserPrincipal not found - route not properly secured with secureUser")
+context(securedUser: SecuredUser)
+suspend fun ApplicationCall.userPrincipal(): UserPrincipal = securedUser.userPrincipal(this)
 
-fun ApplicationCall.servicePrincipal(): ServicePrincipal =
-    principal<ServicePrincipal>()
-        ?: error("ServicePrincipal not found - route not properly secured with secureService")
+context(securedService: SecuredService)
+suspend fun ApplicationCall.servicePrincipal(): ServicePrincipal = securedService.servicePrincipal(this)
