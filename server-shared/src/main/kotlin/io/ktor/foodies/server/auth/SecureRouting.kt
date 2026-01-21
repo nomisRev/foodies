@@ -2,60 +2,53 @@ package io.ktor.foodies.server.auth
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.createRouteScopedPlugin
-import io.ktor.server.application.install
-import io.ktor.server.auth.AuthenticationChecked
+import io.ktor.server.application.ApplicationCallPipeline
+import io.ktor.server.application.call
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
-
-private class ServiceAuthContextConfiguration {
-    var requiredRoles: Array<out String> = emptyArray()
-}
-
-private val ServiceAuthContextPlugin = createRouteScopedPlugin(
-    name = "ServiceAuthContext",
-    createConfiguration = ::ServiceAuthContextConfiguration
-) {
-    val requiredRoles = pluginConfig.requiredRoles
-
-    on(AuthenticationChecked) { call ->
-        val principal = call.principal<ServicePrincipal>()
-
-        if (principal == null) {
-            call.respond(HttpStatusCode.Unauthorized)
-            return@on
-        }
-
-        if (requiredRoles.isNotEmpty()) {
-            val missingRoles = requiredRoles.filter { it !in principal.roles }
-            if (missingRoles.isNotEmpty()) {
-                call.respond(HttpStatusCode.Forbidden)
-            }
-        }
-    }
-}
+import kotlinx.coroutines.withContext
 
 fun Route.secureUser(build: Route.() -> Unit): Route {
-    return authenticate("user", build = build)
+    return authenticate("user") {
+        intercept(ApplicationCallPipeline.Call) {
+            val principal = call.principal<UserPrincipal>()
+                ?: return@intercept call.respond(HttpStatusCode.Unauthorized)
+            withContext(AuthContext.UserAuth(principal.accessToken)) {
+                proceed()
+            }
+        }
+        build()
+    }
 }
 
 fun Route.secureService(
     vararg requiredRoles: String,
     build: Route.() -> Unit
 ): Route {
-    val authenticatedRoute = authenticate("service") {
-        val authorizedRoute = createChild(object : RouteSelector() {
-            override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
-                RouteSelectorEvaluation.Constant
-        })
-        authorizedRoute.install(ServiceAuthContextPlugin) {
-            this.requiredRoles = requiredRoles
+    return authenticate("service") {
+        intercept(ApplicationCallPipeline.Call) {
+            val principal = call.principal<ServicePrincipal>()
+                ?: return@intercept call.respond(HttpStatusCode.Unauthorized)
+
+            if (requiredRoles.isNotEmpty()) {
+                val missingRoles = requiredRoles.filter { it !in principal.roles }
+                if (missingRoles.isNotEmpty()) {
+                    return@intercept call.respond(HttpStatusCode.Forbidden)
+                }
+            }
+
+            val userContextToken = call.request.headers["X-User-Context"]?.removePrefix("Bearer ")
+            val serviceToken = call.request.headers["Authorization"]!!.removePrefix("Bearer ")
+            val authContext = AuthContext.ServiceAuth(serviceToken, userContextToken)
+
+            withContext(authContext) {
+                proceed()
+            }
         }
-        authorizedRoute.build()
+        build()
     }
-    return authenticatedRoute
 }
 
 fun ApplicationCall.userPrincipal(): UserPrincipal =
