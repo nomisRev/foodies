@@ -502,11 +502,11 @@ kubectl describe pvc redis-data -n foodies
 ## Production Considerations
 
 ### Security Hardening
+- **Secrets Management**: See [External Secret Management Guide](../docs/EXTERNAL_SECRET_MANAGEMENT.md) for migrating to production-grade secret storage
 - Update all default secrets in production overlays
 - Enable NetworkPolicies for service-to-service communication
 - Use PodSecurityPolicies or PSP replacement
 - Enable RBAC with least privilege principle
-- Use secrets management (Vault, AWS Secrets Manager)
 
 ### Resource Optimization
 - Adjust resource requests/limits based on actual usage
