@@ -32,6 +32,8 @@ spec:
                 secretKeyRef:
                   name: rabbitmq-credentials
                   key: RABBITMQ_PASSWORD
+            - name: RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS
+              value: "-rabbitmq_management load_definitions \"/etc/rabbitmq/definitions.json\""
           resources:
             requests:
               memory: "256Mi"
@@ -66,6 +68,13 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/rabbitmq
+            - name: definitions
+              mountPath: /etc/rabbitmq/definitions.json
+              subPath: definitions.json
+      volumes:
+        - name: definitions
+          configMap:
+            name: rabbitmq-definitions
   volumeClaimTemplates:
     - metadata:
         name: data

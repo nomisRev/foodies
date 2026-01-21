@@ -106,12 +106,12 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-credentials
+                  name: order-rabbitmq-credentials
                   key: RABBITMQ_USERNAME
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-credentials
+                  name: order-rabbitmq-credentials
                   key: RABBITMQ_PASSWORD
             - name: RABBITMQ_EXCHANGE
               valueFrom:

@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - rabbitmq.yaml
   - statefulset.yaml
+  - definitions-configmap.yaml

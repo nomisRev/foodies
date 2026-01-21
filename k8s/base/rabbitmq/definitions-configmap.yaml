@@ -1,0 +1,106 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-definitions
+data:
+  definitions.json: |
+    {
+      "users": [
+        {
+          "name": "guest",
+          "password_hash": "pC11sXPITcMGl4isu+46hUdihaf62sXzmvaHxrOGefnTrZyO",
+          "hashing_algorithm": "rabbit_password_hashing_sha256",
+          "tags": ["administrator"]
+        },
+        {
+          "name": "profile_service",
+          "password": "ns7cmt245Wd4czlR14loCOQC/QkSNrR2p0hfPXVvQJE=",
+          "tags": []
+        },
+        {
+          "name": "menu_service",
+          "password": "fp4UnNJ4vcSHdBGAyxzA8av/rQ0/DCerX/0xlY9ctsA=",
+          "tags": []
+        },
+        {
+          "name": "basket_service",
+          "password": "i6BUFwm2GiNOhCRo/jhDS0Jz8/SfJsCdNORFB90MqTY=",
+          "tags": []
+        },
+        {
+          "name": "order_service",
+          "password": "p7yNOuj/7vvGH6dkfIW+6gRPyYzUcC0eybZHqvPuuC0=",
+          "tags": []
+        },
+        {
+          "name": "payment_service",
+          "password": "JcFLK9E3SKhIOd92U88td2Aqww5T5m+QsHOucv0VRK8=",
+          "tags": []
+        },
+        {
+          "name": "keycloak_service",
+          "password": "MeZZEYsAyI8Ft2k+lmSiVsway6Sj5TO7X2HbOfQfbQo=",
+          "tags": []
+        }
+      ],
+      "vhosts": [
+        {
+          "name": "/"
+        }
+      ],
+      "permissions": [
+        {
+          "user": "guest",
+          "vhost": "/",
+          "configure": ".*",
+          "write": ".*",
+          "read": ".*"
+        },
+        {
+          "user": "profile_service",
+          "vhost": "/",
+          "configure": "",
+          "write": "",
+          "read": "profile\\.registration"
+        },
+        {
+          "user": "menu_service",
+          "vhost": "/",
+          "configure": "menu\\.stock-validation",
+          "write": "foodies",
+          "read": "menu\\.stock-validation"
+        },
+        {
+          "user": "basket_service",
+          "vhost": "/",
+          "configure": "",
+          "write": "",
+          "read": "basket\\.order-created"
+        },
+        {
+          "user": "order_service",
+          "vhost": "/",
+          "configure": "",
+          "write": "foodies\\.events",
+          "read": ""
+        },
+        {
+          "user": "payment_service",
+          "vhost": "/",
+          "configure": "payment\\.stock-confirmed",
+          "write": "foodies\\.events",
+          "read": "payment\\.stock-confirmed"
+        },
+        {
+          "user": "keycloak_service",
+          "vhost": "/",
+          "configure": "profile\\.registration",
+          "write": "profile\\.registration",
+          "read": ""
+        }
+      ],
+      "policies": [],
+      "queues": [],
+      "exchanges": [],
+      "bindings": []
+    }
