@@ -1,8 +1,6 @@
-# Guidelines
+# Issue tracking
 
-## Issue tracking
-
-This project uses 'br' (rust beads) for task and issue tracking.
+This project uses 'br' command line tool for  issue tracking.
 
 When implementing always consult 'br', and try to break down your tasks.
 Keep your task as short as possible, and prefer creating new tasks in 'br' for follow-up work.
@@ -25,8 +23,7 @@ When reviewing create issues using 'br' for any issues you find.
 - Logging: Use structured logging (tracing). Never log secrets directly. Rely on nocode/javaagent where applicable
 - Avoid exceptions for control flow, and use proper types and domain modeling
 
-# Testing
-## Kubernetes Debugging
+# Kubernetes Debugging
 
 The development machine has `127.0.0.1       foodies.local` configured in `/etc/hosts`.
 
@@ -36,9 +33,6 @@ Everything runs in the foodies namespace:
 - Describe pod: `kubectl describe pod <pod-name> -n foodies`
 - Pod logs: `kubectl logs <pod-name> -n foodies`
 - Delete stuck pod: `kubectl delete pod <pod-name> -n foodies`
-
-## WebApp
- - If you get stuck with Playwright clear the USER_SESSION.
 
 ## Landing the Plane (Session Completion)
 
