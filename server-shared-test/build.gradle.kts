@@ -10,6 +10,8 @@ dependencies {
 
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.server.auth)
+    implementation(ktorLibs.server.auth.jwt)
 
     implementation(libs.logback)
 

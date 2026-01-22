@@ -1,8 +1,7 @@
 package io.ktor.foodies.server.auth
 
-import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlin.time.Duration.Companion.seconds
 
 data class ServiceToken(
@@ -14,16 +13,6 @@ data class ServiceToken(
         Clock.System.now() >= expiresAt - bufferSeconds.seconds
 }
 
-interface ServiceTokenProvider {
+fun interface ServiceTokenProvider {
     suspend fun getToken(): ServiceToken
-
-    suspend fun <T> withServiceAuth(
-        userToken: String? = null,
-        block: suspend () -> T
-    ): T {
-        val token = getToken()
-        return withContext(AuthContext.ServiceAuth(token.accessToken, userToken)) {
-            block()
-        }
-    }
 }

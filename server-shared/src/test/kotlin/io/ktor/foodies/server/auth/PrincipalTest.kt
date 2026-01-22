@@ -1,7 +1,6 @@
 package io.ktor.foodies.server.auth
 
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.server.auth.Principal
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -47,17 +46,6 @@ val principalSpec by testSuite {
         assertEquals("empty@example.com", principal.email)
         assertTrue(principal.roles.isEmpty())
         assertEquals("token-empty", principal.accessToken)
-    }
-
-    test("UserPrincipal implements Principal interface") {
-        val principal = UserPrincipal(
-            userId = "user-123",
-            email = "test@example.com",
-            roles = setOf("user"),
-            accessToken = "token"
-        )
-
-        assertTrue(principal is Principal)
     }
 
     test("ServicePrincipal construction with all fields") {
@@ -108,15 +96,5 @@ val principalSpec by testSuite {
         assertEquals(userContext, principal.userContext)
         assertEquals("user-999", principal.userContext?.userId)
         assertEquals("context@example.com", principal.userContext?.email)
-    }
-
-    test("ServicePrincipal implements Principal interface") {
-        val principal = ServicePrincipal(
-            serviceAccountId = "service-123",
-            clientId = "client-abc",
-            roles = setOf("service")
-        )
-
-        assertTrue(principal is Principal)
     }
 }
