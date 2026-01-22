@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.auth
+package io.ktor.foodies.server.test
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
@@ -6,6 +6,8 @@ import com.auth0.jwt.interfaces.Payload
 import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
+import io.ktor.foodies.server.auth.ServicePrincipal
+import io.ktor.foodies.server.auth.UserPrincipal
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication

@@ -4,10 +4,10 @@ import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
-import io.ktor.foodies.server.auth.authTest
-import io.ktor.foodies.server.auth.createServiceToken
-import io.ktor.foodies.server.auth.createUserToken
-import io.ktor.foodies.server.auth.installTestAuth
+import io.ktor.foodies.server.test.authTest
+import io.ktor.foodies.server.test.createServiceToken
+import io.ktor.foodies.server.test.createUserToken
+import io.ktor.foodies.server.test.installTestAuth
 import io.ktor.foodies.server.auth.secureService
 import io.ktor.foodies.server.auth.secureUser
 import io.ktor.foodies.server.auth.servicePrincipal

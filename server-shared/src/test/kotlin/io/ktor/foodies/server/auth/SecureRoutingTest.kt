@@ -4,6 +4,8 @@ import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
+import io.ktor.foodies.server.test.authTest
+import io.ktor.foodies.server.test.installTestAuth
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respondText
@@ -28,7 +30,7 @@ val secureRoutingSpec by testSuite {
             }
         }
 
-        val token = createUserToken(config)
+        val token = _root_ide_package_.io.ktor.foodies.server.test.createUserToken(config)
         val response = client.get("/protected") {
             header(HttpHeaders.Authorization, "Bearer $token")
         }
@@ -68,7 +70,7 @@ val secureRoutingSpec by testSuite {
             }
         }
 
-        val token = createUserToken(config)
+        val token = _root_ide_package_.io.ktor.foodies.server.test.createUserToken(config)
         val response = client.get("/context") {
             header(HttpHeaders.Authorization, "Bearer $token")
         }
@@ -89,7 +91,8 @@ val secureRoutingSpec by testSuite {
             }
         }
 
-        val token = createServiceToken(config, clientId = "order-service")
+        val token =
+            _root_ide_package_.io.ktor.foodies.server.test.createServiceToken(config, clientId = "order-service")
         val response = client.get("/service-endpoint") {
             header(HttpHeaders.Authorization, "Bearer $token")
         }
@@ -110,7 +113,11 @@ val secureRoutingSpec by testSuite {
             }
         }
 
-        val tokenWithoutRole = createServiceToken(config, clientId = "test-service", roles = listOf("service:read"))
+        val tokenWithoutRole = _root_ide_package_.io.ktor.foodies.server.test.createServiceToken(
+            config,
+            clientId = "test-service",
+            roles = listOf("service:read")
+        )
         val response = client.get("/write-endpoint") {
             header(HttpHeaders.Authorization, "Bearer $tokenWithoutRole")
         }
@@ -130,7 +137,7 @@ val secureRoutingSpec by testSuite {
             }
         }
 
-        val tokenWithBothRoles = createServiceToken(
+        val tokenWithBothRoles = _root_ide_package_.io.ktor.foodies.server.test.createServiceToken(
             config,
             clientId = "admin-service",
             roles = listOf("service:read", "service:write", "service:admin")
@@ -158,8 +165,8 @@ val secureRoutingSpec by testSuite {
             }
         }
 
-        val serviceToken = createServiceToken(config)
-        val userToken = createUserToken(config)
+        val serviceToken = _root_ide_package_.io.ktor.foodies.server.test.createServiceToken(config)
+        val userToken = _root_ide_package_.io.ktor.foodies.server.test.createUserToken(config)
         val response = client.get("/context") {
             header(HttpHeaders.Authorization, "Bearer $serviceToken")
             header("X-User-Context", "Bearer $userToken")
@@ -181,7 +188,7 @@ val secureRoutingSpec by testSuite {
             }
         }
 
-        val token = createUserToken(
+        val token = _root_ide_package_.io.ktor.foodies.server.test.createUserToken(
             config,
             userId = "user-456",
             email = "admin@example.com",
@@ -208,7 +215,7 @@ val secureRoutingSpec by testSuite {
             }
         }
 
-        val token = createServiceToken(
+        val token = _root_ide_package_.io.ktor.foodies.server.test.createServiceToken(
             config,
             clientId = "basket-service",
             roles = listOf("service:read", "service:write")
