@@ -6,9 +6,10 @@ import io.ktor.foodies.order.domain.CardBrandResponse
 import io.ktor.foodies.order.domain.CreateOrderRequest
 import io.ktor.foodies.events.order.OrderStatus
 import io.ktor.foodies.order.service.OrderService
+import io.ktor.foodies.server.auth.secureUser
+import io.ktor.foodies.server.auth.userPrincipal
 import io.ktor.foodies.server.getValue
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.principal
 import io.ktor.server.request.header
@@ -19,23 +20,15 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
-import io.ktor.util.collections.getValue
-
-private fun JWTPrincipal.buyerId(): String = payload.subject
-    ?: throw IllegalStateException("JWT subject claim is missing")
-
-private fun JWTPrincipal.buyerEmail(): String = payload.getClaim("email").asString()
-    ?: throw IllegalStateException("JWT email claim is missing")
 
 private fun JWTPrincipal.buyerName(): String = payload.getClaim("name").asString()
     ?: payload.getClaim("preferred_username").asString()
     ?: "Unknown"
 
-fun Route.orderRoutes(orderService: OrderService) = authenticate("user") {
+fun Route.orderRoutes(orderService: OrderService) = secureUser {
     route("/orders") {
         get {
-            val principal = call.principal<JWTPrincipal>()!!
-            val buyerId = principal.buyerId()
+            val buyerId = userPrincipal().userId
             val offset = call.request.queryParameters["offset"]?.toLongOrNull() ?: 0L
             val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
             val status = call.request.queryParameters["status"]?.let { OrderStatus.valueOf(it) }
@@ -50,8 +43,7 @@ fun Route.orderRoutes(orderService: OrderService) = authenticate("user") {
         }
 
         get("/{id}") {
-            val principal = call.principal<JWTPrincipal>()!!
-            val buyerId = principal.buyerId()
+            val buyerId = userPrincipal().userId
             val id: Long by call.parameters
 
             when (val result = orderService.getOrder(id, buyerId)) {
@@ -65,12 +57,10 @@ fun Route.orderRoutes(orderService: OrderService) = authenticate("user") {
             val requestIdString = call.request.header("X-Request-Id")
                 ?: throw IllegalArgumentException("X-Request-Id header is required")
             val requestId = java.util.UUID.fromString(requestIdString)
-            val principal = call.principal<JWTPrincipal>()!!
-            val buyerId = principal.buyerId()
-            val buyerEmail = principal.buyerEmail()
-            val buyerName = principal.buyerName()
-            val token = call.request.header("Authorization")?.removePrefix("Bearer ")
-                ?: throw IllegalStateException("No Authorization header")
+            val buyerId = userPrincipal().userId
+            val buyerEmail = userPrincipal().email ?: throw IllegalStateException("User email is required")
+            val buyerName = call.principal<JWTPrincipal>()?.buyerName() ?: "Unknown"
+            val token = userPrincipal().accessToken
 
             val request = call.receive<CreateOrderRequest>()
             val order = orderService.createOrder(requestId, buyerId, buyerEmail, buyerName, request, token)
@@ -81,8 +71,7 @@ fun Route.orderRoutes(orderService: OrderService) = authenticate("user") {
             val requestIdString = call.request.header("X-Request-Id")
                 ?: throw IllegalArgumentException("X-Request-Id header is required")
             val requestId = java.util.UUID.fromString(requestIdString)
-            val principal = call.principal<JWTPrincipal>()!!
-            val buyerId = principal.buyerId()
+            val buyerId = userPrincipal().userId
             val id: Long by call.parameters
             
             val body = runCatching { call.receive<CancelOrderRequest>() }.getOrNull()
