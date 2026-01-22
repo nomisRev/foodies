@@ -7,10 +7,10 @@ import com.sksamuel.cohort.HealthCheckRegistry
 import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
+import io.ktor.foodies.server.auth.UserPrincipal
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
@@ -75,7 +75,7 @@ fun TestSuite.testBasketService(
 
             application {
                 install(Authentication) {
-                    jwt {
+                    jwt("user") {
                         verifier(
                             JWT.require(Algorithm.HMAC256(TEST_SECRET))
                                 .withIssuer(TEST_ISSUER)
@@ -83,7 +83,17 @@ fun TestSuite.testBasketService(
                                 .build()
                         )
                         validate { credential ->
-                            if (credential.payload.subject != null) JWTPrincipal(credential.payload) else null
+                            val payload = credential.payload
+                            val subject = payload.subject
+                            if (subject != null) {
+                                val authHeader = request.headers["Authorization"]?.removePrefix("Bearer ") ?: ""
+                                UserPrincipal(
+                                    userId = subject,
+                                    email = null,
+                                    roles = emptySet(),
+                                    accessToken = authHeader
+                                )
+                            } else null
                         }
                     }
                 }

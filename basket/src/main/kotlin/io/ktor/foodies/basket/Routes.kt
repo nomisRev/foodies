@@ -1,11 +1,10 @@
 package io.ktor.foodies.basket
 
+import io.ktor.foodies.server.auth.secureUser
+import io.ktor.foodies.server.auth.userPrincipal
 import io.ktor.foodies.server.getValue
 import io.ktor.foodies.server.validate
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -15,24 +14,18 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 
-/**
- * Extracts the buyer ID (subject claim) from the JWT principal.
- */
-private fun JWTPrincipal.buyerId(): String = payload.subject
-    ?: throw IllegalStateException("JWT subject claim is missing")
-
-fun Route.basketRoutes(basketService: BasketService) = authenticate("user") {
+fun Route.basketRoutes(basketService: BasketService) = secureUser {
     route("/basket") {
         // GET /basket - Get current user's basket
         get {
-            val buyerId = call.principal<JWTPrincipal>()!!.buyerId()
+            val buyerId = userPrincipal().userId
             val basket = basketService.getBasket(buyerId)
             call.respond(basket)
         }
 
         // DELETE /basket - Clear entire basket
         delete {
-            val buyerId = call.principal<JWTPrincipal>()!!.buyerId()
+            val buyerId = userPrincipal().userId
             basketService.clearBasket(buyerId)
             call.respond(HttpStatusCode.NoContent)
         }
@@ -40,7 +33,7 @@ fun Route.basketRoutes(basketService: BasketService) = authenticate("user") {
         route("/items") {
             // POST /basket/items - Add item to basket
             post {
-                val buyerId = call.principal<JWTPrincipal>()!!.buyerId()
+                val buyerId = userPrincipal().userId
                 val request = call.receive<AddItemRequest>()
                 val validatedRequest = validate { request.validate() }
                 val basket = basketService.addItem(buyerId, validatedRequest)
@@ -49,7 +42,7 @@ fun Route.basketRoutes(basketService: BasketService) = authenticate("user") {
 
             // PUT /basket/items/{itemId} - Update item quantity
             put("/{itemId}") {
-                val buyerId = call.principal<JWTPrincipal>()!!.buyerId()
+                val buyerId = userPrincipal().userId
                 val itemId: String by call.parameters
                 val request = call.receive<UpdateItemQuantityRequest>()
                 val validatedRequest = request.validate()
@@ -59,7 +52,7 @@ fun Route.basketRoutes(basketService: BasketService) = authenticate("user") {
 
             // DELETE /basket/items/{itemId} - Remove item from basket
             delete("/{itemId}") {
-                val buyerId = call.principal<JWTPrincipal>()!!.buyerId()
+                val buyerId = userPrincipal().userId
                 val itemId: String by call.parameters
                 val basket = basketService.removeItem(buyerId, itemId)
                 if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
