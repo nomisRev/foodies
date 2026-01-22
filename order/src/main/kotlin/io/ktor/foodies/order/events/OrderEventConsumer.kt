@@ -66,7 +66,8 @@ fun orderEventConsumers(
         val queueName = "order.grace-period-expired"
         val routingKey = "order.grace-period.expired"
         subscriber.subscribe<GracePeriodExpiredEvent>(queueName) {
-            exchangeDeclare(exchange, "topic", true, false, null)
+            val args = mapOf("x-delayed-type" to "direct")
+            exchangeDeclare(exchange, "x-delayed-message", true, false, args)
 
             queueDeclare(queueName, true, false, false, null)
             queueBind(queueName, exchange, routingKey)
