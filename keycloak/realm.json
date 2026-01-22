@@ -1,5 +1,6 @@
 {
   "realm": "foodies-keycloak",
+  "sslRequired": "none",
   "enabled": true,
   "registrationAllowed": true,
   "resetPasswordAllowed": true,
