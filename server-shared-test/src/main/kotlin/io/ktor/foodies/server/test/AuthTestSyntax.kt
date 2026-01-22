@@ -101,4 +101,7 @@ fun TestSuite.authTest(
     name: String,
     config: JwtConfig = JwtConfig(),
     block: suspend context(TestExecutionScope) ApplicationTestBuilder.(JwtConfig) -> Unit,
-) = testApplication(name) { block(config) }
+) = testApplication(name) {
+    installTestAuth(config)
+    block(config)
+}
