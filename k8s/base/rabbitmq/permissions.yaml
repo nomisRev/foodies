@@ -6,9 +6,9 @@ spec:
   user: "guest"
   vhost: "/"
   permissions:
-    write: ".*"
-    configure: ".*"
-    read: ".*"
+    write: ""
+    configure: ""
+    read: ""
   rabbitmqClusterReference:
     name: rabbitmq
 ---
@@ -20,9 +20,9 @@ spec:
   user: "profile_service"
   vhost: "/"
   permissions:
-    write: "profile\..*"
-    configure: "profile\..*"
-    read: "profile\..*"
+    write: ""
+    configure: "^profile\.registration$"
+    read: "^profile\.registration$"
   rabbitmqClusterReference:
     name: rabbitmq
 ---
@@ -34,9 +34,9 @@ spec:
   user: "menu_service"
   vhost: "/"
   permissions:
-    write: "menu\..*|foodies.*"
-    configure: "menu\..*|foodies.*"
-    read: "menu\..*|foodies.*"
+    write: "^foodies$"
+    configure: "^menu\\..*"
+    read: "^(menu\\.stock-validation|menu\\.stock-returned)$"
   rabbitmqClusterReference:
     name: rabbitmq
 ---
@@ -48,9 +48,9 @@ spec:
   user: "basket_service"
   vhost: "/"
   permissions:
-    write: "basket\..*"
-    configure: "basket\..*"
-    read: "basket\..*|foodies.*"
+    write: ""
+    configure: "^basket\\.order-created$"
+    read: "^basket\\.order-created$"
   rabbitmqClusterReference:
     name: rabbitmq
 ---
@@ -62,9 +62,9 @@ spec:
   user: "order_service"
   vhost: "/"
   permissions:
-    write: "order\..*|foodies.*"
-    configure: "order\..*|foodies.*"
-    read: "order\..*|foodies.*"
+    write: "^foodies$"
+    configure: "^order\\..*"
+    read: "^order\\..*"
   rabbitmqClusterReference:
     name: rabbitmq
 ---
@@ -76,9 +76,9 @@ spec:
   user: "payment_service"
   vhost: "/"
   permissions:
-    write: "payment\..*|foodies.*"
-    configure: "payment\..*|foodies.*"
-    read: "payment\..*|foodies.*"
+    write: "^foodies\\.events$"
+    configure: "^payment\\..*"
+    read: "^payment\\.stock-confirmed$"
   rabbitmqClusterReference:
     name: rabbitmq
 ---
