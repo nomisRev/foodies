@@ -31,7 +31,7 @@ private fun JWTPrincipal.buyerName(): String = payload.getClaim("name").asString
     ?: payload.getClaim("preferred_username").asString()
     ?: "Unknown"
 
-fun Route.orderRoutes(orderService: OrderService) = authenticate {
+fun Route.orderRoutes(orderService: OrderService) = authenticate("user") {
     route("/orders") {
         get {
             val principal = call.principal<JWTPrincipal>()!!

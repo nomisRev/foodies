@@ -15,7 +15,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 
-fun Route.adminRoutes(orderService: OrderService) = authenticate {
+fun Route.adminRoutes(orderService: OrderService) = authenticate("user") {
     withRole("admin") {
         route("/admin/orders") {
             get {

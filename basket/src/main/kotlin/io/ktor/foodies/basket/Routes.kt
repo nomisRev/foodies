@@ -21,7 +21,7 @@ import io.ktor.server.routing.route
 private fun JWTPrincipal.buyerId(): String = payload.subject
     ?: throw IllegalStateException("JWT subject claim is missing")
 
-fun Route.basketRoutes(basketService: BasketService) = authenticate {
+fun Route.basketRoutes(basketService: BasketService) = authenticate("user") {
     route("/basket") {
         // GET /basket - Get current user's basket
         get {
