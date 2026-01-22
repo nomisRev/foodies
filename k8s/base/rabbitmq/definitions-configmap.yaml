@@ -59,37 +59,37 @@ data:
         {
           "user": "profile_service",
           "vhost": "/",
-          "configure": "",
-          "write": "",
-          "read": "profile\\.registration"
+          "configure": "profile\\..*",
+          "write": "profile\\..*",
+          "read": "profile\\..*"
         },
         {
           "user": "menu_service",
           "vhost": "/",
-          "configure": "menu\\.stock-validation",
-          "write": "foodies",
-          "read": "menu\\.stock-validation"
+          "configure": "menu\\..*|foodies.*",
+          "write": "menu\\..*|foodies.*",
+          "read": "menu\\..*|foodies.*"
         },
         {
           "user": "basket_service",
           "vhost": "/",
-          "configure": "",
-          "write": "",
-          "read": "basket\\.order-created"
+          "configure": "basket\\..*",
+          "write": "basket\\..*",
+          "read": "basket\\..*|foodies.*"
         },
         {
           "user": "order_service",
           "vhost": "/",
-          "configure": "",
-          "write": "foodies\\.events",
-          "read": ""
+          "configure": "order\\..*|foodies.*",
+          "write": "order\\..*|foodies.*",
+          "read": "order\\..*|foodies.*"
         },
         {
           "user": "payment_service",
           "vhost": "/",
-          "configure": "payment\\.stock-confirmed",
-          "write": "foodies\\.events",
-          "read": "payment\\.stock-confirmed"
+          "configure": "payment\\..*|foodies.*",
+          "write": "payment\\..*|foodies.*",
+          "read": "payment\\..*|foodies.*"
         },
         {
           "user": "keycloak_service",
