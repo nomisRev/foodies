@@ -2,7 +2,6 @@ package io.ktor.foodies.server.openid
 
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.interfaces.JWTVerifier
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.client.request.get
 import io.ktor.client.request.header
@@ -16,7 +15,6 @@ import io.ktor.foodies.server.auth.userPrincipal
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.Application
-import io.ktor.server.application.call
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.JWTCredential
@@ -86,7 +84,7 @@ val securitySpec by testSuite {
                 routing {
                     secureUser {
                         get("/user") {
-                            val principal = call.userPrincipal()
+                            val principal = userPrincipal()
                             call.respondText(principal.userId)
                         }
                     }
@@ -110,7 +108,7 @@ val securitySpec by testSuite {
                 routing {
                     secureUser {
                         get("/user") {
-                            val principal = call.userPrincipal()
+                            val principal = userPrincipal()
                             call.respondText(principal.email ?: "no-email")
                         }
                     }
@@ -134,7 +132,7 @@ val securitySpec by testSuite {
                 routing {
                     secureUser {
                         get("/user") {
-                            val principal = call.userPrincipal()
+                            val principal = userPrincipal()
                             call.respondText(principal.roles.sorted().joinToString(","))
                         }
                     }
@@ -187,7 +185,7 @@ val securitySpec by testSuite {
                 routing {
                     secureUser {
                         get("/user") {
-                            val principal = call.userPrincipal()
+                            val principal = userPrincipal()
                             call.respondText("Token length: ${principal.accessToken.length}")
                         }
                     }
@@ -211,7 +209,7 @@ val securitySpec by testSuite {
                 routing {
                     secureService {
                         get("/service") {
-                            val principal = call.servicePrincipal()
+                            val principal = servicePrincipal()
                             call.respondText(principal.serviceAccountId)
                         }
                     }
@@ -235,7 +233,7 @@ val securitySpec by testSuite {
                 routing {
                     secureService {
                         get("/service") {
-                            val principal = call.servicePrincipal()
+                            val principal = servicePrincipal()
                             call.respondText(principal.clientId)
                         }
                     }
@@ -259,7 +257,7 @@ val securitySpec by testSuite {
                 routing {
                     secureService {
                         get("/service") {
-                            val principal = call.servicePrincipal()
+                            val principal = servicePrincipal()
                             call.respondText(principal.clientId)
                         }
                     }
@@ -313,7 +311,7 @@ val securitySpec by testSuite {
                 routing {
                     secureService {
                         get("/service") {
-                            val principal = call.servicePrincipal()
+                            val principal = servicePrincipal()
                             call.respondText(principal.roles.sorted().joinToString(","))
                         }
                     }
@@ -339,7 +337,7 @@ val securitySpec by testSuite {
                 routing {
                     secureService {
                         get("/service") {
-                            val principal = call.servicePrincipal()
+                            val principal = servicePrincipal()
                             call.respondText("Roles: ${principal.roles.size}")
                         }
                     }

@@ -72,7 +72,7 @@ val secureRoutingSpec by testSuite {
                 routing {
                     secureUser {
                         get("/protected") {
-                            val user = call.userPrincipal()
+                            val user = userPrincipal()
                             call.respondText("Hello ${user.userId}")
                         }
                     }
@@ -187,7 +187,7 @@ val secureRoutingSpec by testSuite {
                 routing {
                     secureService {
                         get("/service-endpoint") {
-                            val service = call.servicePrincipal()
+                            val service = servicePrincipal()
                             call.respondText("Service: ${service.clientId}")
                         }
                     }
@@ -348,7 +348,7 @@ val secureRoutingSpec by testSuite {
                 routing {
                     secureUser {
                         get("/me") {
-                            val principal = call.userPrincipal()
+                            val principal = userPrincipal()
                             call.respondText("${principal.userId}:${principal.email}:${principal.roles.size}")
                         }
                     }
@@ -388,7 +388,7 @@ val secureRoutingSpec by testSuite {
                 routing {
                     secureService {
                         get("/info") {
-                            val principal = call.servicePrincipal()
+                            val principal = servicePrincipal()
                             call.respondText("${principal.clientId}:${principal.roles.size}")
                         }
                     }
