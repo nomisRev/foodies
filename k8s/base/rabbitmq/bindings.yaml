@@ -1,0 +1,47 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: Binding
+metadata:
+  name: menu-stock-validation-binding
+spec:
+  source: foodies
+  destination: menu.stock-validation
+  destinationType: queue
+  vhost: /
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Binding
+metadata:
+  name: basket-order-created-binding
+spec:
+  source: foodies
+  destination: basket.order-created
+  destinationType: queue
+  vhost: /
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Binding
+metadata:
+  name: payment-stock-confirmed-binding
+spec:
+  source: foodies.events
+  destination: payment.stock-confirmed
+  destinationType: queue
+  vhost: /
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Binding
+metadata:
+  name: order-payment-succeeded-binding
+spec:
+  source: foodies.events
+  destination: foodies.events.payment.succeeded
+  destinationType: queue
+  vhost: /
+  rabbitmqClusterReference:
+    name: rabbitmq

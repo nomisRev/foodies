@@ -22,18 +22,11 @@ spec:
             - containerPort: 15672
               name: management
           env:
-            - name: RABBITMQ_DEFAULT_USER
-              valueFrom:
-                secretKeyRef:
-                  name: rabbitmq-credentials
-                  key: RABBITMQ_USERNAME
             - name: RABBITMQ_DEFAULT_PASS
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-credentials
-                  key: RABBITMQ_PASSWORD
-            - name: RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS
-              value: "-rabbitmq_management load_definitions \"/etc/rabbitmq/definitions.json\""
+                  name: rabbitmq-secrets
+                  key: RABBITMQ_GUEST_PASSWORD
           resources:
             requests:
               memory: "256Mi"
@@ -68,13 +61,9 @@ spec:
           volumeMounts:
             - name: data
               mountPath: /var/lib/rabbitmq
-            - name: definitions
-              mountPath: /etc/rabbitmq/definitions.json
-              subPath: definitions.json
       volumes:
-        - name: definitions
-          configMap:
-            name: rabbitmq-definitions
+        - name: definitions-volume
+          emptyDir: {}
   volumeClaimTemplates:
     - metadata:
         name: data

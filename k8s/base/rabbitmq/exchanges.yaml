@@ -1,0 +1,21 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: Exchange
+metadata:
+  name: foodies
+spec:
+  name: foodies
+  type: topic
+  vhost: /
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Exchange
+metadata:
+  name: foodies-events
+spec:
+  name: foodies.events
+  type: topic
+  vhost: /
+  rabbitmqClusterReference:
+    name: rabbitmq

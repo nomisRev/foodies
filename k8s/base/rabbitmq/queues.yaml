@@ -1,0 +1,49 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: profile-registration
+spec:
+  name: profile.registration
+  vhost: /
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: menu-stock-validation
+spec:
+  name: menu.stock-validation
+  vhost: /
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: basket-order-created
+spec:
+  name: basket.order-created
+  vhost: /
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: payment-stock-confirmed
+spec:
+  name: payment.stock-confirmed
+  vhost: /
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Queue
+metadata:
+  name: order-payment-succeeded
+spec:
+  name: foodies.events.payment.succeeded
+  vhost: /
+  rabbitmqClusterReference:
+    name: rabbitmq
