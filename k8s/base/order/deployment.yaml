@@ -111,8 +111,8 @@ spec:
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: order-rabbitmq-credentials
-                  key: RABBITMQ_PASSWORD
+                  name: rabbitmq-secrets
+                  key: RABBITMQ_ORDER_SERVICE_PASSWORD
             - name: RABBITMQ_EXCHANGE
               valueFrom:
                 configMapKeyRef:
