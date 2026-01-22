@@ -7,10 +7,11 @@ import com.sksamuel.cohort.HealthCheckRegistry
 import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
+import io.ktor.foodies.server.auth.UserPrincipal
+import io.ktor.foodies.server.test.installTestAuth
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.jwt.JWTPrincipal
 import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
@@ -44,17 +45,6 @@ data class BasketTestModule(
     val menuClient: InMemoryMenuClient
 )
 
-fun createTestToken(
-    subject: String,
-    issuer: String = TEST_ISSUER,
-    audience: String = TEST_AUDIENCE,
-): String = JWT.create()
-    .withSubject(subject)
-    .withIssuer(issuer)
-    .withAudience(audience)
-    .withExpiresAt(Date(System.currentTimeMillis() + 60_000))
-    .sign(Algorithm.HMAC256(TEST_SECRET))
-
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 @TestRegistering
 context(ctx: ServiceContext)
@@ -73,22 +63,8 @@ fun TestSuite.testBasketService(
                 readinessCheck = HealthCheckRegistry(Dispatchers.IO)
             )
 
-            application {
-                install(Authentication) {
-                    jwt {
-                        verifier(
-                            JWT.require(Algorithm.HMAC256(TEST_SECRET))
-                                .withIssuer(TEST_ISSUER)
-                                .withAudience(TEST_AUDIENCE)
-                                .build()
-                        )
-                        validate { credential ->
-                            if (credential.payload.subject != null) JWTPrincipal(credential.payload) else null
-                        }
-                    }
-                }
-                app(module)
-            }
+            installTestAuth()
+            application { app(module) }
             block(BasketTestModule(module.basketService, menuClient))
             connection.sync().flushall()
         }
