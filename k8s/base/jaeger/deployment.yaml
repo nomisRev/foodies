@@ -14,15 +14,20 @@ spec:
     spec:
       containers:
         - name: jaeger
-          image: jaegertracing/all-in-one:latest
-          env:
-            - name: COLLECTOR_OTLP_ENABLED
-              value: "true"
+          image: jaegertracing/jaeger:2.14.0
+          args:
+            - --config=/etc/jaeger/config.yaml
           ports:
             - containerPort: 16686
               name: ui
-            - containerPort: 14250
-              name: collector
+            - containerPort: 4317
+              name: otlp-grpc
+            - containerPort: 4318
+              name: otlp-http
+          volumeMounts:
+            - name: jaeger-config
+              mountPath: /etc/jaeger
+              readOnly: true
           resources:
             requests:
               memory: "128Mi"
@@ -30,3 +35,7 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+      volumes:
+        - name: jaeger-config
+          configMap:
+            name: jaeger-config
