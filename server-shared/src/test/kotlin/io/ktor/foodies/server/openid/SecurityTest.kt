@@ -4,10 +4,10 @@ import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
-import io.ktor.foodies.server.auth.authTest
-import io.ktor.foodies.server.auth.createServiceToken
-import io.ktor.foodies.server.auth.createUserToken
-import io.ktor.foodies.server.auth.installTestAuth
+import io.ktor.foodies.server.test.authTest
+import io.ktor.foodies.server.test.createServiceToken
+import io.ktor.foodies.server.test.createUserToken
+import io.ktor.foodies.server.test.installTestAuth
 import io.ktor.foodies.server.auth.secureService
 import io.ktor.foodies.server.auth.secureUser
 import io.ktor.foodies.server.auth.servicePrincipal
@@ -22,14 +22,11 @@ import kotlin.test.assertTrue
 
 val securitySpec by testSuite {
     authTest("user JWT validation extracts userId from subject") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureUser {
-                    get("/user") {
-                        val principal = userPrincipal()
-                        call.respondText(principal.userId)
-                    }
+        routing {
+            secureUser {
+                get("/user") {
+                    val principal = userPrincipal()
+                    call.respondText(principal.userId)
                 }
             }
         }
@@ -44,14 +41,11 @@ val securitySpec by testSuite {
     }
 
     authTest("user JWT validation extracts email claim") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureUser {
-                    get("/user") {
-                        val principal = userPrincipal()
-                        call.respondText(principal.email ?: "no-email")
-                    }
+        routing {
+            secureUser {
+                get("/user") {
+                    val principal = userPrincipal()
+                    call.respondText(principal.email ?: "no-email")
                 }
             }
         }
@@ -66,14 +60,11 @@ val securitySpec by testSuite {
     }
 
     authTest("user JWT validation extracts roles from realm_access") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureUser {
-                    get("/user") {
-                        val principal = userPrincipal()
-                        call.respondText(principal.roles.sorted().joinToString(","))
-                    }
+        routing {
+            secureUser {
+                get("/user") {
+                    val principal = userPrincipal()
+                    call.respondText(principal.roles.sorted().joinToString(","))
                 }
             }
         }
@@ -88,13 +79,10 @@ val securitySpec by testSuite {
     }
 
     authTest("user JWT validation rejects token without email") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureUser {
-                    get("/user") {
-                        call.respondText("Success")
-                    }
+        routing {
+            secureUser {
+                get("/user") {
+                    call.respondText("Success")
                 }
             }
         }
@@ -115,14 +103,11 @@ val securitySpec by testSuite {
     }
 
     authTest("user JWT validation stores access token") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureUser {
-                    get("/user") {
-                        val principal = userPrincipal()
-                        call.respondText("Token length: ${principal.accessToken.length}")
-                    }
+        routing {
+            secureUser {
+                get("/user") {
+                    val principal = userPrincipal()
+                    call.respondText("Token length: ${principal.accessToken.length}")
                 }
             }
         }
@@ -137,14 +122,11 @@ val securitySpec by testSuite {
     }
 
     authTest("service JWT validation extracts serviceAccountId from subject") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureService {
-                    get("/service") {
-                        val principal = servicePrincipal()
-                        call.respondText(principal.serviceAccountId)
-                    }
+        routing {
+            secureService {
+                get("/service") {
+                    val principal = servicePrincipal()
+                    call.respondText(principal.serviceAccountId)
                 }
             }
         }
@@ -159,14 +141,11 @@ val securitySpec by testSuite {
     }
 
     authTest("service JWT validation extracts clientId from azp claim") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureService {
-                    get("/service") {
-                        val principal = servicePrincipal()
-                        call.respondText(principal.clientId)
-                    }
+        routing {
+            secureService {
+                get("/service") {
+                    val principal = servicePrincipal()
+                    call.respondText(principal.clientId)
                 }
             }
         }
@@ -181,14 +160,11 @@ val securitySpec by testSuite {
     }
 
     authTest("service JWT validation extracts clientId from client_id claim as fallback") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureService {
-                    get("/service") {
-                        val principal = servicePrincipal()
-                        call.respondText(principal.clientId)
-                    }
+        routing {
+            secureService {
+                get("/service") {
+                    val principal = servicePrincipal()
+                    call.respondText(principal.clientId)
                 }
             }
         }
@@ -211,13 +187,10 @@ val securitySpec by testSuite {
     }
 
     authTest("service JWT validation requires clientId ending with -service") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureService {
-                    get("/service") {
-                        call.respondText("Success")
-                    }
+        routing {
+            secureService {
+                get("/service") {
+                    call.respondText("Success")
                 }
             }
         }
@@ -239,14 +212,11 @@ val securitySpec by testSuite {
     }
 
     authTest("service JWT validation extracts roles from realm_access") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureService {
-                    get("/service") {
-                        val principal = servicePrincipal()
-                        call.respondText(principal.roles.sorted().joinToString(","))
-                    }
+        routing {
+            secureService {
+                get("/service") {
+                    val principal = servicePrincipal()
+                    call.respondText(principal.roles.sorted().joinToString(","))
                 }
             }
         }
@@ -264,14 +234,11 @@ val securitySpec by testSuite {
     }
 
     authTest("service JWT validation handles missing realm_access gracefully") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureService {
-                    get("/service") {
-                        val principal = servicePrincipal()
-                        call.respondText("Roles: ${principal.roles.size}")
-                    }
+        routing {
+            secureService {
+                get("/service") {
+                    val principal = servicePrincipal()
+                    call.respondText("Roles: ${principal.roles.size}")
                 }
             }
         }
