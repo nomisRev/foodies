@@ -9,6 +9,8 @@ resources:
 
 configMapGenerator:
   - name: keycloak-config
+    options:
+      disableNameSuffixHash: true
     literals:
       - KC_HOSTNAME_STRICT=true
       - KC_HOSTNAME_BACKCHANNEL_DYNAMIC=true

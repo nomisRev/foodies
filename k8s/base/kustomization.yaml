@@ -21,6 +21,8 @@ resources:
 
 configMapGenerator:
   - name: foodies-config
+    options:
+      disableNameSuffixHash: true
     literals:
       - FOODIES_HOST=foodies.local
       - PROFILE_DB_NAME=foodies-profile-database
@@ -37,6 +39,8 @@ secretGenerator:
       - KC_BOOTSTRAP_ADMIN_USERNAME=admin
       - KC_BOOTSTRAP_ADMIN_PASSWORD=admin
   - name: postgres-credentials
+    options:
+      disableNameSuffixHash: true
     literals:
       - POSTGRES_USER=foodies_admin
       - POSTGRES_PASSWORD=foodies_password
@@ -65,6 +69,8 @@ secretGenerator:
       - RABBITMQ_USERNAME=payment_service
       - RABBITMQ_PASSWORD=JcFLK9E3SKhIOd92U88td2Aqww5T5m+QsHOucv0VRK8=
   - name: keycloak-rabbitmq-credentials
+    options:
+      disableNameSuffixHash: true
     literals:
       - RABBITMQ_USERNAME=keycloak_service
       - RABBITMQ_PASSWORD=MeZZEYsAyI8Ft2k+lmSiVsway6Sj5TO7X2HbOfQfbQo=

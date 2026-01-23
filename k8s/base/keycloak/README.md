@@ -57,14 +57,14 @@ Configures the realm and identity settings:
 
 ## Operator Installation
 
-Before applying these CRs, ensure Keycloak Operator is installed in the foodies namespace:
+Before applying these CRs, ensure Keycloak Operator is installed. The operator CRDs and deployment are available in `k8s/base/keycloak-operator/`:
 
 ```bash
-kubectl create namespace foodies || true
-kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-operator/main/kubernetes/target/kubernetes/operator/0.0.0/operator.yaml
+# Apply the operator and CRDs
+kubectl apply -k k8s/base/keycloak-operator/
 ```
 
-See issue `bd-3l0` for operator installation details.
+See issue `bd-1p4` for operator installation details.
 
 ## Applying the Configuration
 
@@ -95,14 +95,26 @@ After applying, verify:
 
 ## Next Steps / Remaining Work
 
-1. **Install Keycloak Operator** (See issue `bd-3l0`):
-   ```bash
-   kubectl create namespace foodies || true
-   kubectl apply -f https://raw.githubusercontent.com/keycloak/keycloak-operator/main/kubernetes/target/kubernetes/operator/0.0.0/operator.yaml
-   ```
+1. **Integrate Keycloak Operator into main kustomization** (See issue `bd-384`):
+    Add keycloak-operator to base kustomization so CRDs and operator are deployed automatically.
 
-2. **Test the configuration**: Apply the CRs and verify deployment
+2. **Apply Keycloak CRs** (See issue `bd-1sv`):
+    ```bash
+    kubectl apply -k k8s/base/keycloak/
+    # or for dev:
+    kubectl apply -k k8s/overlays/dev/
+    ```
 
-3. **Remove deprecated files** (optional): Delete `k8s/overlays/dev/deprecated/` directory once migration is complete
+3. **Test the configuration** (See issue `bd-359`):
+    - Verify Keycloak Pod is running: `kubectl get pods -n foodies -l app=keycloak`
+    - Verify realm exists: Check Keycloak Admin Console at http://foodies.local/auth
+    - Verify user can login: `food_lover@gmail.com` / `password`
+    - Verify RabbitMQ event listener is working
 
 4. **Monitor operator logs**: Watch operator logs for any reconciliation errors
+
+5. **Remove deprecated files** (See issue `bd-1qz`):
+    Delete `k8s/overlays/dev/deprecated/` directory and `k8s/base/keycloak/deployment.yaml` once migration is validated
+
+6. **Create production overlay** (See issue `bd-3e6`):
+    Create production-specific configuration with proper security, resources, and HA settings

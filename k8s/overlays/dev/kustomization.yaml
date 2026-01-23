@@ -32,13 +32,12 @@ patches:
       - op: replace
         path: /spec/storageClassName
         value: hostpath
-  - target:
-      kind: Secret
-      name: postgres-credentials
-    patch: |-
-      - op: replace
-        path: /stringData/POSTGRES_USER
-        value: keycloak
-      - op: replace
-        path: /stringData/POSTGRES_PASSWORD
-        value: keycloak_password
+
+secretGenerator:
+  - name: postgres-credentials
+    behavior: replace
+    options:
+      disableNameSuffixHash: true
+    literals:
+      - POSTGRES_USER=keycloak
+      - POSTGRES_PASSWORD=keycloak_password

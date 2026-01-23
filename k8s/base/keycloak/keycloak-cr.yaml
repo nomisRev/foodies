@@ -8,7 +8,6 @@ spec:
   instances: 1
   
   image: foodies-keycloak:0.0.5
-  imagePullPolicy: IfNotPresent
   
   hostname:
     hostname: foodies.local
@@ -33,10 +32,6 @@ spec:
   
   httpManagement:
     port: 9000
-    relativePath: /
-  
-  healthEnabled: true
-  metricsEnabled: true
   
   features:
     enabled:
@@ -52,72 +47,75 @@ spec:
       value: /
     - name: proxy-headers
       value: xforwarded
+    - name: health-enabled
+      value: "true"
+    - name: metrics-enabled
+      value: "true"
+    - name: KC_BOOTSTRAP_ADMIN_USERNAME
+      secret:
+        name: keycloak-admin
+        key: KC_BOOTSTRAP_ADMIN_USERNAME
+    - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+      secret:
+        name: keycloak-admin
+        key: KC_BOOTSTRAP_ADMIN_PASSWORD
   
-  keycloakDeploymentSpec:
-    podSpec:
-      containers:
-        - name: keycloak
-          env:
-            - name: KC_BOOTSTRAP_ADMIN_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: keycloak-admin
-                  key: KC_BOOTSTRAP_ADMIN_USERNAME
-            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: keycloak-admin
-                  key: KC_BOOTSTRAP_ADMIN_PASSWORD
-            - name: RABBITMQ_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: keycloak-config
-                  key: RABBITMQ_HOST
-            - name: RABBITMQ_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: keycloak-config
-                  key: RABBITMQ_PORT
-            - name: RABBITMQ_USERNAME
-              valueFrom:
-                secretKeyRef:
-                  name: keycloak-rabbitmq-credentials
-                  key: RABBITMQ_USERNAME
-            - name: RABBITMQ_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: keycloak-rabbitmq-credentials
-                  key: RABBITMQ_PASSWORD
-            - name: RABBITMQ_QUEUE
-              valueFrom:
-                configMapKeyRef:
-                  name: foodies-config
-                  key: RABBITMQ_QUEUE
-          resources:
-            requests:
-              memory: "512Mi"
-              cpu: "200m"
-            limits:
-              memory: "1Gi"
-              cpu: "1000m"
-          startupProbe:
-            httpGet:
-              path: /health/started
-              port: 9000
-            periodSeconds: 5
-            timeoutSeconds: 3
-            failureThreshold: 60
-          livenessProbe:
-            httpGet:
-              path: /health/live
-              port: 9000
-            periodSeconds: 30
-            timeoutSeconds: 3
-            failureThreshold: 3
-          readinessProbe:
-            httpGet:
-              path: /health/ready
-              port: 9000
-            periodSeconds: 10
-            timeoutSeconds: 3
-            failureThreshold: 3
+  unsupported:
+    podTemplate:
+      spec:
+        containers:
+          - name: keycloak
+            env:
+              - name: RABBITMQ_HOST
+                valueFrom:
+                  configMapKeyRef:
+                    name: keycloak-config
+                    key: RABBITMQ_HOST
+              - name: RABBITMQ_PORT
+                valueFrom:
+                  configMapKeyRef:
+                    name: keycloak-config
+                    key: RABBITMQ_PORT
+              - name: RABBITMQ_USERNAME
+                valueFrom:
+                  secretKeyRef:
+                    name: keycloak-rabbitmq-credentials
+                    key: RABBITMQ_USERNAME
+              - name: RABBITMQ_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: keycloak-rabbitmq-credentials
+                    key: RABBITMQ_PASSWORD
+              - name: RABBITMQ_QUEUE
+                valueFrom:
+                  configMapKeyRef:
+                    name: foodies-config
+                    key: RABBITMQ_QUEUE
+            resources:
+              requests:
+                memory: "512Mi"
+                cpu: "200m"
+              limits:
+                memory: "1Gi"
+                cpu: "1000m"
+            startupProbe:
+              httpGet:
+                path: /health/started
+                port: 9000
+              periodSeconds: 5
+              timeoutSeconds: 3
+              failureThreshold: 60
+            livenessProbe:
+              httpGet:
+                path: /health/live
+                port: 9000
+              periodSeconds: 30
+              timeoutSeconds: 3
+              failureThreshold: 3
+            readinessProbe:
+              httpGet:
+                path: /health/ready
+                port: 9000
+              periodSeconds: 10
+              timeoutSeconds: 3
+              failureThreshold: 3
