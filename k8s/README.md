@@ -61,11 +61,7 @@ kubectl create secret generic postgres-credentials \
   --from-literal=POSTGRES_USER=your_user \
   --from-literal=POSTGRES_PASSWORD=your_password
 
-# RabbitMQ credentials
-kubectl create secret generic rabbitmq-credentials \
-  --namespace=foodies \
-  --from-literal=RABBITMQ_USERNAME=your_user \
-  --from-literal=RABBITMQ_PASSWORD=your_password
+
 
 # Keycloak admin credentials
 kubectl create secret generic keycloak-admin \
@@ -249,7 +245,7 @@ Sensitive data is managed through Kubernetes Secrets:
 
 1. **keycloak-admin**: Keycloak administrator credentials
 2. **postgres-credentials**: PostgreSQL database credentials
-3. **rabbitmq-credentials**: RabbitMQ authentication credentials
+
 4. **webapp-auth**: OAuth2 client secret for web application
 
 **Development defaults are provided - update for production deployments!**

@@ -19,10 +19,6 @@ secretGenerator:
     behavior: merge
     literals:
       - POSTGRES_PASSWORD=change-me-at-runtime
-  - name: rabbitmq-credentials
-    behavior: merge
-    literals:
-      - RABBITMQ_PASSWORD=change-me-at-runtime
   - name: webapp-auth
     behavior: merge
     literals:

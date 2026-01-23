@@ -1,0 +1,97 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: Permission
+metadata:
+  name: guest-permissions
+spec:
+  user: "guest"
+  vhost: "/"
+  permissions:
+    write: ""
+    configure: ""
+    read: ""
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Permission
+metadata:
+  name: profile-service-permissions
+spec:
+  user: "profile_service"
+  vhost: "/"
+  permissions:
+    write: ""
+    configure: "^profile\.registration$"
+    read: "^profile\.registration$"
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Permission
+metadata:
+  name: menu-service-permissions
+spec:
+  user: "menu_service"
+  vhost: "/"
+  permissions:
+    write: "^foodies$"
+    configure: "^menu\\..*"
+    read: "^(menu\\.stock-validation|menu\\.stock-returned)$"
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Permission
+metadata:
+  name: basket-service-permissions
+spec:
+  user: "basket_service"
+  vhost: "/"
+  permissions:
+    write: ""
+    configure: "^basket\\.order-created$"
+    read: "^basket\\.order-created$"
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Permission
+metadata:
+  name: order-service-permissions
+spec:
+  user: "order_service"
+  vhost: "/"
+  permissions:
+    write: "^foodies$"
+    configure: "^order\\..*"
+    read: "^order\\..*"
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Permission
+metadata:
+  name: payment-service-permissions
+spec:
+  user: "payment_service"
+  vhost: "/"
+  permissions:
+    write: "^foodies\\.events$"
+    configure: "^payment\\..*"
+    read: "^payment\\.stock-confirmed$"
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: Permission
+metadata:
+  name: keycloak-service-permissions
+spec:
+  user: "keycloak_service"
+  vhost: "/"
+  permissions:
+    write: "profile\.registration"
+    configure: "profile\.registration"
+    read: ""
+  rabbitmqClusterReference:
+    name: rabbitmq
