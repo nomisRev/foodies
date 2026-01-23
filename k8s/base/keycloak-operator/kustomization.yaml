@@ -8,3 +8,4 @@ resources:
   - keycloak-crd.yaml
   - keycloakrealmimport-crd.yaml
   - operator-deployment.yaml
+  - foodies-namespace-role.yaml
