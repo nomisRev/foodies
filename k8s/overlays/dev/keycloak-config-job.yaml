@@ -15,23 +15,54 @@ spec:
         job-name: keycloak-config
     spec:
       restartPolicy: OnFailure
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       initContainers:
         - name: wait-for-keycloak
-          image: busybox:1.36
+          image: curlimages/curl:8.11.1
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
           command:
             - sh
             - -c
             - |
-              echo "Waiting for Keycloak to be ready..."
-              until wget -q --spider http://keycloak:9000/health/ready; do
-                echo "Keycloak not ready yet, waiting..."
-                sleep 5
+              set -e
+              echo "Waiting for Keycloak to be ready (max 5 minutes)..."
+              MAX_RETRIES=60
+              RETRY_COUNT=0
+              SLEEP_INTERVAL=5
+
+              while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+                if curl -sf http://keycloak:9000/health/ready > /dev/null 2>&1; then
+                  echo "Keycloak is ready!"
+                  exit 0
+                fi
+                RETRY_COUNT=$((RETRY_COUNT + 1))
+                echo "Keycloak not ready yet, waiting... (attempt $RETRY_COUNT/$MAX_RETRIES)"
+                sleep $SLEEP_INTERVAL
               done
-              echo "Keycloak is ready!"
+
+              echo "ERROR: Keycloak did not become ready within the timeout period"
+              exit 1
       containers:
         - name: keycloak-config
           image: foodies-keycloak:0.0.5
           imagePullPolicy: IfNotPresent
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
           env:
             - name: KC_BOOTSTRAP_ADMIN_USERNAME
               valueFrom:
@@ -43,6 +74,16 @@ spec:
                 secretKeyRef:
                   name: keycloak-admin
                   key: KC_BOOTSTRAP_ADMIN_PASSWORD
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-client-credentials
+                  key: KEYCLOAK_CLIENT_SECRET
+            - name: KEYCLOAK_TEST_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-client-credentials
+                  key: KEYCLOAK_TEST_USER_PASSWORD
           command:
             - sh
             - -c
@@ -175,12 +216,12 @@ spec:
 
               if [ -n "$CLIENT_ID" ]; then
                 echo "Client 'foodies' already exists (ID: $CLIENT_ID), updating..."
-                cat > /tmp/client-update.json << 'EOF'
+                cat > /tmp/client-update.json <<EOF
               {
                 "clientId": "foodies",
                 "directAccessGrantsEnabled": true,
                 "publicClient": false,
-                "secret": "foodies_client_secret",
+                "secret": "$KEYCLOAK_CLIENT_SECRET",
                 "redirectUris": ["http://foodies.local/oauth/callback"],
                 "webOrigins": ["http://foodies.local"],
                 "attributes": {
@@ -191,12 +232,12 @@ spec:
                 /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID -r foodies-keycloak -f /tmp/client-update.json
               else
                 echo "Creating client 'foodies'..."
-                cat > /tmp/client-create.json << 'EOF'
+                cat > /tmp/client-create.json <<EOF
               {
                 "clientId": "foodies",
                 "directAccessGrantsEnabled": true,
                 "publicClient": false,
-                "secret": "foodies_client_secret",
+                "secret": "$KEYCLOAK_CLIENT_SECRET",
                 "redirectUris": ["http://foodies.local/oauth/callback"],
                 "webOrigins": ["http://foodies.local"],
                 "attributes": {
@@ -226,7 +267,7 @@ spec:
                 echo "Resetting password for user 'food3_lover'..."
                 /opt/keycloak/bin/kcadm.sh set-password -r foodies-keycloak \
                   --username food3_lover \
-                  --new-password password
+                  --new-password "$KEYCLOAK_TEST_USER_PASSWORD"
               else
                 echo "Creating user 'food3_lover'..."
                 /opt/keycloak/bin/kcadm.sh create users -r foodies-keycloak \
@@ -239,7 +280,7 @@ spec:
                 echo "Setting password for user 'food3_lover'..."
                 /opt/keycloak/bin/kcadm.sh set-password -r foodies-keycloak \
                   --username food3_lover \
-                  --new-password password
+                  --new-password "$KEYCLOAK_TEST_USER_PASSWORD"
 
                 USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak -q username=food3_lover --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/')
               fi

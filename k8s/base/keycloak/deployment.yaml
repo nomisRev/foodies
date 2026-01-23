@@ -12,11 +12,24 @@ spec:
       labels:
         app: keycloak
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: keycloak
           image: foodies-keycloak:0.0.5
           imagePullPolicy: IfNotPresent
-          args: ["start-dev"]
+          args: ["start"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
           env:
             - name: FOODIES_HOST
               valueFrom:
