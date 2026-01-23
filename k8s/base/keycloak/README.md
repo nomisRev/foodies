@@ -2,6 +2,8 @@
 
 This directory contains the Keycloak configuration using the Keycloak Operator.
 
+For comprehensive deployment documentation, see [docs/keycloak-operator.md](../../docs/keycloak-operator.md).
+
 ## Migration Summary
 
 The Keycloak deployment has been refactored from using:
@@ -20,14 +22,10 @@ The Keycloak deployment has been refactored from using:
 
 - `keycloak-cr.yaml` - Keycloak Custom Resource for server configuration (k8s.keycloak.org/v2alpha1)
 - `keycloak-realm-import-cr.yaml` - KeycloakRealmImport Custom Resource for realm and identity configuration
-- `deployment.yaml` - **DEPRECATED** - Original Deployment file kept for reference
+
 - `database.yaml` - PostgreSQL database deployment
 
-## Deprecated Files
 
-The following files have been moved to `k8s/overlays/dev/deprecated/`:
-- `keycloak-config-job.yaml` - Init script job using kcadm.sh
-- `keycloak-realm-import-patch.yaml` - Realm import patch
 
 ## Keycloak Operator Resources
 
@@ -113,8 +111,7 @@ After applying, verify:
 
 4. **Monitor operator logs**: Watch operator logs for any reconciliation errors
 
-5. **Remove deprecated files** (See issue `bd-1qz`):
-    Delete `k8s/overlays/dev/deprecated/` directory and `k8s/base/keycloak/deployment.yaml` once migration is validated
+
 
 6. **Create production overlay** (See issue `bd-3e6`):
     Create production-specific configuration with proper security, resources, and HA settings
