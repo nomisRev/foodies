@@ -78,8 +78,8 @@ spec:
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: basket-rabbitmq-credentials
-                  key: RABBITMQ_PASSWORD
+                  name: rabbitmq-secrets
+                  key: RABBITMQ_BASKET_SERVICE_PASSWORD
             - name: RABBITMQ_QUEUE
               valueFrom:
                 configMapKeyRef:

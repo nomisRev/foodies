@@ -1,0 +1,57 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: User
+metadata:
+  name: guest
+spec:
+  rabbitmqClusterReference:
+    name: rabbitmq
+  tags:
+  - administrator
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: User
+metadata:
+  name: profile-service
+spec:
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: User
+metadata:
+  name: menu-service
+spec:
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: User
+metadata:
+  name: basket-service
+spec:
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: User
+metadata:
+  name: order-service
+spec:
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: User
+metadata:
+  name: payment-service
+spec:
+  rabbitmqClusterReference:
+    name: rabbitmq
+---
+apiVersion: rabbitmq.com/v1beta1
+kind: User
+metadata:
+  name: keycloak-service
+spec:
+  rabbitmqClusterReference:
+    name: rabbitmq

@@ -95,8 +95,8 @@ spec:
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: keycloak-rabbitmq-credentials
-                  key: RABBITMQ_PASSWORD
+                  name: rabbitmq-secrets
+                  key: RABBITMQ_KEYCLOAK_SERVICE_PASSWORD
             - name: RABBITMQ_QUEUE
               valueFrom:
                 configMapKeyRef:
