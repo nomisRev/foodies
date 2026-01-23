@@ -8,6 +8,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.foodies.server.test.createUserToken
 import io.ktor.foodies.server.test.ctxSuite
 import io.ktor.foodies.server.test.jsonClient
 import io.ktor.http.ContentType
@@ -82,7 +83,7 @@ private val SIMPLE_PIZZA = MenuItem(
 val basketContractSpec by ctxSuite(context = { serviceContext() }) {
     testBasketService("complete shopping flow: add items, update quantity, remove item, clear basket") { module ->
         val testUserId = "e2e-user-123"
-        val testToken = createTestToken(testUserId)
+        val testToken = createUserToken(userId = testUserId)
 
         module.menuClient.addMenuItem(MARGHERITA_PIZZA)
         module.menuClient.addMenuItem(PASTA_CARBONARA)
@@ -181,8 +182,8 @@ val basketContractSpec by ctxSuite(context = { serviceContext() }) {
     testBasketService("user isolation: different users have separate baskets") { module ->
         val user1Id = "e2e-user-1"
         val user2Id = "e2e-user-2"
-        val user1Token = createTestToken(user1Id)
-        val user2Token = createTestToken(user2Id)
+        val user1Token = createUserToken(userId = user1Id)
+        val user2Token = createUserToken(userId = user2Id)
 
         module.menuClient.addMenuItem(TEST_PIZZA)
         module.menuClient.addMenuItem(TEST_BURGER)
@@ -239,7 +240,7 @@ val basketContractSpec by ctxSuite(context = { serviceContext() }) {
     }
 
     testBasketService("error handling: menu item not found returns 404") { module ->
-        val testToken = createTestToken("e2e-user-error")
+        val testToken = createUserToken(userId = "e2e-user-error")
         // Don't add any menu items
 
         val response = jsonClient().post("/basket/items") {
@@ -252,7 +253,7 @@ val basketContractSpec by ctxSuite(context = { serviceContext() }) {
     }
 
     testBasketService("error handling: update non-existent item returns 404") { module ->
-        val testToken = createTestToken("e2e-user-error")
+        val testToken = createUserToken(userId = "e2e-user-error")
 
         val response = jsonClient().put("/basket/items/non-existent-item-id") {
             bearerAuth(testToken)
@@ -264,7 +265,7 @@ val basketContractSpec by ctxSuite(context = { serviceContext() }) {
     }
 
     testBasketService("error handling: remove non-existent item returns 404") { module ->
-        val testToken = createTestToken("e2e-user-error")
+        val testToken = createUserToken(userId = "e2e-user-error")
 
         val response = jsonClient().delete("/basket/items/non-existent-item-id") {
             bearerAuth(testToken)
@@ -274,7 +275,7 @@ val basketContractSpec by ctxSuite(context = { serviceContext() }) {
     }
 
     testBasketService("error handling: invalid quantity returns 400") { module ->
-        val testToken = createTestToken("e2e-user-validation")
+        val testToken = createUserToken(userId = "e2e-user-validation")
         module.menuClient.addMenuItem(SIMPLE_PIZZA)
 
         val response = jsonClient().post("/basket/items") {
@@ -290,7 +291,7 @@ val basketContractSpec by ctxSuite(context = { serviceContext() }) {
 
     testBasketService("data persists correctly: basket survives Redis reconnection simulation") { module ->
         val testUserId = "e2e-persistence-user"
-        val testToken = createTestToken(testUserId)
+        val testToken = createUserToken(userId = testUserId)
 
         module.menuClient.addMenuItem(SIMPLE_PIZZA)
 

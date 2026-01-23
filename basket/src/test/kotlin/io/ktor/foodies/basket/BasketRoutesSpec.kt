@@ -11,6 +11,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
+import io.ktor.foodies.server.test.createUserToken
 import io.ktor.foodies.server.test.ctxSuite
 import io.ktor.foodies.server.test.jsonClient
 import io.ktor.http.ContentType
@@ -25,7 +26,7 @@ import kotlin.test.assertTrue
 
 val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
     val testUserId = "user-123"
-    val testToken = createTestToken(testUserId)
+    val testToken = createUserToken(userId = testUserId)
 
     testSuite("GET /basket") {
         testBasketService("returns empty basket for new user") { _ ->
@@ -367,8 +368,8 @@ val basketRoutesSpec by ctxSuite(context = { serviceContext() }) {
                 )
             )
 
-            val user1Token = createTestToken("user-1")
-            val user2Token = createTestToken("user-2")
+            val user1Token = createUserToken(userId = "user-1")
+            val user2Token = createUserToken(userId = "user-2")
 
             // User 1 adds item
             jsonClient().post("/basket/items") {

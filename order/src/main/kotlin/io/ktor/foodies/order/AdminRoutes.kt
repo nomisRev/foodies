@@ -2,12 +2,10 @@ package io.ktor.foodies.order
 
 import io.ktor.foodies.events.order.OrderStatus
 import io.ktor.foodies.order.service.OrderService
+import io.ktor.foodies.server.auth.secureUser
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.jwt.JWTPrincipal
-import io.ktor.server.auth.principal
 import io.ktor.server.request.header
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -15,9 +13,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 
-fun Route.adminRoutes(orderService: OrderService) = authenticate {
-    withRole("admin") {
-        route("/admin/orders") {
+fun Route.adminRoutes(orderService: OrderService) = secureUser("admin") {
+    route("/admin/orders") {
             get {
                 val offset = call.parameters["offset"]?.toLongOrNull() ?: 0L
                 val limit = call.parameters["limit"]?.toIntOrNull() ?: 20
@@ -41,5 +38,4 @@ fun Route.adminRoutes(orderService: OrderService) = authenticate {
                 call.respond(order)
             }
         }
-    }
 }

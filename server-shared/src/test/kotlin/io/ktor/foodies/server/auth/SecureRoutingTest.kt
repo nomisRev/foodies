@@ -4,6 +4,9 @@ import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
+import io.ktor.foodies.server.test.authTest
+import io.ktor.foodies.server.test.createServiceToken
+import io.ktor.foodies.server.test.createUserToken
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respondText
@@ -16,7 +19,6 @@ import kotlin.test.assertNotNull
 
 val secureRoutingSpec by testSuite {
     authTest("secureUser should authenticate valid user token") { config ->
-        installTestAuth(config)
         application {
             routing {
                 secureUser {
@@ -38,13 +40,10 @@ val secureRoutingSpec by testSuite {
     }
 
     authTest("secureUser should reject request without token") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureUser {
-                    get("/protected") {
-                        call.respondText("Secret")
-                    }
+        routing {
+            secureUser {
+                get("/protected") {
+                    call.respondText("Secret")
                 }
             }
         }
@@ -54,16 +53,13 @@ val secureRoutingSpec by testSuite {
     }
 
     authTest("secureUser should establish UserAuth context") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureUser {
-                    get("/context") {
-                        val authContext = currentCoroutineContext()[AuthContext]
-                        assertNotNull(authContext)
-                        assertIs<AuthContext.UserAuth>(authContext)
-                        call.respondText("Context: ${authContext.accessToken.take(10)}")
-                    }
+        routing {
+            secureUser {
+                get("/context") {
+                    val authContext = currentCoroutineContext()[AuthContext]
+                    assertNotNull(authContext)
+                    assertIs<AuthContext.UserAuth>(authContext)
+                    call.respondText("Context: ${authContext.accessToken.take(10)}")
                 }
             }
         }
@@ -77,19 +73,17 @@ val secureRoutingSpec by testSuite {
     }
 
     authTest("secureService should authenticate valid service token") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureService {
-                    get("/service-endpoint") {
-                        val service = servicePrincipal()
-                        call.respondText("Service: ${service.clientId}")
-                    }
+        routing {
+            secureService {
+                get("/service-endpoint") {
+                    val service = servicePrincipal()
+                    call.respondText("Service: ${service.clientId}")
                 }
             }
         }
 
-        val token = createServiceToken(config, clientId = "order-service")
+        val token =
+            createServiceToken(config, clientId = "order-service")
         val response = client.get("/service-endpoint") {
             header(HttpHeaders.Authorization, "Bearer $token")
         }
@@ -99,18 +93,19 @@ val secureRoutingSpec by testSuite {
     }
 
     authTest("secureService should enforce required roles") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureService("service:write") {
-                    get("/write-endpoint") {
-                        call.respondText("Write allowed")
-                    }
+        routing {
+            secureService("service:write") {
+                get("/write-endpoint") {
+                    call.respondText("Write allowed")
                 }
             }
         }
 
-        val tokenWithoutRole = createServiceToken(config, clientId = "test-service", roles = listOf("service:read"))
+        val tokenWithoutRole = createServiceToken(
+            config,
+            clientId = "test-service",
+            roles = listOf("service:read")
+        )
         val response = client.get("/write-endpoint") {
             header(HttpHeaders.Authorization, "Bearer $tokenWithoutRole")
         }
@@ -119,13 +114,10 @@ val secureRoutingSpec by testSuite {
     }
 
     authTest("secureService should allow access when all required roles present") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureService("service:read", "service:write") {
-                    get("/rw-endpoint") {
-                        call.respondText("Full access")
-                    }
+        routing {
+            secureService("service:read", "service:write") {
+                get("/rw-endpoint") {
+                    call.respondText("Full access")
                 }
             }
         }
@@ -144,16 +136,13 @@ val secureRoutingSpec by testSuite {
     }
 
     authTest("secureService should establish ServiceAuth context with X-User-Context header") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureService {
-                    get("/context") {
-                        val authContext = currentCoroutineContext()[AuthContext]
-                        assertNotNull(authContext)
-                        assertIs<AuthContext.ServiceAuth>(authContext)
-                        call.respondText("User: ${authContext.userToken?.take(10) ?: "none"}")
-                    }
+        routing {
+            secureService {
+                get("/context") {
+                    val authContext = currentCoroutineContext()[AuthContext]
+                    assertNotNull(authContext)
+                    assertIs<AuthContext.ServiceAuth>(authContext)
+                    call.respondText("User: ${authContext.userToken?.take(10) ?: "none"}")
                 }
             }
         }
@@ -169,14 +158,11 @@ val secureRoutingSpec by testSuite {
     }
 
     authTest("userPrincipal extension should return principal in secureUser route") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureUser {
-                    get("/me") {
-                        val principal = userPrincipal()
-                        call.respondText("${principal.userId}:${principal.email}:${principal.roles.size}")
-                    }
+        routing {
+            secureUser {
+                get("/me") {
+                    val principal = userPrincipal()
+                    call.respondText("${principal.userId}:${principal.email}:${principal.roles.size}")
                 }
             }
         }
@@ -196,14 +182,11 @@ val secureRoutingSpec by testSuite {
     }
 
     authTest("servicePrincipal extension should return principal in secureService route") { config ->
-        installTestAuth(config)
-        application {
-            routing {
-                secureService {
-                    get("/info") {
-                        val principal = servicePrincipal()
-                        call.respondText("${principal.clientId}:${principal.roles.size}")
-                    }
+        routing {
+            secureService {
+                get("/info") {
+                    val principal = servicePrincipal()
+                    call.respondText("${principal.clientId}:${principal.roles.size}")
                 }
             }
         }
