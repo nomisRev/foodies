@@ -1,0 +1,54 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  instances: 1
+  
+  http:
+    httpEnabled: true
+    httpPort: 8000
+  
+  hostname:
+    strict: true
+    backchannelDynamic: true
+  
+  db:
+    vendor: postgres
+    host: keycloak-postgres
+    port: 5432
+    database: keycloak
+    usernameSecret:
+      name: postgres-credentials
+      key: POSTGRES_USER
+    passwordSecret:
+      name: postgres-credentials
+      key: POSTGRES_PASSWORD
+  
+  httpManagement:
+    port: 9000
+    relativePath: /
+  
+  healthEnabled: true
+  metricsEnabled: true
+  
+  features:
+    enabled:
+      - hostname
+      - token-exchange
+    disabled:
+      - docker
+  
+  additionalOptions:
+    - name: http-relative-path
+      value: /auth
+    - name: http-management-relative-path
+      value: /
+    - name: proxy-headers
+      value: xforwarded
+    - name: health-enabled
+      value: "true"
+    - name: metrics-enabled
+      value: "true"

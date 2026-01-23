@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
   - ../../base
-  - keycloak-config-job.yaml
 
 images:
   - name: foodies-keycloak
@@ -22,9 +21,9 @@ images:
     newTag: latest
 
 patches:
-  - path: keycloak-realm-import-patch.yaml
+  - path: keycloak-env-patch.yaml
     target:
-      kind: Deployment
+      kind: Keycloak
       name: keycloak
   - target:
       kind: PersistentVolumeClaim

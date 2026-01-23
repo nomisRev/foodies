@@ -1,3 +1,6 @@
+# DEPRECATED: This deployment is now managed by Keycloak Operator via k8s/base/keycloak/keycloak-cr.yaml
+# This file is kept for reference only and is not included in kustomization
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:

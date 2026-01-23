@@ -1,0 +1,54 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+spec:
+  keycloakDeploymentSpec:
+    podSpec:
+      containers:
+        - name: keycloak
+          env:
+            - name: FOODIES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: foodies-config
+                  key: FOODIES_HOST
+            - name: KC_HOSTNAME
+              value: "http://$(FOODIES_HOST)/auth"
+            - name: KC_HOSTNAME_ADMIN
+              value: "http://$(FOODIES_HOST)/auth"
+            - name: RABBITMQ_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: RABBITMQ_HOST
+            - name: RABBITMQ_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-config
+                  key: RABBITMQ_PORT
+            - name: RABBITMQ_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-rabbitmq-credentials
+                  key: RABBITMQ_USERNAME
+            - name: RABBITMQ_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-rabbitmq-credentials
+                  key: RABBITMQ_PASSWORD
+            - name: RABBITMQ_QUEUE
+              valueFrom:
+                configMapKeyRef:
+                  name: foodies-config
+                  key: RABBITMQ_QUEUE
+            - name: KC_BOOTSTRAP_ADMIN_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin
+                  key: KC_BOOTSTRAP_ADMIN_USERNAME
+            - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-admin
+                  key: KC_BOOTSTRAP_ADMIN_PASSWORD

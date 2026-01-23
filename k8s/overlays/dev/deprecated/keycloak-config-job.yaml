@@ -1,3 +1,7 @@
+# DEPRECATED: This file is replaced by KeycloakOperator CRDs:
+# - k8s/base/keycloak/keycloak-cr.yaml (server configuration)
+# - k8s/base/keycloak/keycloak-realm-import-cr.yaml (realm and identity configuration)
+---
 apiVersion: batch/v1
 kind: Job
 metadata:

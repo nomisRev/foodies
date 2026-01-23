@@ -3,7 +3,8 @@ kind: Kustomization
 
 resources:
   - keycloak.yaml
-  - deployment.yaml
+  - keycloak-cr.yaml
+  - keycloak-realm-import-cr.yaml
   - database.yaml
 
 configMapGenerator:

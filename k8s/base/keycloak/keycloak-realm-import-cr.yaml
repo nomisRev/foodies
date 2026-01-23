@@ -1,0 +1,67 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: KeycloakRealmImport
+metadata:
+  name: foodies-realm
+spec:
+  keycloakCRName: keycloak
+  realm:
+    id: foodies-keycloak
+    realm: foodies-keycloak
+    displayName: Foodies Keycloak
+    enabled: true
+    registrationAllowed: true
+    resetPasswordAllowed: true
+    eventsEnabled: true
+    eventsListeners:
+      - jboss-logging
+      - profile-webhook
+    enabledEventTypes:
+      - REGISTER
+      - DELETE_ACCOUNT
+      - UPDATE_PROFILE
+    roles:
+      realm:
+        - name: user
+          description: Regular user with standard permissions
+    clientScopes:
+      - name: foodies-audience
+        description: Adds foodies audience to tokens for API access
+        protocol: openid-connect
+        attributes:
+          include.in.token.scope: "false"
+          display.on.consent.screen: "false"
+        protocolMappers:
+          - name: audience-mapper
+            protocol: openid-connect
+            protocolMapper: oidc-audience-mapper
+            consentRequired: false
+            config:
+              included.client.audience: foodies
+              id.token.claim: "true"
+              access.token.claim: "true"
+    clients:
+      - clientId: foodies
+        enabled: true
+        directAccessGrantsEnabled: true
+        publicClient: false
+        secret: foodies_client_secret
+        redirectUris:
+          - http://foodies.local/oauth/callback
+        webOrigins:
+          - http://foodies.local
+        attributes:
+          post.logout.redirect.uris: http://foodies.local/
+        defaultClientScopes:
+          - foodies-audience
+    users:
+      - username: food3_lover
+        enabled: true
+        email: food_lover@gmail.com
+        emailVerified: true
+        firstName: Food
+        lastName: Lover
+        credentials:
+          - type: password
+            value: password
+        realmRoles:
+          - user
