@@ -1,0 +1,125 @@
+apiVersion: k8s.keycloak.org/v2alpha1
+kind: Keycloak
+metadata:
+  name: keycloak
+spec:
+  instances: 2
+  image: foodies-keycloak:0.0.5
+  imagePullPolicy: Always
+  hostname:
+    hostname: foodies.com
+    strict: true
+    backchannelDynamic: true
+  db:
+    vendor: postgres
+    host: keycloak-postgres-prod
+    port: 5432
+    database: keycloak
+    usernameSecret:
+      name: postgres-credentials
+      key: POSTGRES_USER
+    passwordSecret:
+      name: postgres-credentials
+      key: POSTGRES_PASSWORD
+  http:
+    httpEnabled: false
+    httpsPort: 8443
+  httpManagement:
+    port: 9000
+  features:
+    enabled:
+      - hostname
+      - token-exchange
+      - preview
+    disabled:
+      - docker
+  additionalOptions:
+    - name: http-relative-path
+      value: /auth
+    - name: http-management-relative-path
+      value: /
+    - name: proxy-headers
+      value: xforwarded
+    - name: health-enabled
+      value: "true"
+    - name: metrics-enabled
+      value: "true"
+    - name: KC_BOOTSTRAP_ADMIN_USERNAME
+      secret:
+        name: keycloak-admin
+        key: KC_BOOTSTRAP_ADMIN_USERNAME
+    - name: KC_BOOTSTRAP_ADMIN_PASSWORD
+      secret:
+        name: keycloak-admin
+        key: KC_BOOTSTRAP_ADMIN_PASSWORD
+    - name: KC_HTTPS_CERTIFICATE_FILE
+      value: /etc/x509/https/tls.crt
+    - name: KC_HTTPS_CERTIFICATE_KEY_FILE
+      value: /etc/x509/https/tls.key
+  unsupported:
+    podTemplate:
+      spec:
+        containers:
+          - name: keycloak
+            env:
+              - name: RABBITMQ_HOST
+                valueFrom:
+                  configMapKeyRef:
+                    name: keycloak-config
+                    key: RABBITMQ_HOST
+              - name: RABBITMQ_PORT
+                valueFrom:
+                  configMapKeyRef:
+                    name: keycloak-config
+                    key: RABBITMQ_PORT
+              - name: RABBITMQ_USERNAME
+                valueFrom:
+                  secretKeyRef:
+                    name: keycloak-rabbitmq-credentials
+                    key: RABBITMQ_USERNAME
+              - name: RABBITMQ_PASSWORD
+                valueFrom:
+                  secretKeyRef:
+                    name: keycloak-rabbitmq-credentials
+                    key: RABBITMQ_PASSWORD
+              - name: RABBITMQ_QUEUE
+                valueFrom:
+                  configMapKeyRef:
+                    name: foodies-config
+                    key: RABBITMQ_QUEUE
+            resources:
+              requests:
+                memory: "1Gi"
+                cpu: "500m"
+              limits:
+                memory: "2Gi"
+                cpu: "2000m"
+            startupProbe:
+              httpGet:
+                path: /health/started
+                port: 9000
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 36
+            livenessProbe:
+              httpGet:
+                path: /health/live
+                port: 9000
+              periodSeconds: 30
+              timeoutSeconds: 10
+              failureThreshold: 3
+            readinessProbe:
+              httpGet:
+                path: /health/ready
+                port: 9000
+              periodSeconds: 10
+              timeoutSeconds: 5
+              failureThreshold: 3
+            volumeMounts:
+              - name: https-certs
+                mountPath: /etc/x509/https
+                readOnly: true
+        volumes:
+          - name: https-certs
+            secret:
+              secretName: keycloak-tls

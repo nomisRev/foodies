@@ -3,6 +3,23 @@ kind: Kustomization
 
 resources:
   - ../../base
+  - ../../base/keycloak-operator
+
+images:
+  - name: foodies-keycloak
+    newTag: 0.0.5
+  - name: foodies-webapp
+    newTag: latest
+  - name: foodies-menu
+    newTag: latest
+  - name: foodies-profile
+    newTag: latest
+  - name: foodies-basket
+    newTag: latest
+  - name: foodies-order
+    newTag: latest
+  - name: foodies-payment
+    newTag: latest
 
 configMapGenerator:
   - name: foodies-config
@@ -29,6 +46,10 @@ secretGenerator:
       - AUTH_CLIENT_SECRET=change-me-at-runtime
 
 patches:
+  - path: keycloak-prod-patch.yaml
+    target:
+      kind: Keycloak
+      name: keycloak
   - target:
       kind: Deployment
       name: webapp
