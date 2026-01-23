@@ -16,11 +16,13 @@ The Keycloak Operator provides Kubernetes-native management of Keycloak instance
 
 ### 1. Install Keycloak Operator
 
-Apply the operator and CRDs:
+Apply the base stack (operator, CRDs, and supporting namespaces):
 
 ```bash
-kubectl apply -k k8s/base/keycloak-operator/
+kubectl apply -k k8s/base/
 ```
+
+This step installs the operator as part of the base deployment. If you only need to reinstall the operator or CRDs, you can still run `kubectl apply -k k8s/base/keycloak-operator/` separately.
 
 Wait for the operator to be ready:
 
@@ -54,6 +56,8 @@ For production:
 ```bash
 kubectl apply -k k8s/overlays/prod/
 ```
+
+> The overlays build on the base kustomization, so these commands also install the Keycloak operator and CRDs along with the Keycloak CRs.
 
 ## Configuration Details
 
@@ -267,6 +271,5 @@ kubectl get events -n keycloak --field-selector involvedObject.name=keycloak-ope
 ## Related Issues
 
 - `bd-61q`: Install and validate Keycloak Operator in dev environment
-- `bd-384`: Integrate Keycloak Operator installation into main kustomization flow
 - `bd-359`: Test complete Keycloak Operator migration
 - `bd-3e6`: Create production overlay for Keycloak Operator

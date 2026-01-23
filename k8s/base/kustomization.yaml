@@ -5,6 +5,7 @@ namespace: foodies
 
 resources:
   - namespace
+  - keycloak-operator
   - ingress
   - basket
   - menu

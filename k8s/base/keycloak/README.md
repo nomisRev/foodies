@@ -55,14 +55,17 @@ Configures the realm and identity settings:
 
 ## Operator Installation
 
-Before applying these CRs, ensure Keycloak Operator is installed. The operator CRDs and deployment are available in `k8s/base/keycloak-operator/`:
+The Keycloak Operator and CRDs are now part of the base kustomization, so applying the base stack installs the operator, CRDs, and Keycloak CRs in one step:
 
 ```bash
-# Apply the operator and CRDs
-kubectl apply -k k8s/base/keycloak-operator/
+kubectl apply -k k8s/base/
 ```
 
-See issue `bd-1p4` for operator installation details.
+If you prefer to manage the operator independently (e.g., to reinstall just the CRDs), you can still run:
+
+```bash
+kubectl apply -k k8s/base/keycloak-operator/
+```
 
 ## Applying the Configuration
 
@@ -93,25 +96,20 @@ After applying, verify:
 
 ## Next Steps / Remaining Work
 
-1. **Integrate Keycloak Operator into main kustomization** (See issue `bd-384`):
-    Add keycloak-operator to base kustomization so CRDs and operator are deployed automatically.
-
-2. **Apply Keycloak CRs** (See issue `bd-1sv`):
+1. **Apply Keycloak CRs** (See issue `bd-1sv`):
     ```bash
     kubectl apply -k k8s/base/keycloak/
     # or for dev:
     kubectl apply -k k8s/overlays/dev/
     ```
 
-3. **Test the configuration** (See issue `bd-359`):
+2. **Test the configuration** (See issue `bd-359`):
     - Verify Keycloak Pod is running: `kubectl get pods -n foodies -l app=keycloak`
     - Verify realm exists: Check Keycloak Admin Console at http://foodies.local/auth
     - Verify user can login: `food_lover@gmail.com` / `password`
     - Verify RabbitMQ event listener is working
 
-4. **Monitor operator logs**: Watch operator logs for any reconciliation errors
+3. **Monitor operator logs**: Watch operator logs for any reconciliation errors
 
-
-
-6. **Create production overlay** (See issue `bd-3e6`):
+4. **Create production overlay** (See issue `bd-3e6`):
     Create production-specific configuration with proper security, resources, and HA settings
