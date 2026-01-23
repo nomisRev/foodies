@@ -5,6 +5,8 @@ resources:
   - keycloak.yaml
   - deployment.yaml
   - database.yaml
+  - network-policy.yaml
+  - realm-template-configmap.yaml
 
 configMapGenerator:
   - name: keycloak-config

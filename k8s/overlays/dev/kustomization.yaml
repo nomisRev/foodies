@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
   - ../../base
-  - keycloak-config-job.yaml
 
 secretGenerator:
   - name: keycloak-client-credentials

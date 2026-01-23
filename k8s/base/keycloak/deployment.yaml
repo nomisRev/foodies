@@ -19,11 +19,50 @@ spec:
         fsGroup: 1000
         seccompProfile:
           type: RuntimeDefault
+      initContainers:
+        - name: prepare-realm-import
+          image: busybox:1.37.0
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            readOnlyRootFilesystem: true
+          env:
+            - name: FOODIES_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: foodies-config
+                  key: FOODIES_HOST
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-client-credentials
+                  key: KEYCLOAK_CLIENT_SECRET
+            - name: KEYCLOAK_TEST_USER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-client-credentials
+                  key: KEYCLOAK_TEST_USER_PASSWORD
+          command:
+            - sh
+            - -c
+            - |
+              set -e
+              echo "Processing realm template with environment variables..."
+              sed "s/\${FOODIES_HOST}/$FOODIES_HOST/g; s/\${KEYCLOAK_CLIENT_SECRET}/$KEYCLOAK_CLIENT_SECRET/g; s/\${KEYCLOAK_TEST_USER_PASSWORD}/$KEYCLOAK_TEST_USER_PASSWORD/g" \
+                /realm-template/realm-template.json > /import/foodies-realm.json
+              echo "Realm import file prepared successfully"
+          volumeMounts:
+            - name: realm-template
+              mountPath: /realm-template
+            - name: realm-import
+              mountPath: /import
       containers:
         - name: keycloak
           image: foodies-keycloak:0.0.5
           imagePullPolicy: IfNotPresent
-          args: ["start"]
+          args: ["start", "--import-realm"]
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:
@@ -164,3 +203,12 @@ spec:
             periodSeconds: 10
             timeoutSeconds: 3
             failureThreshold: 3
+          volumeMounts:
+            - name: realm-import
+              mountPath: /opt/keycloak/data/import
+      volumes:
+        - name: realm-template
+          configMap:
+            name: keycloak-realm-template
+        - name: realm-import
+          emptyDir: {}
