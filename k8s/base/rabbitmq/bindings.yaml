@@ -27,7 +27,7 @@ kind: Binding
 metadata:
   name: payment-stock-confirmed-binding
 spec:
-  source: foodies.events
+  source: foodies
   destination: payment.stock-confirmed
   destinationType: queue
   vhost: /
@@ -39,8 +39,8 @@ kind: Binding
 metadata:
   name: order-payment-succeeded-binding
 spec:
-  source: foodies.events
-  destination: foodies.events.payment.succeeded
+  source: foodies
+  destination: foodies.payment.succeeded
   destinationType: queue
   vhost: /
   rabbitmqClusterReference:
