@@ -18,6 +18,6 @@ configMapGenerator:
       - PAYMENT_BASE_URL=http://payment:8085
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
-      - RABBITMQ_EXCHANGE=foodies.events
+      - RABBITMQ_EXCHANGE=foodies
       - RABBITMQ_ROUTING_KEY=order.created
       - ORDER_GRACE_PERIOD_SECONDS=60

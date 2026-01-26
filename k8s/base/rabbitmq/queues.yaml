@@ -4,6 +4,7 @@ metadata:
   name: profile-registration
 spec:
   name: profile.registration
+  durable: true
   vhost: /
   rabbitmqClusterReference:
     name: rabbitmq
@@ -14,6 +15,7 @@ metadata:
   name: menu-stock-validation
 spec:
   name: menu.stock-validation
+  durable: true
   vhost: /
   rabbitmqClusterReference:
     name: rabbitmq
@@ -24,6 +26,7 @@ metadata:
   name: basket-order-created
 spec:
   name: basket.order-created
+  durable: true
   vhost: /
   rabbitmqClusterReference:
     name: rabbitmq
@@ -34,6 +37,7 @@ metadata:
   name: payment-stock-confirmed
 spec:
   name: payment.stock-confirmed
+  durable: true
   vhost: /
   rabbitmqClusterReference:
     name: rabbitmq
@@ -44,6 +48,7 @@ metadata:
   name: order-payment-succeeded
 spec:
   name: foodies.events.payment.succeeded
+  durable: true
   vhost: /
   rabbitmqClusterReference:
     name: rabbitmq

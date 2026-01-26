@@ -5,6 +5,7 @@ metadata:
 spec:
   name: foodies
   type: topic
+  durable: true
   vhost: /
   rabbitmqClusterReference:
     name: rabbitmq
@@ -16,6 +17,7 @@ metadata:
 spec:
   name: foodies.events
   type: topic
+  durable: true
   vhost: /
   rabbitmqClusterReference:
     name: rabbitmq
