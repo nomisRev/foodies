@@ -15,10 +15,8 @@ spec:
   rabbitmq:
     additionalConfig: |
       default_vhost = /
-      default_user = guest
-      default_pass = guest
   persistence:
-    storageClassName: standard
+    storageClassName: hostpath
     storage: 1Gi
   service:
     type: ClusterIP
