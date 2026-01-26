@@ -3,14 +3,3 @@ kind: Kustomization
 
 resources:
   - https://github.com/rabbitmq/messaging-topology-operator/releases/download/v1.18.2/messaging-topology-operator-with-certmanager.yaml
-
-patches:
-  - target:
-      kind: Namespace
-      name: rabbitmq-system
-    patch: |-
-      apiVersion: v1
-      kind: Namespace
-      metadata:
-        name: rabbitmq-system
-      $patch: delete
