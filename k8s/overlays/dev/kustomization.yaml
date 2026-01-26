@@ -36,9 +36,51 @@ patches:
         path: /spec/storageClassName
         value: hostpath
   - target:
+      kind: PersistentVolumeClaim
+      name: prometheus-data
+    patch: |-
+      - op: add
+        path: /spec/storageClassName
+        value: hostpath
+  - target:
       kind: RabbitmqCluster
       name: rabbitmq
     patch: |-
-      - op: replace
+      - op: add
         path: /spec/persistence/storageClassName
+        value: hostpath
+  - target:
+      kind: StatefulSet
+      name: profile-postgres
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: hostpath
+  - target:
+      kind: StatefulSet
+      name: menu-postgres
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: hostpath
+  - target:
+      kind: StatefulSet
+      name: order-postgres
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: hostpath
+  - target:
+      kind: StatefulSet
+      name: payment-postgres
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: hostpath
+  - target:
+      kind: StatefulSet
+      name: keycloak-postgres
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
         value: hostpath
