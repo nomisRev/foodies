@@ -11,7 +11,7 @@ config:
     username: "$RABBITMQ_USERNAME:guest"
     password: "$RABBITMQ_PASSWORD:guest"
     consume_queue: "$RABBITMQ_CONSUME_QUEUE:payment.stock-confirmed"
-    publish_exchange: "$RABBITMQ_PUBLISH_EXCHANGE:foodies.events"
+    publish_exchange: "$RABBITMQ_PUBLISH_EXCHANGE:foodies"
   gateway:
     always_succeed: "$PAYMENT_ALWAYS_SUCCEED:true"
     processing_delay_ms: "$PAYMENT_DELAY_MS:100"

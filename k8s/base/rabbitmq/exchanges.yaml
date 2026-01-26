@@ -9,15 +9,3 @@ spec:
   vhost: /
   rabbitmqClusterReference:
     name: rabbitmq
----
-apiVersion: rabbitmq.com/v1beta1
-kind: Exchange
-metadata:
-  name: foodies-events
-spec:
-  name: foodies.events
-  type: topic
-  durable: true
-  vhost: /
-  rabbitmqClusterReference:
-    name: rabbitmq
