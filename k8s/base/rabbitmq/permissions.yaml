@@ -35,7 +35,7 @@ spec:
   vhost: "/"
   permissions:
     write: "^foodies$"
-    configure: "^menu\\..*"
+    configure: "^(menu\\.|foodies$)"
     read: "^(menu\\.stock-validation|menu\\.stock-returned)$"
   rabbitmqClusterReference:
     name: rabbitmq
@@ -49,7 +49,7 @@ spec:
   vhost: "/"
   permissions:
     write: ""
-    configure: "^basket\\.order-created$"
+    configure: "^(basket\\.order-created$|foodies$)"
     read: "^basket\\.order-created$"
   rabbitmqClusterReference:
     name: rabbitmq
@@ -63,8 +63,8 @@ spec:
   vhost: "/"
   permissions:
     write: "^foodies$"
-    configure: "^order\\..*"
-    read: "^order\\..*"
+    configure: "^(order\\.|foodies$|foodies\\.events$|foodies\\.events\\.payment\\.succeeded$)"
+    read: "^(order\\.|foodies\\.events\\.)"
   rabbitmqClusterReference:
     name: rabbitmq
 ---
@@ -77,7 +77,7 @@ spec:
   vhost: "/"
   permissions:
     write: "^foodies\\.events$"
-    configure: "^payment\\..*"
+    configure: "^(payment\\.|foodies\\.events$)"
     read: "^payment\\.stock-confirmed$"
   rabbitmqClusterReference:
     name: rabbitmq

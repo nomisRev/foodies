@@ -5,6 +5,8 @@ metadata:
 spec:
   rabbitmqClusterReference:
     name: rabbitmq
+  importCredentialsSecret:
+    name: guest-user-credentials
   tags:
   - administrator
 ---
@@ -15,6 +17,8 @@ metadata:
 spec:
   rabbitmqClusterReference:
     name: rabbitmq
+  importCredentialsSecret:
+    name: profile-service-credentials
 ---
 apiVersion: rabbitmq.com/v1beta1
 kind: User
@@ -23,6 +27,8 @@ metadata:
 spec:
   rabbitmqClusterReference:
     name: rabbitmq
+  importCredentialsSecret:
+    name: menu-service-credentials
 ---
 apiVersion: rabbitmq.com/v1beta1
 kind: User
@@ -31,6 +37,8 @@ metadata:
 spec:
   rabbitmqClusterReference:
     name: rabbitmq
+  importCredentialsSecret:
+    name: basket-service-credentials
 ---
 apiVersion: rabbitmq.com/v1beta1
 kind: User
@@ -39,6 +47,8 @@ metadata:
 spec:
   rabbitmqClusterReference:
     name: rabbitmq
+  importCredentialsSecret:
+    name: order-service-credentials
 ---
 apiVersion: rabbitmq.com/v1beta1
 kind: User
@@ -47,6 +57,8 @@ metadata:
 spec:
   rabbitmqClusterReference:
     name: rabbitmq
+  importCredentialsSecret:
+    name: payment-service-credentials
 ---
 apiVersion: rabbitmq.com/v1beta1
 kind: User
@@ -55,3 +67,5 @@ metadata:
 spec:
   rabbitmqClusterReference:
     name: rabbitmq
+  importCredentialsSecret:
+    name: keycloak-service-credentials
