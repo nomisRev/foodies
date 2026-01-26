@@ -4,7 +4,7 @@ metadata:
   name: rabbitmq
 spec:
   replicas: 1
-  image: rabbitmq:4.2-management
+  image: foodies-rabbitmq:0.0.1
   resources:
     requests:
       cpu: 200m
@@ -13,6 +13,8 @@ spec:
       cpu: 500m
       memory: 512Mi
   rabbitmq:
+    additionalPlugins:
+      - rabbitmq_delayed_message_exchange
     additionalConfig: |
       default_vhost = /
   persistence:
