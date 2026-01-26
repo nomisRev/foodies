@@ -16,7 +16,7 @@ config:
     port: "$RABBITMQ_PORT:5672"
     username: "$RABBITMQ_USERNAME:guest"
     password: "$RABBITMQ_PASSWORD:guest"
-    exchange: "$RABBITMQ_EXCHANGE:foodies.events"
+    exchange: "$RABBITMQ_EXCHANGE:foodies"
     routingKey: "$RABBITMQ_ROUTING_KEY:order.created"
   order:
     gracePeriodSeconds: "$ORDER_GRACE_PERIOD_SECONDS:60"
