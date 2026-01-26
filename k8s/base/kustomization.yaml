@@ -4,7 +4,6 @@ kind: Kustomization
 namespace: foodies
 
 resources:
-  - namespace
   - ingress
   - basket
   - menu

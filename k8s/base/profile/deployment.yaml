@@ -86,13 +86,13 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: profile-rabbitmq-credentials
-                  key: RABBITMQ_USERNAME
+                  name: profile-service-user-credentials
+                  key: username
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-secrets
-                  key: RABBITMQ_PROFILE_SERVICE_PASSWORD
+                  name: profile-service-user-credentials
+                  key: password
             - name: RABBITMQ_QUEUE
               valueFrom:
                 configMapKeyRef:

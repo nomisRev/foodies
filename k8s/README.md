@@ -33,7 +33,8 @@ The deployment follows a microservices architecture with comprehensive observabi
 
 ### Infrastructure Components
 - **Keycloak** (port 8000): Identity and Access Management with custom RabbitMQ event listener
-- **RabbitMQ**: Message broker for asynchronous communication
+- **RabbitMQ**: Message broker for asynchronous communication (managed by RabbitMQ Cluster Operator)
+  - Uses Custom Resources (User, Queue, Exchange, Binding, Permission) for declarative configuration
 - **Redis**: In-memory data store for basket service
 - **PostgreSQL**: Database instances for menu, profile, order, and payment services
 
@@ -50,7 +51,21 @@ The deployment follows a microservices architecture with comprehensive observabi
 
 ## Deployment Instructions
 
-### 1. Create Secrets
+### 1. Install RabbitMQ Cluster Operator
+
+The project uses the RabbitMQ Cluster Operator to manage RabbitMQ resources. Install the operator first:
+
+```bash
+# Install the RabbitMQ Cluster Operator (provides CRDs)
+kubectl apply -k k8s/base/rabbitmq-operator
+
+# Wait for the operator to be ready
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=rabbitmq-cluster-operator -n rabbitmq-system --timeout=120s
+```
+
+This installs the Custom Resource Definitions (CRDs) for RabbitMQ resources (User, Queue, Exchange, Binding, Permission) and the operator that manages them.
+
+### 2. Create Secrets
 
 Create the required secrets with your own values:
 
@@ -79,7 +94,7 @@ Or apply the YAML files in `k8s/secrets/` (after updating with your values).
 
 **Note**: Default secrets are provided in the repository with development credentials. For production, update these values before deployment.
 
-### 2. Build the custom Keycloak image (provider baked in)
+### 3. Build the custom Keycloak image (provider baked in)
 
 The Keycloak deployment now uses a custom image with the RabbitMQ event listener already installed.
 
@@ -97,7 +112,7 @@ docker build -t foodies-keycloak:local -f keycloak/Dockerfile .
 
 If you need to push to a registry, tag the image (e.g., `ghcr.io/your-org/foodies-keycloak:<tag>`) and update `image:` in `k8s/infrastructure/keycloak.yaml` accordingly.
 
-### 3. Deploy Everything with Kustomize
+### 4. Deploy Everything with Kustomize
 
 The deployment now supports Kustomize for better management of resources and environment-specific overlays.
 
@@ -118,7 +133,7 @@ If you want to apply the base configuration without any overlay:
 kubectl apply -k k8s/base
 ```
 
-### 4. Wait for resources to be ready
+### 5. Wait for resources to be ready
 
 ```bash
 # Wait for infrastructure components
@@ -162,7 +177,7 @@ kubectl apply -k k8s/overlays/prod
 - Enhanced security configurations
 - Resource optimization
 
-### 5. Access the Application
+### 6. Access the Application
 
 Get the external IP of the LoadBalancer:
 
@@ -188,7 +203,7 @@ Then access at `http://localhost:8080`.
 
 Or update the `FOODIES_HOST` value in [k8s/configmaps/foodies-config.yaml](fleet-file://mmglq7uf96d8i197ro8d/Users/simonvergauwen/Developer/foodies/k8s/configmaps/foodies-config.yaml?type=file&root=%252F) to match your environment.
 
-### 6. Monitoring and Tracing
+### 7. Monitoring and Tracing
 
 #### Observability Stack Access
 - **Jaeger UI**: http://foodies.local/jaeger (distributed tracing)
@@ -282,11 +297,17 @@ k8s/
 ## Quick Deploy (All at Once)
 
 ```bash
-# Apply with Kustomize (dev overlay)
+# 1. Install RabbitMQ Cluster Operator first
+kubectl apply -k k8s/base/rabbitmq-operator
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=rabbitmq-cluster-operator -n rabbitmq-system --timeout=120s
+
+# 2. Apply with Kustomize (dev overlay)
 kubectl apply -k k8s/overlays/dev
 ```
 
-**Remember**: build and load the custom Keycloak image (`foodies-keycloak:local`) before applying manifests.
+**Remember**:
+- Install the RabbitMQ operator first (it provides the CRDs)
+- Build and load the custom Keycloak image (`foodies-keycloak:local`) before applying manifests
 
 ## Verify Deployment
 
@@ -353,11 +374,30 @@ kubectl exec -n foodies -it deployment/profile -- sh
 # nc -zv menu-postgres 5432
 ```
 
+### RabbitMQ Operator Issues
+
+If you see errors about missing CRDs (Binding, Exchange, Permission, Queue, User):
+
+```bash
+# Check if the operator is installed
+kubectl get deployment -n rabbitmq-system
+
+# If not installed, install it first
+kubectl apply -k k8s/base/rabbitmq-operator
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=rabbitmq-cluster-operator -n rabbitmq-system --timeout=120s
+
+# Then apply the rest
+kubectl apply -k k8s/overlays/dev
+```
+
 ### RabbitMQ Connection Issues
 
 ```bash
+# Check RabbitMQ cluster status
+kubectl get rabbitmqclusters -n foodies
+
 # Check RabbitMQ status
-kubectl get pods -n foodies -l app=rabbitmq
+kubectl get pods -n foodies -l app.kubernetes.io/name=rabbitmq
 
 # Check RabbitMQ logs
 kubectl logs -n foodies -l app=rabbitmq

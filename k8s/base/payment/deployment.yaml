@@ -86,13 +86,13 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: payment-rabbitmq-credentials
-                  key: RABBITMQ_USERNAME
+                  name: payment-service-user-credentials
+                  key: username
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: rabbitmq-secrets
-                  key: RABBITMQ_PAYMENT_SERVICE_PASSWORD
+                  name: payment-service-user-credentials
+                  key: password
             - name: RABBITMQ_CONSUME_QUEUE
               valueFrom:
                 configMapKeyRef:

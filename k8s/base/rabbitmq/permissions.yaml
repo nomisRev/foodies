@@ -17,12 +17,12 @@ kind: Permission
 metadata:
   name: profile-service-permissions
 spec:
-  user: "profile_service"
+  user: "profile-service"
   vhost: "/"
   permissions:
     write: ""
-    configure: "^profile\.registration$"
-    read: "^profile\.registration$"
+    configure: "^profile\\.registration$"
+    read: "^profile\\.registration$"
   rabbitmqClusterReference:
     name: rabbitmq
 ---
@@ -31,7 +31,7 @@ kind: Permission
 metadata:
   name: menu-service-permissions
 spec:
-  user: "menu_service"
+  user: "menu-service"
   vhost: "/"
   permissions:
     write: "^foodies$"
@@ -45,7 +45,7 @@ kind: Permission
 metadata:
   name: basket-service-permissions
 spec:
-  user: "basket_service"
+  user: "basket-service"
   vhost: "/"
   permissions:
     write: ""
@@ -59,7 +59,7 @@ kind: Permission
 metadata:
   name: order-service-permissions
 spec:
-  user: "order_service"
+  user: "order-service"
   vhost: "/"
   permissions:
     write: "^foodies$"
@@ -73,7 +73,7 @@ kind: Permission
 metadata:
   name: payment-service-permissions
 spec:
-  user: "payment_service"
+  user: "payment-service"
   vhost: "/"
   permissions:
     write: "^foodies\\.events$"
@@ -87,11 +87,11 @@ kind: Permission
 metadata:
   name: keycloak-service-permissions
 spec:
-  user: "keycloak_service"
+  user: "keycloak-service"
   vhost: "/"
   permissions:
-    write: "profile\.registration"
-    configure: "profile\.registration"
+    write: "profile\\.registration"
+    configure: "profile\\.registration"
     read: ""
   rabbitmqClusterReference:
     name: rabbitmq
