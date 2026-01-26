@@ -11,17 +11,15 @@ import kotlin.test.assertContains
 val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
 
     testWebAppService("startup probe returns 200 OK") {
-        eventually {
-            val response = client.get("/healthz/startup")
-            assertEquals(HttpStatusCode.OK, response.status)
-        }
+        startApplication()
+        val response = client.get("/healthz/startup")
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 
     testWebAppService("liveness probe returns 200 OK") {
-        eventually {
-            val response = client.get("/healthz/liveness")
-            assertEquals(HttpStatusCode.OK, response.status)
-        }
+        startApplication()
+        val response = client.get("/healthz/liveness")
+        assertEquals(HttpStatusCode.OK, response.status)
     }
 
     testWebAppService("readiness probe returns 503 when menu service is unavailable") {

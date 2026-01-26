@@ -1,7 +1,8 @@
 package io.ktor.foodies.server
 
 import com.rabbitmq.client.ConnectionFactory
-import de.infix.testBalloon.framework.core.TestExecutionScope
+import de.infix.testBalloon.framework.core.Test
+import de.infix.testBalloon.framework.core.TestFixture
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.test.PostgreSQLContainer
@@ -14,10 +15,10 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.opentelemetry.api.OpenTelemetry
 
 data class ServiceContext(
-    val postgreSQLContainer: TestSuite.Fixture<PostgreSQLContainer>,
-    val dataSource: TestSuite.Fixture<DataSource>,
-    val rabbitContainer: TestSuite.Fixture<RabbitContainer>,
-    val connectionFactory: TestSuite.Fixture<ConnectionFactory>,
+    val postgreSQLContainer: TestFixture<PostgreSQLContainer>,
+    val dataSource: TestFixture<DataSource>,
+    val rabbitContainer: TestFixture<RabbitContainer>,
+    val connectionFactory: TestFixture<ConnectionFactory>,
 )
 
 fun TestSuite.serviceContext(): ServiceContext {
@@ -35,7 +36,7 @@ fun TestSuite.serviceContext(): ServiceContext {
 context(ctx: ServiceContext)
 fun TestSuite.testProfileService(
     name: String,
-    block: suspend context(TestExecutionScope) ApplicationTestBuilder.() -> Unit
+    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.() -> Unit
 ) {
     testApplication(name) {
         application {

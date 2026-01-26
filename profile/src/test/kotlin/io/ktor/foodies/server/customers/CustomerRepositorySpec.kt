@@ -1,5 +1,6 @@
 package io.ktor.foodies.server.customers
 
+import de.infix.testBalloon.framework.core.TestFixture
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.server.DataSource
@@ -50,7 +51,7 @@ val customerRepositorySpec by testSuite {
     }
 }
 
-fun TestSuite.migratedPostgresDataSource(): TestSuite.Fixture<DataSource> =
+fun TestSuite.migratedPostgresDataSource(): TestFixture<DataSource> =
     testFixture {
         val container = postgresContainer()()
         val dataSource = container.dataSource()()
