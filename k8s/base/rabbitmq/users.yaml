@@ -18,7 +18,7 @@ spec:
   rabbitmqClusterReference:
     name: rabbitmq
   importCredentialsSecret:
-    name: profile-service-user-credentials
+    name: profile-service-credentials
 ---
 apiVersion: rabbitmq.com/v1beta1
 kind: User
@@ -28,7 +28,7 @@ spec:
   rabbitmqClusterReference:
     name: rabbitmq
   importCredentialsSecret:
-    name: menu-service-user-credentials
+    name: menu-service-credentials
 ---
 apiVersion: rabbitmq.com/v1beta1
 kind: User
@@ -38,7 +38,7 @@ spec:
   rabbitmqClusterReference:
     name: rabbitmq
   importCredentialsSecret:
-    name: basket-service-user-credentials
+    name: basket-service-credentials
 ---
 apiVersion: rabbitmq.com/v1beta1
 kind: User
@@ -48,7 +48,7 @@ spec:
   rabbitmqClusterReference:
     name: rabbitmq
   importCredentialsSecret:
-    name: order-service-user-credentials
+    name: order-service-credentials
 ---
 apiVersion: rabbitmq.com/v1beta1
 kind: User
@@ -58,7 +58,7 @@ spec:
   rabbitmqClusterReference:
     name: rabbitmq
   importCredentialsSecret:
-    name: payment-service-user-credentials
+    name: payment-service-credentials
 ---
 apiVersion: rabbitmq.com/v1beta1
 kind: User
@@ -68,4 +68,4 @@ spec:
   rabbitmqClusterReference:
     name: rabbitmq
   importCredentialsSecret:
-    name: keycloak-service-user-credentials
+    name: keycloak-service-credentials

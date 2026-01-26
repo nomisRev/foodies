@@ -7,6 +7,7 @@ import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
 import dasniko.testcontainers.keycloak.KeycloakContainer
 import de.infix.testBalloon.framework.core.TestConfig
+import de.infix.testBalloon.framework.core.TestFixture
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.core.testSuite
 import de.infix.testBalloon.framework.shared.TestDisplayName
@@ -21,7 +22,7 @@ import org.testcontainers.utility.MountableFile
 import java.nio.file.Files
 import java.nio.file.Paths
 
-fun TestSuite.keycloak(rabbit: TestSuite.Fixture<RabbitContainer>) = testFixture {
+fun TestSuite.keycloak(rabbit: TestFixture<RabbitContainer>) = testFixture {
     val rabbit = rabbit()
     Testcontainers.exposeHostPorts(rabbit.amqpPort)
     val image = System.getProperty("keycloak.image") ?: "foodies-keycloak:0.0.5"
@@ -37,11 +38,11 @@ fun TestSuite.keycloak(rabbit: TestSuite.Fixture<RabbitContainer>) = testFixture
 }
 
 data class E2EContext(
-    val playwright: TestSuite.Fixture<Playwright>,
-    val browser: TestSuite.Fixture<Browser>,
-    val page: TestSuite.Fixture<Page>,
-    val rabbit: TestSuite.Fixture<RabbitContainer>,
-    val keycloak: TestSuite.Fixture<KeycloakContainer>
+    val playwright: TestFixture<Playwright>,
+    val browser: TestFixture<Browser>,
+    val page: TestFixture<Page>,
+    val rabbit: TestFixture<RabbitContainer>,
+    val keycloak: TestFixture<KeycloakContainer>
 )
 
 context(ctx: E2EContext)

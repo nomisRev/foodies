@@ -3,8 +3,8 @@ package io.ktor.foodies.server.test
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.Payload
-import de.infix.testBalloon.framework.core.TestExecutionScope
 import de.infix.testBalloon.framework.core.TestSuite
+import de.infix.testBalloon.framework.core.Test
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.auth.ServicePrincipal
 import io.ktor.foodies.server.auth.UserPrincipal
@@ -100,7 +100,7 @@ fun ApplicationTestBuilder.installTestAuth(config: JwtConfig = JwtConfig()) = ap
 fun TestSuite.authTest(
     name: String,
     config: JwtConfig = JwtConfig(),
-    block: suspend context(TestExecutionScope) ApplicationTestBuilder.(JwtConfig) -> Unit,
+    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.(JwtConfig) -> Unit,
 ) = testApplication(name) {
     installTestAuth(config)
     block(config)

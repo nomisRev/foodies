@@ -23,7 +23,7 @@ jobs:
           distribution: 'zulu'
           java-version: '24'
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
 
       - run: ./gradlew build -x :keycloak-rabbitmq-publisher:test -x :e2e:test
 
@@ -52,7 +52,7 @@ jobs:
           distribution: 'zulu'
           java-version: '24'
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@v5
 
       - uses: docker/setup-buildx-action@v3
 
