@@ -16,7 +16,7 @@ spec:
     additionalConfig: |
       default_vhost = /
   persistence:
-    storageClassName: hostpath
+    storageClassName: standard
     storage: 1Gi
   service:
     type: ClusterIP
