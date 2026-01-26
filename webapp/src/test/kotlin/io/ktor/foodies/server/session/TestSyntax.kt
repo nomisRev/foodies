@@ -1,7 +1,8 @@
 package io.ktor.foodies.server.session
 
 import com.redis.testcontainers.RedisContainer
-import de.infix.testBalloon.framework.core.TestExecutionScope
+import de.infix.testBalloon.framework.core.Test
+import de.infix.testBalloon.framework.core.TestFixture
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.security.RedisSessionStorage
@@ -10,8 +11,8 @@ import io.lettuce.core.RedisClient
 import io.lettuce.core.api.coroutines
 
 data class ServiceContext(
-    val redisContainer: TestSuite.Fixture<RedisContainer>,
-    val redisClient: TestSuite.Fixture<RedisClient>
+    val redisContainer: TestFixture<RedisContainer>,
+    val redisClient: TestFixture<RedisClient>
 )
 
 fun TestSuite.serviceContext(): ServiceContext {
@@ -31,7 +32,7 @@ context(ctx: ServiceContext)
 fun TestSuite.testRedis(
     name: String,
     ttlSeconds: Long = 3600,
-    block: suspend context(TestExecutionScope) (storage: RedisSessionStorage) -> Unit
+    block: suspend context(Test.ExecutionScope) (storage: RedisSessionStorage) -> Unit
 ) = test(name) {
     ctx.redisClient().connect().use { connection ->
         block(RedisSessionStorage(connection.coroutines(), ttlSeconds))

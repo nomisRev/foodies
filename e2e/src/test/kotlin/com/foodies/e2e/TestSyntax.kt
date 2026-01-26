@@ -6,6 +6,7 @@ import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
 import de.infix.testBalloon.framework.core.TestConfig
+import de.infix.testBalloon.framework.core.TestFixture
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.core.testSuite
 import de.infix.testBalloon.framework.shared.TestDisplayName
@@ -15,10 +16,10 @@ import java.nio.file.Files
 
 data class E2EContext(
     val config: E2EConfig,
-    val playwright: TestSuite.Fixture<Playwright>,
-    val browser: TestSuite.Fixture<Browser>,
-    val context: TestSuite.Fixture<BrowserContext>,
-    val page: TestSuite.Fixture<Page>,
+    val playwright: TestFixture<Playwright>,
+    val browser: TestFixture<Browser>,
+    val context: TestFixture<BrowserContext>,
+    val page: TestFixture<Page>,
 )
 
 context(ctx: E2EContext)

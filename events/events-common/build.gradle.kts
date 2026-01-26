@@ -1,5 +1,5 @@
 plugins {
-    id("foodies.kotlin-conventions")
+    id("foodies.kotlin-domain-conventions")
 }
 
 dependencies {

@@ -2,7 +2,8 @@ package io.ktor.foodies.server
 
 import com.redis.testcontainers.RedisContainer
 import dasniko.testcontainers.keycloak.KeycloakContainer
-import de.infix.testBalloon.framework.core.TestExecutionScope
+import de.infix.testBalloon.framework.core.Test
+import de.infix.testBalloon.framework.core.TestFixture
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.telemetry.MonitoringConfig
@@ -21,9 +22,9 @@ import org.testcontainers.utility.MountableFile
 import java.nio.file.Paths
 
 data class ServiceContext(
-    val redisContainer: TestSuite.Fixture<RedisContainer>,
-    val redisClient: TestSuite.Fixture<RedisClient>,
-    val keycloakContainer: TestSuite.Fixture<KeycloakContainer>
+    val redisContainer: TestFixture<RedisContainer>,
+    val redisClient: TestFixture<RedisClient>,
+    val keycloakContainer: TestFixture<KeycloakContainer>
 )
 
 fun TestSuite.serviceContext(): ServiceContext {
@@ -56,7 +57,7 @@ fun ExternalServicesBuilder.readiness(port: String) =
 context(ctx: ServiceContext)
 fun TestSuite.testWebAppService(
     name: String,
-    block: suspend context(TestExecutionScope) ApplicationTestBuilder.() -> Unit
+    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.() -> Unit
 ) = testApplication(name) {
     externalServices {
         readiness("8081")
