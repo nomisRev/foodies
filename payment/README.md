@@ -59,7 +59,7 @@ rabbit:
   username: "guest"
   password: "guest"
   consume_queue: "payment.stock-confirmed"
-  publish_exchange: "foodies.events"
+  publish_exchange: "foodies"
 ```
 
 ### Payment Gateway Configuration

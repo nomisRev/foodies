@@ -47,7 +47,7 @@ kind: Queue
 metadata:
   name: order-payment-succeeded
 spec:
-  name: foodies.events.payment.succeeded
+  name: foodies.payment.succeeded
   durable: true
   vhost: /
   rabbitmqClusterReference:

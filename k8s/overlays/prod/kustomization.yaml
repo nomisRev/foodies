@@ -41,3 +41,59 @@ patches:
       - op: replace
         path: /spec/rules/0/host
         value: foodies.com
+  - target:
+      kind: PersistentVolumeClaim
+      name: redis-data
+    patch: |-
+      - op: add
+        path: /spec/storageClassName
+        value: standard
+  - target:
+      kind: PersistentVolumeClaim
+      name: prometheus-data
+    patch: |-
+      - op: add
+        path: /spec/storageClassName
+        value: standard
+  - target:
+      kind: RabbitmqCluster
+      name: rabbitmq
+    patch: |-
+      - op: add
+        path: /spec/persistence/storageClassName
+        value: standard
+  - target:
+      kind: StatefulSet
+      name: profile-postgres
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: standard
+  - target:
+      kind: StatefulSet
+      name: menu-postgres
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: standard
+  - target:
+      kind: StatefulSet
+      name: order-postgres
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: standard
+  - target:
+      kind: StatefulSet
+      name: payment-postgres
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: standard
+  - target:
+      kind: StatefulSet
+      name: keycloak-postgres
+    patch: |-
+      - op: add
+        path: /spec/volumeClaimTemplates/0/spec/storageClassName
+        value: standard
