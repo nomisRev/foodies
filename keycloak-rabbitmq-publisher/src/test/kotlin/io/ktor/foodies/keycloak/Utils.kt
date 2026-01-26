@@ -1,6 +1,7 @@
 package io.ktor.foodies.keycloak
 
 import com.rabbitmq.client.ConnectionFactory
+import de.infix.testBalloon.framework.core.TestFixture
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.test.RabbitContainer
@@ -15,8 +16,8 @@ internal fun RabbitContainer.config(queueName: String) = RabbitConfig(
 )
 
 class RabbitContext(
-    val container: TestSuite.Fixture<RabbitContainer>,
-    val factory: TestSuite.Fixture<ConnectionFactory>
+    val container: TestFixture<RabbitContainer>,
+    val factory: TestFixture<ConnectionFactory>
 )
 
 fun TestSuite.rabbitContext(): RabbitContext {
@@ -25,7 +26,7 @@ fun TestSuite.rabbitContext(): RabbitContext {
 }
 
 context(ctx: RabbitContext)
-val factory: TestSuite.Fixture<ConnectionFactory>
+val factory: TestFixture<ConnectionFactory>
     get() = ctx.factory
 
 @TestRegistering

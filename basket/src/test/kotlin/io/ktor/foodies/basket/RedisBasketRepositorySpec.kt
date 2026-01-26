@@ -1,6 +1,6 @@
 package io.ktor.foodies.basket
 
-import de.infix.testBalloon.framework.core.TestExecutionScope
+import de.infix.testBalloon.framework.core.Test
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.test.ctxSuite
@@ -18,7 +18,7 @@ import kotlin.test.assertTrue
 context(ctx: ServiceContext)
 fun TestSuite.testRedis(
     name: String,
-    block: suspend context(TestExecutionScope) (repository: RedisBasketRepository) -> Unit
+    block: suspend context(Test.ExecutionScope) (repository: RedisBasketRepository) -> Unit
 ) = test(name) {
     ctx.redisClient().connect().use { connection ->
         block(RedisBasketRepository(connection.coroutines()))
