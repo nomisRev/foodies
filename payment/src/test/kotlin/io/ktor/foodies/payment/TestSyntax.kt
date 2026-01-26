@@ -2,10 +2,11 @@ package io.ktor.foodies.payment
 
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
-import de.infix.testBalloon.framework.core.TestExecutionScope
+import de.infix.testBalloon.framework.core.Test
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import com.sksamuel.cohort.HealthCheckRegistry
+import de.infix.testBalloon.framework.core.TestFixture
 import io.ktor.foodies.events.order.OrderStockConfirmedEvent
 import io.ktor.foodies.payment.events.RabbitMQEventPublisher
 import io.ktor.foodies.payment.events.orderStockConfirmedEventConsumer
@@ -25,9 +26,9 @@ import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
 
 data class ServiceContext(
-    val postgresContainer: TestSuite.Fixture<PostgreSQLContainer>,
-    val database: TestSuite.Fixture<Database>,
-    val rabbitContainer: TestSuite.Fixture<RabbitContainer>
+    val postgresContainer: TestFixture<PostgreSQLContainer>,
+    val database: TestFixture<Database>,
+    val rabbitContainer: TestFixture<RabbitContainer>
 )
 
 fun TestSuite.serviceContext(): ServiceContext {
@@ -60,7 +61,7 @@ fun TestSuite.serviceContext(): ServiceContext {
 context(ctx: ServiceContext)
 fun TestSuite.testPostgres(
     name: String,
-    block: suspend context(TestExecutionScope) (repository: PostgresPaymentRepository) -> Unit
+    block: suspend context(Test.ExecutionScope) (repository: PostgresPaymentRepository) -> Unit
 ) = test(name) {
     block(PostgresPaymentRepository(ctx.database()))
 }
@@ -75,7 +76,7 @@ data class PaymentTestModule(
 context(ctx: ServiceContext)
 fun TestSuite.testPaymentService(
     name: String,
-    block: suspend context(TestExecutionScope) ApplicationTestBuilder.(module: PaymentTestModule) -> Unit
+    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.(module: PaymentTestModule) -> Unit
 ) {
     testApplication(name) {
         val paymentRepository = PostgresPaymentRepository(ctx.database())

@@ -2,6 +2,7 @@ package io.ktor.foodies.server.test
 
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.ConnectionFactory
+import de.infix.testBalloon.framework.core.TestFixture
 import de.infix.testBalloon.framework.core.TestSuite
 import org.testcontainers.containers.RabbitMQContainer
 
@@ -14,7 +15,7 @@ class RabbitContainer internal constructor() : RabbitMQContainer("rabbitmq:4.2.2
     }
 }
 
-fun TestSuite.rabbitContainer(): TestSuite.Fixture<RabbitContainer> =
+fun TestSuite.rabbitContainer(): TestFixture<RabbitContainer> =
     testFixture { RabbitContainer().apply { start() } } closeWith { stop() }
 
 inline fun <A> ConnectionFactory.channel(block: (Channel) -> A): A =

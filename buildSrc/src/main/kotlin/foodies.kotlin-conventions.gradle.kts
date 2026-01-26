@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent
+
 plugins {
     kotlin("jvm")
     id("org.jetbrains.kotlin.plugin.power-assert")
@@ -12,13 +14,13 @@ kotlin {
     }
 }
 
+dependencies {
+    testImplementation("de.infix.testBalloon:testBalloon-framework-core:0.8.1-K2.3.0")
+}
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     testLogging {
-        events(
-            org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED,
-            org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED,
-            org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
-        )
+        events(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED)
     }
 }
