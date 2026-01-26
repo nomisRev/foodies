@@ -35,6 +35,7 @@ The deployment follows a microservices architecture with comprehensive observabi
 - **Keycloak** (port 8000): Identity and Access Management with custom RabbitMQ event listener
 - **RabbitMQ**: Message broker for asynchronous communication (managed by RabbitMQ Cluster Operator)
   - Uses Custom Resources (User, Queue, Exchange, Binding, Permission) for declarative configuration
+  - **Binding Routing Keys**: When the `routingKey` field is omitted from Binding resources (as in `k8s/base/rabbitmq/bindings.yaml`), the RabbitMQ Cluster Operator defaults to using the destination queue name as the routing key. For example, the binding for `menu.stock-validation` queue automatically uses `menu.stock-validation` as its routing key. This default behavior aligns with common patterns where routing keys match queue names for topic/direct exchanges.
 - **Redis**: In-memory data store for basket service
 - **PostgreSQL**: Database instances for menu, profile, order, and payment services
 
