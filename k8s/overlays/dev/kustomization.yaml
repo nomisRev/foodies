@@ -22,6 +22,8 @@ images:
     newTag: latest
   - name: foodies-payment
     newTag: latest
+  - name: foodies-rabbitmq
+    newTag: latest
 
 patches:
   - path: keycloak-realm-import-patch.yaml
