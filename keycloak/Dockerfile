@@ -1,4 +1,4 @@
-FROM quay.io/keycloak/keycloak:26.5.1 AS builder
+FROM quay.io/keycloak/keycloak:26.5.2 AS builder
 WORKDIR /opt/keycloak
 
 ARG JAR_VERSION
@@ -7,7 +7,7 @@ COPY keycloak-rabbitmq-publisher/build/libs/keycloak-rabbitmq-publisher-${JAR_VE
 # Rebuild the Keycloak distribution with the custom provider installed.
 RUN /opt/keycloak/bin/kc.sh build
 
-FROM quay.io/keycloak/keycloak:26.5.1
+FROM quay.io/keycloak/keycloak:26.5.2
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
 
 ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]
