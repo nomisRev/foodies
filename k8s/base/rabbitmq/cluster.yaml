@@ -1,0 +1,22 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq
+spec:
+  replicas: 1
+  image: rabbitmq:4.2-management
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  rabbitmq:
+    additionalConfig: |
+      default_vhost = /
+  persistence:
+    storageClassName: hostpath
+    storage: 1Gi
+  service:
+    type: ClusterIP
