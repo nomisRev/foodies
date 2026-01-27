@@ -17,7 +17,7 @@ fun orderAwaitingValidationConsumer(
     queueName: String,
     menuService: MenuService,
     eventPublisher: MenuEventPublisher
-) = subscriber.subscribe<OrderAwaitingValidationEvent>(queueName) { exchange ->
+) = subscriber.subscribe(OrderAwaitingValidationEvent.key(), queueName) { exchange ->
     queueDeclare(queueName, true, false, false, null)
     queueBind(queueName, exchange, "order.awaiting-validation")
 }.parConsumeMessage { event ->
@@ -45,7 +45,7 @@ fun stockReturnedConsumer(
     subscriber: RabbitMQSubscriber,
     queueName: String,
     menuService: MenuService
-) = subscriber.subscribe<StockReturnedEvent>(queueName) { exchange ->
+) = subscriber.subscribe(StockReturnedEvent.key(), queueName) { exchange ->
     queueDeclare(queueName, true, false, false, null)
     queueBind(queueName, exchange, "order.stock-returned")
 }.parConsumeMessage { event ->

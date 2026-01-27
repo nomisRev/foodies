@@ -25,7 +25,7 @@ val menuEventPublisherSpec by testSuite {
         rabbit().channel { channel ->
             channel.exchangeDeclare(exchangeName, "topic", true)
             channel.queueDeclare(queueName, true, false, false, null)
-            channel.queueBind(queueName, exchangeName, event.key)
+            channel.queueBind(queueName, exchangeName, event.routingKey.key)
         }
 
         rabbit().newConnection().use { connection ->
@@ -37,9 +37,10 @@ val menuEventPublisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message = RabbitMQSubscriber(connection, exchangeName).subscribe<StockConfirmedEvent>(queueName).first()
+            val message =
+                RabbitMQSubscriber(connection, exchangeName).subscribe(StockConfirmedEvent.key(), queueName).first()
             assertEquals(1L, message.value.orderId)
-            assertEquals("stock.confirmed", event.key)
+            assertEquals("stock.confirmed", event.routingKey.key)
             message.ack()
         }
     }
@@ -56,7 +57,7 @@ val menuEventPublisherSpec by testSuite {
         rabbit().channel { channel ->
             channel.exchangeDeclare(exchangeName, "topic", true)
             channel.queueDeclare(queueName, true, false, false, null)
-            channel.queueBind(queueName, exchangeName, event.key)
+            channel.queueBind(queueName, exchangeName, event.routingKey.key)
         }
 
         rabbit().newConnection().use { connection ->
@@ -68,11 +69,12 @@ val menuEventPublisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message = RabbitMQSubscriber(connection, exchangeName).subscribe<StockRejectedEvent>(queueName).first()
+            val message =
+                RabbitMQSubscriber(connection, exchangeName).subscribe(StockRejectedEvent.key(), queueName).first()
             assertEquals(1L, message.value.orderId)
             assertEquals(1, message.value.rejectedItems.size)
             assertEquals("Pizza", message.value.rejectedItems[0].menuItemName)
-            assertEquals("stock.rejected", event.key)
+            assertEquals("stock.rejected", event.routingKey.key)
             message.ack()
         }
     }

@@ -1,10 +1,12 @@
 package io.ktor.foodies.events.order
 
 import io.ktor.foodies.events.common.PaymentMethodInfo
+import io.ktor.foodies.rabbitmq.RoutingKey
 import io.ktor.foodies.rabbitmq.HasRoutingKey
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 
 @Serializable
 enum class OrderStatus {
@@ -24,8 +26,13 @@ data class OrderCreatedEvent(
     val totalPrice: SerializableBigDecimal,
     val currency: String,
     val createdAt: Instant
-) : HasRoutingKey {
-    override val key: String = "order.created"
+) : HasRoutingKey<OrderCreatedEvent> {
+    @Transient
+    override val routingKey: RoutingKey<OrderCreatedEvent> = key()
+
+    companion object {
+        fun key(): RoutingKey<OrderCreatedEvent> = RoutingKey("order.created", serializer())
+    }
 }
 
 @Serializable
@@ -41,8 +48,13 @@ data class OrderCancelledEvent(
     val buyerId: String,
     val reason: String,
     val cancelledAt: Instant,
-) : HasRoutingKey {
-    override val key: String = "order.cancelled"
+) : HasRoutingKey<OrderCancelledEvent> {
+    @Transient
+    override val routingKey: RoutingKey<OrderCancelledEvent> = key()
+
+    companion object {
+        fun key(): RoutingKey<OrderCancelledEvent> = RoutingKey("order.cancelled", serializer())
+    }
 }
 
 @Serializable
@@ -55,8 +67,13 @@ data class OrderStatusChangedEvent(
     val currency: String,
     val description: String?,
     val changedAt: Instant,
-) : HasRoutingKey {
-    override val key: String = "order.status-changed"
+) : HasRoutingKey<OrderStatusChangedEvent> {
+    @Transient
+    override val routingKey: RoutingKey<OrderStatusChangedEvent> = key()
+
+    companion object {
+        fun key(): RoutingKey<OrderStatusChangedEvent> = RoutingKey("order.status-changed", serializer())
+    }
 }
 
 @Serializable
@@ -64,16 +81,26 @@ data class OrderAwaitingValidationEvent(
     val orderId: Long,
     val buyerId: String,
     val items: List<StockValidationItem>,
-) : HasRoutingKey {
-    override val key: String = "order.awaiting-validation"
+) : HasRoutingKey<OrderAwaitingValidationEvent> {
+    @Transient
+    override val routingKey: RoutingKey<OrderAwaitingValidationEvent> = key()
+
+    companion object {
+        fun key(): RoutingKey<OrderAwaitingValidationEvent> = RoutingKey("order.awaiting-validation", serializer())
+    }
 }
 
 @Serializable
 data class StockReturnedEvent(
     val orderId: Long,
     val items: List<StockValidationItem>,
-) : HasRoutingKey {
-    override val key: String = "order.stock-returned"
+) : HasRoutingKey<StockReturnedEvent> {
+    @Transient
+    override val routingKey: RoutingKey<StockReturnedEvent> = key()
+
+    companion object {
+        fun key(): RoutingKey<StockReturnedEvent> = RoutingKey("order.stock-returned", serializer())
+    }
 }
 
 @Serializable
@@ -91,6 +118,11 @@ data class OrderStockConfirmedEvent(
     val currency: String,
     val paymentMethod: PaymentMethodInfo,
     val occurredAt: Instant
-) : HasRoutingKey {
-    override val key: String = "order.stock-confirmed"
+) : HasRoutingKey<OrderStockConfirmedEvent> {
+    @Transient
+    override val routingKey: RoutingKey<OrderStockConfirmedEvent> = key()
+
+    companion object {
+        fun key(): RoutingKey<OrderStockConfirmedEvent> = RoutingKey("order.stock-confirmed", serializer())
+    }
 }

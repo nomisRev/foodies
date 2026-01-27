@@ -32,7 +32,7 @@ val paymentEventPublisherSpec by testSuite {
         rabbit().channel { channel ->
             channel.exchangeDeclare(exchangeName, "topic", true)
             channel.queueDeclare(queueName, true, false, false, null)
-            channel.queueBind(queueName, exchangeName, event.key)
+            channel.queueBind(queueName, exchangeName, event.routingKey.key)
         }
 
         rabbit().newConnection().use { connection ->
@@ -44,9 +44,11 @@ val paymentEventPublisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message = RabbitMQSubscriber(connection, exchangeName).subscribe<OrderPaymentSucceededEvent>(queueName).first()
+            val message =
+                RabbitMQSubscriber(connection, exchangeName).subscribe(OrderPaymentSucceededEvent.key(), queueName)
+                    .first()
             assertEquals(1L, message.value.orderId)
-            assertEquals("payment.succeeded", event.key)
+            assertEquals("payment.succeeded", event.routingKey.key)
             message.ack()
         }
     }

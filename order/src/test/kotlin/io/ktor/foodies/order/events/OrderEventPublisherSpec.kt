@@ -34,7 +34,7 @@ val orderEventPublisherSpec by testSuite {
         rabbit().channel { channel ->
             channel.exchangeDeclare(exchangeName, "topic", true)
             channel.queueDeclare(queueName, true, false, false, null)
-            channel.queueBind(queueName, exchangeName, event.key)
+            channel.queueBind(queueName, exchangeName, event.routingKey.key)
         }
 
         rabbit().newConnection().use { connection ->
@@ -46,9 +46,10 @@ val orderEventPublisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message = RabbitMQSubscriber(connection, exchangeName).subscribe<OrderCreatedEvent>(queueName).first()
+            val message = RabbitMQSubscriber(connection, exchangeName)
+                .subscribe(OrderCreatedEvent.key(), queueName).first()
             assertEquals(1L, message.value.orderId)
-            assertEquals("order.created", event.key)
+            assertEquals("order.created", event.routingKey.key)
             message.ack()
         }
     }
@@ -66,7 +67,7 @@ val orderEventPublisherSpec by testSuite {
         rabbit().channel { channel ->
             channel.exchangeDeclare(exchangeName, "topic", true)
             channel.queueDeclare(queueName, true, false, false, null)
-            channel.queueBind(queueName, exchangeName, event.key)
+            channel.queueBind(queueName, exchangeName, event.routingKey.key)
         }
 
         rabbit().newConnection().use { connection ->
@@ -78,9 +79,10 @@ val orderEventPublisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message = RabbitMQSubscriber(connection, exchangeName).subscribe<OrderCancelledEvent>(queueName).first()
+            val message = RabbitMQSubscriber(connection, exchangeName)
+                .subscribe(OrderCancelledEvent.key(), queueName).first()
             assertEquals(1L, message.value.orderId)
-            assertEquals("order.cancelled", event.key)
+            assertEquals("order.cancelled", event.routingKey.key)
             message.ack()
         }
     }
@@ -96,7 +98,7 @@ val orderEventPublisherSpec by testSuite {
         rabbit().channel { channel ->
             channel.exchangeDeclare(exchangeName, "topic", true)
             channel.queueDeclare(queueName, true, false, false, null)
-            channel.queueBind(queueName, exchangeName, event.key)
+            channel.queueBind(queueName, exchangeName, event.routingKey.key)
         }
 
         rabbit().newConnection().use { connection ->
@@ -108,9 +110,10 @@ val orderEventPublisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message = RabbitMQSubscriber(connection, exchangeName).subscribe<GracePeriodExpiredEvent>(queueName).first()
+            val message = RabbitMQSubscriber(connection, exchangeName)
+                .subscribe(GracePeriodExpiredEvent.key(), queueName).first()
             assertEquals(1L, message.value.orderId)
-            assertEquals("order.grace-period.expired", event.key)
+            assertEquals("order.grace-period.expired", event.routingKey.key)
             message.ack()
         }
     }
