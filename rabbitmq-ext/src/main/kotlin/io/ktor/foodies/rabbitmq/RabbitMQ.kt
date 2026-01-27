@@ -77,7 +77,17 @@ fun <A> RabbitMQSubscriber.subscribe(
 ): Flow<Message<A>> {
     val options = QueueOptionsBuilder<A>().apply(configure)
     return subscribe(routingKey.serializer, queueName) { exchange ->
-        queueDeclare(queueName, options.durable, false, false, null)
+        val args = buildMap<String, Any> {
+            when (val dl = options.deadLetter) {
+                is DeadLetterPolicy.Enabled -> {
+                    put("x-dead-letter-exchange", dl.exchange(exchange))
+                    put("x-dead-letter-routing-key", dl.routingKey(queueName))
+                }
+                DeadLetterPolicy.Disabled -> {}
+            }
+            options.ttl?.let { put("x-message-ttl", it.inWholeMilliseconds) }
+        }
+        queueDeclare(queueName, options.durable, false, false, args.ifEmpty { null })
         queueBind(queueName, exchange, routingKey.key)
     }
 }
