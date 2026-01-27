@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import org.slf4j.LoggerFactory
 import java.io.IOException
 
@@ -52,14 +51,6 @@ interface RabbitMQSubscriber {
         }
     ): Flow<Message<A>>
 }
-
-@Deprecated("Replace with RoutingKey variant")
-inline fun <reified A : HasRoutingKey> RabbitMQSubscriber.subscribe(
-    queueName: String,
-    noinline configure: Channel.(exchange: String) -> Unit = { exchange ->
-        queueDeclare(queueName, true, false, false, null)
-    }
-): Flow<Message<A>> = subscribe(serializer<A>(), queueName, configure)
 
 fun <A> RabbitMQSubscriber.subscribe(
     routingKey: RoutingKey<A>,
