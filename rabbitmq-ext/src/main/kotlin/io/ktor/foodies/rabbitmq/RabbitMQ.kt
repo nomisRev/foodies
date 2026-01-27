@@ -42,11 +42,13 @@ interface RabbitMQSubscriber {
      * @param A The type to deserialize messages into
      * @param serializer The serializer to use
      * @param queueName The name of the queue to consume from
+     * @param retryPolicy The retry policy to apply for this queue
      * @return A Flow of deserialized messages
      */
     fun <A> subscribe(
         serializer: KSerializer<A>,
         queueName: String,
+        retryPolicy: RetryPolicy = RetryPolicy.MaxAttempts(5),
         configure: Channel.(exchange: String) -> Unit = { exchange ->
             queueDeclare(queueName, true, false, false, null)
         }
@@ -59,7 +61,7 @@ inline fun <reified A : HasRoutingKey> RabbitMQSubscriber.subscribe(
     noinline configure: Channel.(exchange: String) -> Unit = { exchange ->
         queueDeclare(queueName, true, false, false, null)
     }
-): Flow<Message<A>> = subscribe(serializer<A>(), queueName, configure)
+): Flow<Message<A>> = subscribe(serializer<A>(), queueName, RetryPolicy.MaxAttempts(5), configure)
 
 fun <A> RabbitMQSubscriber.subscribe(
     routingKey: RoutingKey<A>,
@@ -68,7 +70,7 @@ fun <A> RabbitMQSubscriber.subscribe(
         queueDeclare(queueName, true, false, false, null)
         queueBind(queueName, exchange, routingKey.key)
     }
-): Flow<Message<A>> = subscribe(routingKey.serializer, queueName, configure)
+): Flow<Message<A>> = subscribe(routingKey.serializer, queueName, RetryPolicy.MaxAttempts(5), configure)
 
 fun <A> RabbitMQSubscriber.subscribe(
     queueName: String,
@@ -76,7 +78,7 @@ fun <A> RabbitMQSubscriber.subscribe(
     configure: QueueOptionsBuilder<A>.() -> Unit = {}
 ): Flow<Message<A>> {
     val options = QueueOptionsBuilder<A>().apply(configure)
-    return subscribe(routingKey.serializer, queueName) { exchange ->
+    return subscribe(routingKey.serializer, queueName, options.retry) { exchange ->
         val args = buildMap<String, Any> {
             when (val dl = options.deadLetter) {
                 is DeadLetterPolicy.Enabled -> {
@@ -112,6 +114,7 @@ private class RabbitMQ(private val connection: Connection, private val exchange:
     override fun <A> subscribe(
         serializer: KSerializer<A>,
         queueName: String,
+        retryPolicy: RetryPolicy,
         configure: Channel.(exchange: String) -> Unit
     ): Flow<Message<A>> = channelFlow {
         val channel = connection.createChannel().apply { configure(exchange) }
@@ -123,7 +126,7 @@ private class RabbitMQ(private val connection: Connection, private val exchange:
                  * We use trySendBlocking here because we want to 'backpressure' the DeliveryCallback.
                  * Since it is a Java SDK it expects blocking for backpressure.
                  */
-                { payload -> trySendBlocking(Message(payload, delivery, channel)) },
+                { payload -> trySendBlocking(Message(payload, delivery, channel, retryPolicy)) },
                 { error ->
                     channel.basicNack(delivery.envelope.deliveryTag, false, true)
                     close(error)

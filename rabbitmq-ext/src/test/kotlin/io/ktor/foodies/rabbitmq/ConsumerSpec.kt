@@ -244,7 +244,8 @@ val consumerSpec by testSuite {
         rabbit().newConnection().use { connection ->
             val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe(
                 TestPayload.serializer(),
-                mainQueueName
+                mainQueueName,
+                RetryPolicy.None
             ) { }
             val message = messagesFlow.first()
             assertEquals(0, message.deliveryAttempts)

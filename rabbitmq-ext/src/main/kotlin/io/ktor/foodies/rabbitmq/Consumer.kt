@@ -10,7 +10,12 @@ import com.rabbitmq.client.Delivery
  * @param A The type of the deserialized message payload
  * @property value The deserialized message payload
  */
-class Message<A>(val value: A, private val delivery: Delivery, private val channel: Channel) {
+class Message<A>(
+    val value: A,
+    private val delivery: Delivery,
+    private val channel: Channel,
+    private val retryPolicy: RetryPolicy = RetryPolicy.MaxAttempts(5)
+) {
     val deliveryAttempts: Int by lazy {
         val xDeath = delivery.properties.headers?.get("x-death") as? List<*>
         xDeath?.firstOrNull()?.let { entry ->
@@ -30,8 +35,16 @@ class Message<A>(val value: A, private val delivery: Delivery, private val chann
     fun ack(): Unit = channel.basicAck(delivery.envelope.deliveryTag, false)
 
     /**
-     * Negatively acknowledges the message without requeuing.
-     * The message will be discarded or sent to a dead-letter queue if configured.
+     * Negatively acknowledges the message.
+     * Behavior depends on the configured retry policy:
+     * - RetryPolicy.None: discards or dead-letters the message
+     * - RetryPolicy.MaxAttempts(n): requeues if attempts < n, otherwise dead-letters
      */
-    fun nack(): Unit = channel.basicNack(delivery.envelope.deliveryTag, false, false)
+    fun nack(): Unit = when (retryPolicy) {
+        RetryPolicy.None -> channel.basicNack(delivery.envelope.deliveryTag, false, false)
+        is RetryPolicy.MaxAttempts -> {
+            val requeue = deliveryAttempts < retryPolicy.value
+            channel.basicNack(delivery.envelope.deliveryTag, false, requeue)
+        }
+    }
 }
