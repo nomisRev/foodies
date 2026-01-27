@@ -24,27 +24,6 @@ import java.io.IOException
 
 private val logger = LoggerFactory.getLogger("io.ktor.foodies.rabbitmq.RabbitMQ")
 
-/**
- * Configuration for RabbitMQ connection.
- */
-data class RabbitConfig(
-    val host: String,
-    val port: Int,
-    val username: String,
-    val password: String
-)
-
-fun rabbitConnectionFactory(
-    host: String,
-    port: Int,
-    username: String,
-    password: String
-): ConnectionFactory = ConnectionFactory().apply {
-    this.host = host
-    this.port = port
-    this.username = username
-    this.password = password
-}
 
 fun RabbitMQSubscriber(connection: Connection, exchange: String): RabbitMQSubscriber = RabbitMQ(connection, exchange)
 
@@ -55,8 +34,8 @@ interface RabbitMQSubscriber {
      * Example:
      * ```kotlin
      * subscriber.subscribe<MyEvent>("my-queue")
-     *     .consumeMessage { event ->
-     *         process(event)
+     *     .parConsumeMessage { event ->
+     *         process(event)git
      *     }.collect()
      * ```
      *
