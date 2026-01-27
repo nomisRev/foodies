@@ -60,7 +60,7 @@ fun Application.module(config: Config, monitoring: Monitoring): BasketModule {
     val subscriber = RabbitMQSubscriber(connection, config.rabbit.exchange)
 
     val orderCreatedConsumer = orderCreatedEventConsumer(
-        subscriber.subscribe<OrderCreatedEvent>(config.rabbit.queue),
+        subscriber.subscribe(OrderCreatedEvent.serializer(), config.rabbit.queue),
         basketRepository
     )
 

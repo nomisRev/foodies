@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import org.slf4j.LoggerFactory
 import java.io.IOException
 
@@ -53,12 +52,14 @@ interface RabbitMQSubscriber {
     ): Flow<Message<A>>
 }
 
-inline fun <reified A> RabbitMQSubscriber.subscribe(
+fun <A> RabbitMQSubscriber.subscribe(
+    routingKey: RoutingKey<A>,
     queueName: String,
-    noinline configure: Channel.(exchange: String) -> Unit = { exchange ->
+    configure: Channel.(exchange: String) -> Unit = { exchange ->
         queueDeclare(queueName, true, false, false, null)
+        queueBind(queueName, exchange, routingKey.key)
     }
-): Flow<Message<A>> = subscribe(serializer<A>(), queueName, configure)
+): Flow<Message<A>> = subscribe(routingKey.serializer, queueName, configure)
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 fun <A, B> Flow<Message<A>>.parConsumeMessage(

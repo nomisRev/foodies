@@ -105,7 +105,7 @@ fun TestSuite.testPaymentService(
         val eventPublisher = RabbitMQEventPublisher(Publisher(channel, rabbitConfig.publishExchange, Json))
         val subscriber = RabbitMQSubscriber(connection, rabbitConfig.publishExchange)
         val consumer = orderStockConfirmedEventConsumer(
-            subscriber.subscribe<OrderStockConfirmedEvent>(rabbitConfig.consumeQueue),
+            subscriber.subscribe(OrderStockConfirmedEvent.key(), rabbitConfig.consumeQueue),
             paymentService,
             eventPublisher
         )

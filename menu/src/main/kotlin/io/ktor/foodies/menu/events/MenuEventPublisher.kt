@@ -3,7 +3,6 @@ package io.ktor.foodies.menu.events
 import io.ktor.foodies.events.menu.StockConfirmedEvent
 import io.ktor.foodies.events.menu.StockRejectedEvent
 import io.ktor.foodies.rabbitmq.Publisher
-import io.ktor.foodies.rabbitmq.publish
 
 interface MenuEventPublisher {
     suspend fun publish(event: StockConfirmedEvent)
