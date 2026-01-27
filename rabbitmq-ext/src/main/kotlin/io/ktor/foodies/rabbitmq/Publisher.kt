@@ -7,12 +7,12 @@ import kotlinx.serialization.StringFormat
 
 data class RoutingKey<A>(val key: String, val serializer: KSerializer<A>)
 
-interface RoutingKeyOwner<A> {
+interface HasRoutingKey<A> {
     val routingKey: RoutingKey<A>
 }
 
 interface Publisher {
-    fun <A : RoutingKeyOwner<A>> publish(message: A, props: AMQP.BasicProperties? = null)
+    fun <A : HasRoutingKey<A>> publish(message: A, props: AMQP.BasicProperties? = null)
 }
 
 fun Publisher(channel: Channel, exchange: String, format: StringFormat): Publisher =
@@ -23,7 +23,7 @@ private class PublisherImpl(
     private val exchange: String,
     private val format: StringFormat
 ) : Publisher {
-    override fun <A : RoutingKeyOwner<A>> publish(message: A, props: AMQP.BasicProperties?) {
+    override fun <A : HasRoutingKey<A>> publish(message: A, props: AMQP.BasicProperties?) {
         val json = format.encodeToString(message.routingKey.serializer, message)
         channel.basicPublish(exchange, message.routingKey.key, props, json.toByteArray())
     }

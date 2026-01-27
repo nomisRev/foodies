@@ -2,12 +2,11 @@ package io.ktor.foodies.events.order
 
 import io.ktor.foodies.events.common.PaymentMethodInfo
 import io.ktor.foodies.rabbitmq.RoutingKey
-import io.ktor.foodies.rabbitmq.RoutingKeyOwner
+import io.ktor.foodies.rabbitmq.HasRoutingKey
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.serializer
 
 @Serializable
 enum class OrderStatus {
@@ -27,7 +26,7 @@ data class OrderCreatedEvent(
     val totalPrice: SerializableBigDecimal,
     val currency: String,
     val createdAt: Instant
-) : RoutingKeyOwner<OrderCreatedEvent> {
+) : HasRoutingKey<OrderCreatedEvent> {
     @Transient
     override val routingKey: RoutingKey<OrderCreatedEvent> = key()
 
@@ -49,7 +48,7 @@ data class OrderCancelledEvent(
     val buyerId: String,
     val reason: String,
     val cancelledAt: Instant,
-) : RoutingKeyOwner<OrderCancelledEvent> {
+) : HasRoutingKey<OrderCancelledEvent> {
     @Transient
     override val routingKey: RoutingKey<OrderCancelledEvent> = key()
 
@@ -68,7 +67,7 @@ data class OrderStatusChangedEvent(
     val currency: String,
     val description: String?,
     val changedAt: Instant,
-) : RoutingKeyOwner<OrderStatusChangedEvent> {
+) : HasRoutingKey<OrderStatusChangedEvent> {
     @Transient
     override val routingKey: RoutingKey<OrderStatusChangedEvent> = key()
 
@@ -82,7 +81,7 @@ data class OrderAwaitingValidationEvent(
     val orderId: Long,
     val buyerId: String,
     val items: List<StockValidationItem>,
-) : RoutingKeyOwner<OrderAwaitingValidationEvent> {
+) : HasRoutingKey<OrderAwaitingValidationEvent> {
     @Transient
     override val routingKey: RoutingKey<OrderAwaitingValidationEvent> = key()
 
@@ -95,7 +94,7 @@ data class OrderAwaitingValidationEvent(
 data class StockReturnedEvent(
     val orderId: Long,
     val items: List<StockValidationItem>,
-) : RoutingKeyOwner<StockReturnedEvent> {
+) : HasRoutingKey<StockReturnedEvent> {
     @Transient
     override val routingKey: RoutingKey<StockReturnedEvent> = key()
 
@@ -119,7 +118,7 @@ data class OrderStockConfirmedEvent(
     val currency: String,
     val paymentMethod: PaymentMethodInfo,
     val occurredAt: Instant
-) : RoutingKeyOwner<OrderStockConfirmedEvent> {
+) : HasRoutingKey<OrderStockConfirmedEvent> {
     @Transient
     override val routingKey: RoutingKey<OrderStockConfirmedEvent> = key()
 

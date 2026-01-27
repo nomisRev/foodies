@@ -1,19 +1,16 @@
 package io.ktor.foodies.rabbitmq
 
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.rabbitmq.RoutingKey
-import io.ktor.foodies.rabbitmq.RoutingKeyOwner
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.rabbitContainer
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import kotlin.test.assertEquals
 
 @Serializable
-data class TestEvent(val id: String) : RoutingKeyOwner<TestEvent> {
+data class TestEvent(val id: String) : HasRoutingKey<TestEvent> {
     @Transient
     override val routingKey: RoutingKey<TestEvent> = key()
 

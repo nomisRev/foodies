@@ -1,17 +1,16 @@
 package io.ktor.foodies.events.menu
 
 import io.ktor.foodies.rabbitmq.RoutingKey
-import io.ktor.foodies.rabbitmq.RoutingKeyOwner
+import io.ktor.foodies.rabbitmq.HasRoutingKey
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import kotlinx.serialization.serializer
 
 @Serializable
 data class StockConfirmedEvent(
     val orderId: Long,
     val confirmedAt: Instant,
-) : RoutingKeyOwner<StockConfirmedEvent> {
+) : HasRoutingKey<StockConfirmedEvent> {
     @Transient
     override val routingKey: RoutingKey<StockConfirmedEvent> = key()
 
@@ -25,7 +24,7 @@ data class StockRejectedEvent(
     val orderId: Long,
     val rejectedItems: List<RejectedItem>,
     val rejectedAt: Instant,
-) : RoutingKeyOwner<StockRejectedEvent> {
+) : HasRoutingKey<StockRejectedEvent> {
     @Transient
     override val routingKey: RoutingKey<StockRejectedEvent> = key()
 
