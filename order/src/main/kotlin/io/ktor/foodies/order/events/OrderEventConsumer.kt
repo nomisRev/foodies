@@ -56,21 +56,19 @@ fun orderEventConsumers(
     },
     run {
         val queueName = "order.notifications"
-        val routingKey = "order.status-changed"
-        subscriber.subscribe<OrderStatusChangedEvent>(queueName) {
+        subscriber.subscribe(OrderStatusChangedEvent.key(), queueName) {
             queueDeclare(queueName, true, false, false, null)
-            queueBind(queueName, exchange, routingKey)
+            queueBind(queueName, exchange, OrderStatusChangedEvent.key().key)
         }.parConsumeMessage { orderStatusChangedHandler.handle(it) }
     },
     run {
         val queueName = "order.grace-period-expired"
-        val routingKey = "order.grace-period.expired"
-        subscriber.subscribe<GracePeriodExpiredEvent>(queueName) {
+        subscriber.subscribe(GracePeriodExpiredEvent.key(), queueName) {
             val args = mapOf("x-delayed-type" to "direct")
             exchangeDeclare(exchange, "x-delayed-message", true, false, args)
 
             queueDeclare(queueName, true, false, false, null)
-            queueBind(queueName, exchange, routingKey)
+            queueBind(queueName, exchange, GracePeriodExpiredEvent.key().key)
         }.parConsumeMessage { gracePeriodExpiredHandler.handle(it) }
     }
 )

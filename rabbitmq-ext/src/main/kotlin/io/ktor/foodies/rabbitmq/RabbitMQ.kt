@@ -53,12 +53,22 @@ interface RabbitMQSubscriber {
     ): Flow<Message<A>>
 }
 
-inline fun <reified A> RabbitMQSubscriber.subscribe(
+@Deprecated("Replace with RoutingKey variant")
+inline fun <reified A : HasRoutingKey> RabbitMQSubscriber.subscribe(
     queueName: String,
     noinline configure: Channel.(exchange: String) -> Unit = { exchange ->
         queueDeclare(queueName, true, false, false, null)
     }
 ): Flow<Message<A>> = subscribe(serializer<A>(), queueName, configure)
+
+fun <A> RabbitMQSubscriber.subscribe(
+    routingKey: RoutingKey<A>,
+    queueName: String,
+    configure: Channel.(exchange: String) -> Unit = { exchange ->
+        queueDeclare(queueName, true, false, false, null)
+        queueBind(queueName, exchange, routingKey.key)
+    }
+): Flow<Message<A>> = subscribe(routingKey.serializer, queueName, configure)
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 fun <A, B> Flow<Message<A>>.parConsumeMessage(
