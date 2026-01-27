@@ -3,6 +3,7 @@ package io.ktor.foodies.rabbitmq
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.rabbitContainer
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
@@ -261,6 +262,28 @@ val consumerSpec by testSuite {
             assertEquals("retry-test", dlqMessage.value.id)
             assertTrue(dlqMessage.deliveryAttempts > 0, "Expected deliveryAttempts > 0, got ${dlqMessage.deliveryAttempts}")
             dlqMessage.ack()
+        }
+    }
+
+    test("QueueOptions - x-message-ttl expires messages after duration") {
+        val queueName = "consumer.test.ttl"
+        val payload = TestPayload(id = "ttl-test", value = 777)
+        val body = Json.encodeToString(TestPayload.serializer(), payload)
+
+        rabbit().channel { channel ->
+            val args = mapOf("x-message-ttl" to 1000L)
+            channel.queueDeclare(queueName, true, false, false, args)
+            channel.basicPublish("", queueName, null, body.toByteArray())
+        }
+
+        kotlinx.coroutines.delay(1500)
+
+        rabbit().newConnection().use { connection ->
+            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe(TestPayload.serializer(), queueName) { }
+            val result = withTimeoutOrNull(2.seconds) {
+                messagesFlow.first()
+            }
+            assertNull(result, "Message should have expired after TTL")
         }
     }
 }
