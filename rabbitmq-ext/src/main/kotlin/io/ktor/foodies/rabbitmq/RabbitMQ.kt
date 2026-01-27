@@ -70,6 +70,18 @@ fun <A> RabbitMQSubscriber.subscribe(
     }
 ): Flow<Message<A>> = subscribe(routingKey.serializer, queueName, configure)
 
+fun <A> RabbitMQSubscriber.subscribe(
+    queueName: String,
+    routingKey: RoutingKey<A>,
+    configure: QueueOptionsBuilder<A>.() -> Unit = {}
+): Flow<Message<A>> {
+    val options = QueueOptionsBuilder<A>().apply(configure)
+    return subscribe(routingKey.serializer, queueName) { exchange ->
+        queueDeclare(queueName, options.durable, false, false, null)
+        queueBind(queueName, exchange, routingKey.key)
+    }
+}
+
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 fun <A, B> Flow<Message<A>>.parConsumeMessage(
     concurrency: Int = DEFAULT_CONCURRENCY,
