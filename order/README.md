@@ -14,7 +14,7 @@ Values come from `config` in `src/main/resources/application.yaml` (env override
 - `BASKET_BASE_URL`: Basket service base URL (default `http://localhost:8083`)
 - `PAYMENT_BASE_URL`: Payment service base URL (default `http://localhost:8085`)
 - `RABBITMQ_HOST` / `RABBITMQ_PORT` / `RABBITMQ_USERNAME` / `RABBITMQ_PASSWORD`: RabbitMQ connection (defaults to `localhost:5672`, `guest/guest`)
-- `RABBITMQ_EXCHANGE` / `RABBITMQ_ROUTING_KEY`: RabbitMQ exchange and routing key (defaults to `foodies.events`, `order.created`)
+- `RABBITMQ_EXCHANGE` / `RABBITMQ_ROUTING_KEY`: RabbitMQ exchange and routing key (defaults to `foodies`, `order.created`)
 - `ORDER_GRACE_PERIOD_SECONDS`: Grace period for order cancellation (default `60`)
 - `OTEL_EXPORTER_OTLP_ENDPOINT`: OpenTelemetry endpoint (default `http://localhost:4317`)
 
@@ -159,7 +159,7 @@ The service publishes and consumes events via RabbitMQ:
 - `PaymentSucceededEvent`: payment successful, completes order
 - `PaymentFailedEvent`: payment failed, rejects order
 
-- Exchange: `foodies.events`
+- Exchange: `foodies`
 - Consumes from queues: `order.stock-confirmed`, `order.stock-rejected`, `order.payment-succeeded`, `order.payment-failed`
 
 ## Order Status Flow
