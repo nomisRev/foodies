@@ -223,4 +223,43 @@ val consumerSpec by testSuite {
             assertNull(result, "Message should have been nack'd by consumeMessage")
         }
     }
+
+    test("Message::deliveryAttempts - tracks x-death count from dead-letter queue") {
+        val dlqName = "consumer.test.dlq"
+        val dlxName = "consumer.test.dlx"
+        val mainQueueName = "consumer.test.main.dlx"
+        val payload = TestPayload(id = "retry-test", value = 999)
+        val body = Json.encodeToString(TestPayload.serializer(), payload)
+
+        rabbit().channel { channel ->
+            channel.exchangeDeclare(dlxName, "direct", true)
+            channel.queueDeclare(dlqName, true, false, false, null)
+            channel.queueBind(dlqName, dlxName, mainQueueName)
+
+            val args = mapOf("x-dead-letter-exchange" to dlxName)
+            channel.queueDeclare(mainQueueName, true, false, false, args)
+            channel.basicPublish("", mainQueueName, null, body.toByteArray())
+        }
+
+        rabbit().newConnection().use { connection ->
+            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe(
+                TestPayload.serializer(),
+                mainQueueName
+            ) { }
+            val message = messagesFlow.first()
+            assertEquals(0, message.deliveryAttempts)
+            message.nack()
+        }
+
+        rabbit().newConnection().use { connection ->
+            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe(
+                TestPayload.serializer(),
+                dlqName
+            ) { }
+            val dlqMessage = messagesFlow.first()
+            assertEquals("retry-test", dlqMessage.value.id)
+            assertTrue(dlqMessage.deliveryAttempts > 0, "Expected deliveryAttempts > 0, got ${dlqMessage.deliveryAttempts}")
+            dlqMessage.ack()
+        }
+    }
 }

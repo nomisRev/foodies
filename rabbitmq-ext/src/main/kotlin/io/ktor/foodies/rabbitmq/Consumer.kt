@@ -11,6 +11,19 @@ import com.rabbitmq.client.Delivery
  * @property value The deserialized message payload
  */
 class Message<A>(val value: A, private val delivery: Delivery, private val channel: Channel) {
+    val deliveryAttempts: Int by lazy {
+        val xDeath = delivery.properties.headers?.get("x-death") as? List<*>
+        xDeath?.firstOrNull()?.let { entry ->
+            (entry as? Map<*, *>)?.get("count")?.let { count ->
+                when (count) {
+                    is Long -> count.toInt()
+                    is Int -> count
+                    else -> 0
+                }
+            }
+        } ?: 0
+    }
+
     /**
      * Acknowledges the message, removing it from the queue.
      */
