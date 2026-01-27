@@ -46,8 +46,8 @@ RabbitMQ for event streaming, PostgreSQL for data persistence, and Redis for cac
 | **profile** | 8081 | Event-driven user profile management consuming Keycloak events | PostgreSQL | ✅ Active |
 | **menu** | 8082 | Restaurant menu management with inventory tracking | PostgreSQL | ✅ Active |
 | **basket** | 8083 | Shopping basket service with Redis storage and JWT auth | Redis | ✅ Active |
-| **order** | 8084 | Order management with payment integration and event processing | PostgreSQL | 🚧 In Development |
-| **payment** | 8085 | Payment processing with simulated gateway integration | PostgreSQL | 🚧 In Development |
+| **order** | 8084 | Order management with payment integration and event processing | PostgreSQL | ✅ Active |
+| **payment** | 8085 | Payment processing with simulated gateway integration | PostgreSQL | ✅ Active |
 
 ## Modules
 
@@ -179,9 +179,6 @@ This setup assumes '127.0.0.1 foodies.local' in /etc/hosts
 ### Event Documentation
 
 - [User Events](events/events-user/README.MD)
-- [Order Events](events/events-order/README.MD)
-- [Payment Events](events/events-payment/README.MD)
-- [Menu Events](events/events-menu/README.MD)
 
 ## Architecture Patterns
 
