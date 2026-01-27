@@ -40,18 +40,16 @@ fun orderEventConsumers(
     },
     run {
         val queueName = "order.payment-succeeded"
-        val routingKey = "payment.succeeded"
-        subscriber.subscribe<OrderPaymentSucceededEvent>(queueName) {
+        subscriber.subscribe(OrderPaymentSucceededEvent.key(), queueName) {
             queueDeclare(queueName, true, false, false, null)
-            queueBind(queueName, exchange, routingKey)
+            queueBind(queueName, exchange, OrderPaymentSucceededEvent.key().key)
         }.parConsumeMessage { paymentSucceededHandler.handle(it) }
     },
     run {
         val queueName = "order.payment-failed"
-        val routingKey = "payment.failed"
-        subscriber.subscribe<OrderPaymentFailedEvent>(queueName) {
+        subscriber.subscribe(OrderPaymentFailedEvent.key(), queueName) {
             queueDeclare(queueName, true, false, false, null)
-            queueBind(queueName, exchange, routingKey)
+            queueBind(queueName, exchange, OrderPaymentFailedEvent.key().key)
         }.parConsumeMessage { paymentFailedHandler.handle(it) }
     },
     run {
