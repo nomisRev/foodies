@@ -1,6 +1,5 @@
 package io.ktor.foodies.basket
 
-import io.ktor.foodies.server.openid.Auth
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -8,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class Config(
     val host: String,
     val port: Int,
-    val auth: Auth,
+    val issuer: String,
     val redis: RedisConfig,
     val menu: MenuConfig,
     val rabbit: RabbitConfig,

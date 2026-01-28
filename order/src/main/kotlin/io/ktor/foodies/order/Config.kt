@@ -9,7 +9,7 @@ import kotlinx.serialization.Serializable
 data class Config(
     val host: String,
     val port: Int,
-    val auth: Auth,
+    val issuer: String,
     val database: DataSource.Config,
     val basket: BasketServiceConfig,
     val payment: PaymentServiceConfig,

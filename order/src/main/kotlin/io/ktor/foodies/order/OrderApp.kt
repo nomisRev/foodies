@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.launchIn
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
-        security(config.auth)
+        security(config.issuer)
         val (_, openTelemetry) = openTelemetry(config.telemetry.otlpEndpoint)
         app(module(config, openTelemetry))
     }.start(wait = true)

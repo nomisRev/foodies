@@ -11,27 +11,24 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.jwt
-import kotlinx.serialization.Serializable
 
-@Serializable
-data class Auth(val issuer: String)
-
-suspend fun Application.security(auth: Auth) {
+suspend fun Application.security(issuer: String) {
     HttpClient(Apache5) {
         install(ContentNegotiation) { json() }
         install(HttpRequestRetry) {
             retryOnExceptionOrServerErrors(maxRetries = 5)
             exponentialDelay()
         }
-    }.use { client -> security(auth, client) }
+    }.use { client -> security(issuer, client) }
 }
 
-suspend fun Application.security(auth: Auth, client: HttpClient) {
-    val config = client.use { it.discover(auth.issuer) }
+suspend fun Application.security(issuer: String, client: HttpClient) {
+    val config = client.discover(issuer)
+    val jwks = config.jwks()
 
     install(Authentication) {
         jwt("user") {
-            verifier(config.jwks(), config.issuer) {
+            verifier(jwks, config.issuer) {
                 withAudience("foodies")
             }
             validate { credential ->
@@ -52,7 +49,7 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
         }
 
         jwt("service") {
-            verifier(config.jwks(), config.issuer) {
+            verifier(jwks, config.issuer) {
                 withAudience("foodies")
             }
             validate { credential ->
