@@ -238,6 +238,60 @@ spec:
                 fi
               done
 
+              echo "Configuring audience client scopes for service-to-service tokens..."
+              for TARGET in $SERVICE_CLIENTS; do
+                SCOPE_NAME="aud-$TARGET"
+                echo "Ensuring client scope '$SCOPE_NAME' exists..."
+                SCOPE_ID=$(/opt/keycloak/bin/kcadm.sh get client-scopes -r foodies-keycloak 2>/dev/null | grep -B5 "\"name\" *: *\"$SCOPE_NAME\"" | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+
+                cat > /tmp/client-scope.json << EOF
+              {
+                "name": "$SCOPE_NAME",
+                "description": "Adds $TARGET audience for service-to-service access",
+                "protocol": "openid-connect",
+                "attributes": {
+                  "include.in.token.scope": "false",
+                  "display.on.consent.screen": "false"
+                }
+              }
+              EOF
+
+                if [ -n "$SCOPE_ID" ]; then
+                  /opt/keycloak/bin/kcadm.sh update client-scopes/$SCOPE_ID -r foodies-keycloak -f /tmp/client-scope.json
+                else
+                  /opt/keycloak/bin/kcadm.sh create client-scopes -r foodies-keycloak -f /tmp/client-scope.json
+                  SCOPE_ID=$(/opt/keycloak/bin/kcadm.sh get client-scopes -r foodies-keycloak 2>/dev/null | grep -B5 "\"name\" *: *\"$SCOPE_NAME\"" | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+                fi
+
+                if [ -z "$SCOPE_ID" ]; then
+                  echo "Could not determine ID for scope '$SCOPE_NAME', skipping mapper setup"
+                  continue
+                fi
+
+                echo "Configuring audience mapper for scope '$SCOPE_NAME'..."
+                MAPPER_ID=$(/opt/keycloak/bin/kcadm.sh get client-scopes/$SCOPE_ID/protocol-mappers/models -r foodies-keycloak 2>/dev/null | grep -B5 '"name" *: *"audience-mapper"' | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+
+                cat > /tmp/audience-mapper.json << EOF
+              {
+                "name": "audience-mapper",
+                "protocol": "openid-connect",
+                "protocolMapper": "oidc-audience-mapper",
+                "consentRequired": false,
+                "config": {
+                  "included.client.audience": "$TARGET",
+                  "id.token.claim": "true",
+                  "access.token.claim": "true"
+                }
+              }
+              EOF
+
+                if [ -n "$MAPPER_ID" ]; then
+                  /opt/keycloak/bin/kcadm.sh update client-scopes/$SCOPE_ID/protocol-mappers/models/$MAPPER_ID -r foodies-keycloak -f /tmp/audience-mapper.json
+                else
+                  /opt/keycloak/bin/kcadm.sh create client-scopes/$SCOPE_ID/protocol-mappers/models -r foodies-keycloak -f /tmp/audience-mapper.json
+                fi
+              done
+
               echo "Checking if user 'food3_lover' exists..."
               # Use query parameter for more reliable lookup
               USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak -q username=food3_lover --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
