@@ -347,6 +347,22 @@ spec:
                 echo "Service account for 'order-service' not found; skipping basket-service role assignment"
               fi
 
+              echo "Assigning menu-service read role to basket-service service account..."
+              BASKET_CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=basket-service --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+              if [ -n "$BASKET_CLIENT_UUID" ]; then
+                BASKET_SERVICE_ACCOUNT_ID=$(/opt/keycloak/bin/kcadm.sh get clients/$BASKET_CLIENT_UUID/service-account-user -r foodies-keycloak --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+              fi
+
+              if [ -n "$BASKET_SERVICE_ACCOUNT_ID" ]; then
+                if /opt/keycloak/bin/kcadm.sh add-roles -r foodies-keycloak --uid "$BASKET_SERVICE_ACCOUNT_ID" --cclientid menu-service --rolename read 2>/dev/null; then
+                  echo "Assigned 'menu-service:read' to service-account-basket-service"
+                else
+                  echo "menu-service:read already assigned to service-account-basket-service or assignment failed"
+                fi
+              else
+                echo "Service account for 'basket-service' not found; skipping menu-service role assignment"
+              fi
+
               echo "Checking if user 'food3_lover' exists..."
               # Use query parameter for more reliable lookup
               USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak -q username=food3_lover --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")

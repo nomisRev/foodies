@@ -256,6 +256,16 @@
       "realmRoles": ["user"]
     },
     {
+      "username": "service-account-basket-service",
+      "enabled": true,
+      "serviceAccountClientId": "basket-service",
+      "clientRoles": {
+        "menu-service": [
+          "read"
+        ]
+      }
+    },
+    {
       "username": "service-account-order-service",
       "enabled": true,
       "serviceAccountClientId": "order-service",
