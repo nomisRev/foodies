@@ -27,7 +27,14 @@
       "serviceAccountsEnabled": true,
       "standardFlowEnabled": false,
       "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false
+      "directAccessGrantsEnabled": false,
+      "optionalClientScopes": [
+        "aud-basket-service",
+        "aud-menu-service",
+        "aud-order-service",
+        "aud-payment-service",
+        "aud-profile-service"
+      ]
     },
     {
       "clientId": "menu-service",
@@ -37,7 +44,14 @@
       "serviceAccountsEnabled": true,
       "standardFlowEnabled": false,
       "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false
+      "directAccessGrantsEnabled": false,
+      "optionalClientScopes": [
+        "aud-basket-service",
+        "aud-menu-service",
+        "aud-order-service",
+        "aud-payment-service",
+        "aud-profile-service"
+      ]
     },
     {
       "clientId": "order-service",
@@ -47,7 +61,14 @@
       "serviceAccountsEnabled": true,
       "standardFlowEnabled": false,
       "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false
+      "directAccessGrantsEnabled": false,
+      "optionalClientScopes": [
+        "aud-basket-service",
+        "aud-menu-service",
+        "aud-order-service",
+        "aud-payment-service",
+        "aud-profile-service"
+      ]
     },
     {
       "clientId": "payment-service",
@@ -57,7 +78,14 @@
       "serviceAccountsEnabled": true,
       "standardFlowEnabled": false,
       "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false
+      "directAccessGrantsEnabled": false,
+      "optionalClientScopes": [
+        "aud-basket-service",
+        "aud-menu-service",
+        "aud-order-service",
+        "aud-payment-service",
+        "aud-profile-service"
+      ]
     },
     {
       "clientId": "profile-service",
@@ -67,7 +95,14 @@
       "serviceAccountsEnabled": true,
       "standardFlowEnabled": false,
       "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false
+      "directAccessGrantsEnabled": false,
+      "optionalClientScopes": [
+        "aud-basket-service",
+        "aud-menu-service",
+        "aud-order-service",
+        "aud-payment-service",
+        "aud-profile-service"
+      ]
     }
   ],
   "clientScopes": [

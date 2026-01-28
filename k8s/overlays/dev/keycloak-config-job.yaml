@@ -292,6 +292,28 @@ spec:
                 fi
               done
 
+              echo "Assigning audience client scopes as optional scopes to service clients..."
+              for CLIENT in $SERVICE_CLIENTS; do
+                CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=$CLIENT --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+
+                if [ -z "$CLIENT_UUID" ]; then
+                  echo "Could not determine ID for client '$CLIENT', skipping optional scope assignment"
+                  continue
+                fi
+
+                for TARGET in $SERVICE_CLIENTS; do
+                  SCOPE_NAME="aud-$TARGET"
+                  SCOPE_ID=$(/opt/keycloak/bin/kcadm.sh get client-scopes -r foodies-keycloak 2>/dev/null | grep -B5 "\"name\" *: *\"$SCOPE_NAME\"" | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+
+                  if [ -z "$SCOPE_ID" ]; then
+                    echo "Could not determine ID for scope '$SCOPE_NAME', skipping assignment for '$CLIENT'"
+                    continue
+                  fi
+
+                  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_UUID/optional-client-scopes/$SCOPE_ID -r foodies-keycloak 2>/dev/null || echo "Scope '$SCOPE_NAME' already optional or assignment created for '$CLIENT'"
+                done
+              done
+
               echo "Checking if user 'food3_lover' exists..."
               # Use query parameter for more reliable lookup
               USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak -q username=food3_lover --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
