@@ -264,6 +264,38 @@
       }
     ],
     "client": {
+      "basket-service": [
+        {
+          "name": "read",
+          "description": "Read access to basket-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "write",
+          "description": "Write access to basket-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        }
+      ],
+      "menu-service": [
+        {
+          "name": "read",
+          "description": "Read access to menu-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "write",
+          "description": "Write access to menu-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        }
+      ],
       "order-service": [
         {
           "name": "read",
@@ -275,6 +307,38 @@
         {
           "name": "write",
           "description": "Write access to order-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        }
+      ],
+      "payment-service": [
+        {
+          "name": "read",
+          "description": "Read access to payment-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "write",
+          "description": "Write access to payment-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        }
+      ],
+      "profile-service": [
+        {
+          "name": "read",
+          "description": "Read access to profile-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "write",
+          "description": "Write access to profile-service API",
           "composite": false,
           "clientRole": true,
           "attributes": {}
