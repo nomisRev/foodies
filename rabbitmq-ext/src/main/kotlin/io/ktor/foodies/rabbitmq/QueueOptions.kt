@@ -4,7 +4,6 @@ import kotlin.time.Duration
 
 sealed interface RetryPolicy {
     data object None : RetryPolicy
-    data class MaxAttempts(val value: Int) : RetryPolicy
 }
 
 sealed interface DeadLetterPolicy {
@@ -19,6 +18,6 @@ sealed interface DeadLetterPolicy {
 class QueueOptionsBuilder<A> {
     var durable: Boolean = true
     var ttl: Duration? = null
-    var retry: RetryPolicy = RetryPolicy.MaxAttempts(5)
+    var retry: RetryPolicy = RetryPolicy.None
     var deadLetter: DeadLetterPolicy = DeadLetterPolicy.Enabled()
 }

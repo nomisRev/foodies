@@ -4,9 +4,7 @@ import com.rabbitmq.client.AMQP
 import io.ktor.foodies.events.order.*
 import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.rabbitmq.Publisher
-import io.ktor.foodies.rabbitmq.publish
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 interface OrderEventPublisher {
     suspend fun publish(event: OrderCreatedEvent)

@@ -51,7 +51,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): PaymentModule 
     val subscriber = RabbitMQSubscriber(connection, config.rabbit.publishExchange)
 
     val eventConsumer = orderStockConfirmedEventConsumer(
-        subscriber.subscribe<OrderStockConfirmedEvent>(config.rabbit.consumeQueue),
+        subscriber.subscribe(OrderStockConfirmedEvent.key(), config.rabbit.consumeQueue),
         paymentService,
         eventPublisher
     )

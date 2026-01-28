@@ -18,7 +18,6 @@ import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import org.slf4j.LoggerFactory
 import java.io.IOException
 
@@ -48,20 +47,12 @@ interface RabbitMQSubscriber {
     fun <A> subscribe(
         serializer: KSerializer<A>,
         queueName: String,
-        retryPolicy: RetryPolicy = RetryPolicy.MaxAttempts(5),
+        retryPolicy: RetryPolicy = RetryPolicy.None,
         configure: Channel.(exchange: String) -> Unit = { exchange ->
             queueDeclare(queueName, true, false, false, null)
         }
     ): Flow<Message<A>>
 }
-
-@Deprecated("Replace with RoutingKey variant")
-inline fun <reified A : HasRoutingKey> RabbitMQSubscriber.subscribe(
-    queueName: String,
-    noinline configure: Channel.(exchange: String) -> Unit = { exchange ->
-        queueDeclare(queueName, true, false, false, null)
-    }
-): Flow<Message<A>> = subscribe(serializer<A>(), queueName, RetryPolicy.MaxAttempts(5), configure)
 
 fun <A> RabbitMQSubscriber.subscribe(
     routingKey: RoutingKey<A>,
@@ -70,7 +61,7 @@ fun <A> RabbitMQSubscriber.subscribe(
         queueDeclare(queueName, true, false, false, null)
         queueBind(queueName, exchange, routingKey.key)
     }
-): Flow<Message<A>> = subscribe(routingKey.serializer, queueName, RetryPolicy.MaxAttempts(5), configure)
+): Flow<Message<A>> = subscribe(routingKey.serializer, queueName, RetryPolicy.None, configure)
 
 fun <A> RabbitMQSubscriber.subscribe(
     queueName: String,

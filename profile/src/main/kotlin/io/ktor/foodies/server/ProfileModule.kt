@@ -40,7 +40,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): ProfileModule 
     val subscriber = RabbitMQSubscriber(connection, "foodies")
 
     val newUserConsumer =
-        userEventConsumer(subscriber.subscribe<UserEvent>(config.rabbit.queue), profileRepository)
+        userEventConsumer(subscriber.subscribe(UserEvent.serializer(), config.rabbit.queue), profileRepository)
 
     val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
         register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)

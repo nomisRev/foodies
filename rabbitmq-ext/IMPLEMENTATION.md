@@ -22,7 +22,6 @@ All resources are declared from code at runtime (no K8s CRDs for queues/exchange
 ```kotlin
 sealed interface RetryPolicy {
     data object None : RetryPolicy
-    data class MaxAttempts(val value: Int) : RetryPolicy
 }
 
 sealed interface DeadLetterPolicy {
@@ -37,7 +36,7 @@ sealed interface DeadLetterPolicy {
 class QueueOptionsBuilder<A> {
     var durable: Boolean = true
     var ttl: Duration? = null
-    var retry: RetryPolicy = RetryPolicy.MaxAttempts(5)
+    var retry: RetryPolicy = RetryPolicy.None
     var deadLetter: DeadLetterPolicy = DeadLetterPolicy.Enabled()
 }
 ```
@@ -80,12 +79,8 @@ subscriber.subscribe("order-service.order-placed", OrderPlaced.routingKey) {
 - DLX exchange and DLQ declared automatically at subscribe time
 
 ### Retry handling (transparent to consumers)
-- RabbitMQ does not support "max attempts then DLQ" natively; attempts are tracked via `x-death` or custom headers.
-- `Message` should compute `deliveryAttempts` from `x-death` and expose it as a property.
-- When `retry` is `MaxAttempts(n)`, `Message.nack()` should check `deliveryAttempts` before deciding to dead-letter.
-  - If attempts < n, requeue via the configured retry mechanism (future: retry queues with TTL + DLX).
-  - If attempts >= n, nack without requeue to send to DLQ.
-- This keeps retry logic centralized and callers can continue to call `ack()` / `nack()` without inspecting headers.
+- Retry policy is `None`; retries are handled by RabbitMQ quorum `delivery-limit` with DLX/DLQ.
+- `Message` still exposes `deliveryAttempts` for diagnostics, but `nack()` always routes to DLQ.
 
 ### Queue declaration (internal)
 At subscribe time, when DLX is enabled:
@@ -109,7 +104,7 @@ Epics are designed to be implemented in parallel. Detailed task lists live in `r
 - **DLQ naming**: `{queueName}.dlq`
 - **Queue name**: Mandatory parameter, not derived
 - **Resilience/retry**: Deferred to future work
-- **Max attempts**: Not modeled as TTL; use `RetryPolicy.MaxAttempts` with `x-death` tracking instead
+- **Max attempts**: Handled by quorum `delivery-limit` policy and DLX/DLQ
 
 ## Notes
 - Type parameter `<A>` on `QueueOptionsBuilder` ensures all bindings match the message type

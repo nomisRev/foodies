@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.serializer
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -128,7 +129,8 @@ val consumerSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe(TestPayload.serializer(), queueName)
+            val messagesFlow = RabbitMQSubscriber(connection, "exchange")
+                .subscribe(TestPayload.serializer(), queueName)
             val message = messagesFlow.first()
 
             assertEquals("nack-test", message.value.id)

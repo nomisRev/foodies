@@ -22,45 +22,16 @@ fun orderEventConsumers(
     orderStatusChangedHandler: OrderStatusChangedEventHandler,
     gracePeriodExpiredHandler: GracePeriodExpiredEventHandler
 ): List<Flow<Unit>> = listOf(
-    run {
-        val queueName = "order.stock-confirmed"
-        val routingKey = "stock.confirmed"
-        subscriber.subscribe<StockConfirmedEvent>(queueName) {
-            queueDeclare(queueName, true, false, false, null)
-            queueBind(queueName, exchange, routingKey)
-        }.parConsumeMessage { stockConfirmedHandler.handle(it) }
-    },
-    run {
-        val queueName = "order.stock-rejected"
-        val routingKey = "stock.rejected"
-        subscriber.subscribe<StockRejectedEvent>(queueName) {
-            queueDeclare(queueName, true, false, false, null)
-            queueBind(queueName, exchange, routingKey)
-        }.parConsumeMessage { stockRejectedHandler.handle(it) }
-    },
-    run {
-        val queueName = "order.payment-succeeded"
-        val routingKey = "payment.succeeded"
-        subscriber.subscribe<OrderPaymentSucceededEvent>(queueName) {
-            queueDeclare(queueName, true, false, false, null)
-            queueBind(queueName, exchange, routingKey)
-        }.parConsumeMessage { paymentSucceededHandler.handle(it) }
-    },
-    run {
-        val queueName = "order.payment-failed"
-        val routingKey = "payment.failed"
-        subscriber.subscribe<OrderPaymentFailedEvent>(queueName) {
-            queueDeclare(queueName, true, false, false, null)
-            queueBind(queueName, exchange, routingKey)
-        }.parConsumeMessage { paymentFailedHandler.handle(it) }
-    },
-    run {
-        val queueName = "order.notifications"
-        subscriber.subscribe(OrderStatusChangedEvent.key(), queueName) {
-            queueDeclare(queueName, true, false, false, null)
-            queueBind(queueName, exchange, OrderStatusChangedEvent.key().key)
-        }.parConsumeMessage { orderStatusChangedHandler.handle(it) }
-    },
+    subscriber.subscribe(StockConfirmedEvent.key(), "order.stock-confirmed")
+        .parConsumeMessage { stockConfirmedHandler.handle(it) },
+    subscriber.subscribe(StockRejectedEvent.key(), "order.stock-rejected")
+        .parConsumeMessage { stockRejectedHandler.handle(it) },
+    subscriber.subscribe(OrderPaymentSucceededEvent.key(), "order.payment-succeeded")
+        .parConsumeMessage { paymentSucceededHandler.handle(it) },
+    subscriber.subscribe(OrderPaymentFailedEvent.key(), "order.payment-failed")
+        .parConsumeMessage { paymentFailedHandler.handle(it) },
+    subscriber.subscribe(OrderStatusChangedEvent.key(), "order.notifications")
+        .parConsumeMessage { orderStatusChangedHandler.handle(it) },
     run {
         val queueName = "order.grace-period-expired"
         subscriber.subscribe(GracePeriodExpiredEvent.key(), queueName) {

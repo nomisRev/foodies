@@ -8,4 +8,5 @@ resources:
   - queues.yaml
   - exchanges.yaml
   - bindings.yaml
+  - policies.yaml
   - rabbitmq-secrets.yaml

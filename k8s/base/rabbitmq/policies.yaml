@@ -1,0 +1,16 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: Policy
+metadata:
+  name: quorum-queues
+spec:
+  name: quorum-queues
+  vhost: /
+  pattern: ".*"
+  applyTo: "queues"
+  priority: 0
+  definition:
+    queue-type: quorum
+    delivery-limit: 5
+    dead-letter-exchange: foodies.dlx
+  rabbitmqClusterReference:
+    name: rabbitmq

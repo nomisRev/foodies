@@ -14,7 +14,7 @@ class Message<A>(
     val value: A,
     private val delivery: Delivery,
     private val channel: Channel,
-    private val retryPolicy: RetryPolicy = RetryPolicy.MaxAttempts(5)
+    private val retryPolicy: RetryPolicy = RetryPolicy.None
 ) {
     val deliveryAttempts: Int by lazy {
         val xDeath = delivery.properties.headers?.get("x-death") as? List<*>
@@ -36,15 +36,8 @@ class Message<A>(
 
     /**
      * Negatively acknowledges the message.
-     * Behavior depends on the configured retry policy:
-     * - RetryPolicy.None: discards or dead-letters the message
-     * - RetryPolicy.MaxAttempts(n): requeues if attempts < n, otherwise dead-letters
      */
     fun nack(): Unit = when (retryPolicy) {
         RetryPolicy.None -> channel.basicNack(delivery.envelope.deliveryTag, false, false)
-        is RetryPolicy.MaxAttempts -> {
-            val requeue = deliveryAttempts < retryPolicy.value
-            channel.basicNack(delivery.envelope.deliveryTag, false, requeue)
-        }
     }
 }
