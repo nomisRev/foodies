@@ -3,21 +3,12 @@ package io.ktor.foodies.server.auth
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
 
-sealed interface AuthContext : CoroutineContext.Element {
+sealed class AuthContext : AbstractCoroutineContextElement(Key) {
     override val key: CoroutineContext.Key<*> get() = Key
 
-    data class UserAuth(
-        val accessToken: String
-    ) : AuthContext, AbstractCoroutineContextElement(Key) {
-        override val key: CoroutineContext.Key<*> get() = AuthContext.Key
-    }
+    data class UserAuth(val accessToken: String) : AuthContext()
 
-    data class ServiceAuth(
-        val serviceToken: String,
-        val userToken: String? = null
-    ) : AuthContext, AbstractCoroutineContextElement(Key) {
-        override val key: CoroutineContext.Key<*> get() = AuthContext.Key
-    }
+    data class ServiceAuth(val serviceToken: String, val userToken: String? = null) : AuthContext()
 
     companion object Key : CoroutineContext.Key<AuthContext>
 }
