@@ -1,0 +1,89 @@
+{
+  "realm": "foodies-keycloak",
+  "enabled": true,
+  "sslRequired": "none",
+  "registrationAllowed": true,
+  "resetPasswordAllowed": true,
+  "eventsEnabled": true,
+  "eventsListeners": ["jboss-logging", "profile-webhook"],
+  "enabledEventTypes": ["REGISTER", "DELETE_ACCOUNT", "UPDATE_PROFILE"],
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "Regular user with standard permissions"
+      }
+    ]
+  },
+  "clientScopes": [
+    {
+      "name": "foodies-audience",
+      "description": "Adds foodies audience to tokens for API access",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "foodies",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "defaultDefaultClientScopes": [
+    "foodies-audience"
+  ],
+  "clients": [
+    {
+      "clientId": "foodies",
+      "enabled": true,
+      "directAccessGrantsEnabled": true,
+      "publicClient": false,
+      "secret": "foodies_client_secret",
+      "redirectUris": ["http://foodies.local/oauth/callback"],
+      "webOrigins": ["http://foodies.local"],
+      "attributes": {
+        "post.logout.redirect.uris": "http://foodies.local/"
+      },
+      "defaultClientScopes": [
+        "foodies-audience",
+        "web-origins",
+        "acr",
+        "profile",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "offline_access",
+        "microprofile-jwt"
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "food3_lover",
+      "enabled": true,
+      "email": "food_lover@gmail.com",
+      "firstName": "Food",
+      "lastName": "Lover",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user", "default-roles-foodies-keycloak"]
+    }
+  ]
+}

@@ -5,7 +5,13 @@ resources:
   - ../../base/rabbitmq-operator
   - ../../base/cert-manager
   - ../../base
-  - keycloak-config-job.yaml
+
+configMapGenerator:
+  - name: keycloak-realm-config
+    files:
+      - foodies-realm.json
+    options:
+      disableNameSuffixHash: true
 
 images:
   - name: foodies-keycloak

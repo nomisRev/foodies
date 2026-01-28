@@ -7,4 +7,12 @@ spec:
     spec:
       containers:
         - name: keycloak
-          args: ["start-dev"]
+          args: ["start-dev", "--import-realm"]
+          volumeMounts:
+            - name: realm-config
+              mountPath: /opt/keycloak/data/import
+              readOnly: true
+      volumes:
+        - name: realm-config
+          configMap:
+            name: keycloak-realm-config
