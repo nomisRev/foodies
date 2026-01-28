@@ -254,6 +254,16 @@
         }
       ],
       "realmRoles": ["user"]
+    },
+    {
+      "username": "service-account-order-service",
+      "enabled": true,
+      "serviceAccountClientId": "order-service",
+      "clientRoles": {
+        "basket-service": [
+          "read"
+        ]
+      }
     }
   ],
   "roles": {
