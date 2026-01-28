@@ -5,11 +5,9 @@ import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
-import io.ktor.foodies.rabbitmq.subscribe
 import io.ktor.foodies.server.consumers.userEventConsumer
 import io.ktor.foodies.server.profile.ExposedProfileRepository
 import io.ktor.foodies.events.user.UserEvent
-import io.ktor.foodies.server.telemetry.Monitoring
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.opentelemetry.api.OpenTelemetry

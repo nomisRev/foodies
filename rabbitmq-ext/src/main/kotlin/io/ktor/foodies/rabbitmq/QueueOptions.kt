@@ -17,7 +17,8 @@ sealed interface DeadLetterPolicy {
 
 class QueueOptionsBuilder<A> {
     var durable: Boolean = true
+    val exclusive: Boolean = false
+    val autoDelete: Boolean = false
     var ttl: Duration? = null
-    var retry: RetryPolicy = RetryPolicy.None
     var deadLetter: DeadLetterPolicy = DeadLetterPolicy.Enabled()
 }

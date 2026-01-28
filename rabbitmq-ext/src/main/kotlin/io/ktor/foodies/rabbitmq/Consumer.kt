@@ -13,22 +13,8 @@ import com.rabbitmq.client.Delivery
 class Message<A>(
     val value: A,
     private val delivery: Delivery,
-    private val channel: Channel,
-    private val retryPolicy: RetryPolicy = RetryPolicy.None
+    private val channel: Channel
 ) {
-    val deliveryAttempts: Int by lazy {
-        val xDeath = delivery.properties.headers?.get("x-death") as? List<*>
-        xDeath?.firstOrNull()?.let { entry ->
-            (entry as? Map<*, *>)?.get("count")?.let { count ->
-                when (count) {
-                    is Long -> count.toInt()
-                    is Int -> count
-                    else -> 0
-                }
-            }
-        } ?: 0
-    }
-
     /**
      * Acknowledges the message, removing it from the queue.
      */
@@ -37,7 +23,5 @@ class Message<A>(
     /**
      * Negatively acknowledges the message.
      */
-    fun nack(): Unit = when (retryPolicy) {
-        RetryPolicy.None -> channel.basicNack(delivery.envelope.deliveryTag, false, false)
-    }
+    fun nack(): Unit = channel.basicNack(delivery.envelope.deliveryTag, false, false)
 }

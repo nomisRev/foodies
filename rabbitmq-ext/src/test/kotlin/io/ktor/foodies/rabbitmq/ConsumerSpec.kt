@@ -3,14 +3,12 @@ package io.ktor.foodies.rabbitmq
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.rabbitContainer
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.serializer
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -227,46 +225,6 @@ val consumerSpec by testSuite {
         }
     }
 
-    test("Message::deliveryAttempts - tracks x-death count from dead-letter queue") {
-        val dlqName = "consumer.test.dlq"
-        val dlxName = "consumer.test.dlx"
-        val mainQueueName = "consumer.test.main.dlx"
-        val payload = TestPayload(id = "retry-test", value = 999)
-        val body = Json.encodeToString(TestPayload.serializer(), payload)
-
-        rabbit().channel { channel ->
-            channel.exchangeDeclare(dlxName, "direct", true)
-            channel.queueDeclare(dlqName, true, false, false, null)
-            channel.queueBind(dlqName, dlxName, mainQueueName)
-
-            val args = mapOf("x-dead-letter-exchange" to dlxName)
-            channel.queueDeclare(mainQueueName, true, false, false, args)
-            channel.basicPublish("", mainQueueName, null, body.toByteArray())
-        }
-
-        rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe(
-                TestPayload.serializer(),
-                mainQueueName,
-                RetryPolicy.None
-            ) { }
-            val message = messagesFlow.first()
-            assertEquals(0, message.deliveryAttempts)
-            message.nack()
-        }
-
-        rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe(
-                TestPayload.serializer(),
-                dlqName
-            ) { }
-            val dlqMessage = messagesFlow.first()
-            assertEquals("retry-test", dlqMessage.value.id)
-            assertTrue(dlqMessage.deliveryAttempts > 0, "Expected deliveryAttempts > 0, got ${dlqMessage.deliveryAttempts}")
-            dlqMessage.ack()
-        }
-    }
-
     test("QueueOptions - x-message-ttl expires messages after duration") {
         val queueName = "consumer.test.ttl"
         val payload = TestPayload(id = "ttl-test", value = 777)
@@ -281,7 +239,10 @@ val consumerSpec by testSuite {
         kotlinx.coroutines.delay(1500)
 
         rabbit().newConnection().use { connection ->
-            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe(TestPayload.serializer(), queueName) { }
+            val messagesFlow = RabbitMQSubscriber(connection, "exchange").subscribe(
+                TestPayload.serializer(),
+                queueName
+            ) { }
             val result = withTimeoutOrNull(2.seconds) {
                 messagesFlow.first()
             }
