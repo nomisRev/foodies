@@ -272,6 +272,9 @@
       "clientRoles": {
         "basket-service": [
           "read"
+        ],
+        "payment-service": [
+          "write"
         ]
       }
     }
