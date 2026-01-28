@@ -238,6 +238,22 @@ spec:
                 fi
               done
 
+              echo "Configuring client roles for 'order-service'..."
+              ORDER_CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=order-service --fields id 2>/dev/null | grep -o '\"id\" *: *\"[^\"]*\"' | head -1 | sed 's/.*\"id\" *: *\"\\([^\"]*\\)\".*/\\1/' || echo "")
+
+              if [ -z "$ORDER_CLIENT_UUID" ]; then
+                echo "Could not determine ID for client 'order-service', skipping role configuration"
+              else
+                for ROLE in read write; do
+                  ROLE_DESC=$(printf '%s' "$ROLE" | sed 's/^./\U&/')
+                  if /opt/keycloak/bin/kcadm.sh get clients/$ORDER_CLIENT_UUID/roles/$ROLE -r foodies-keycloak > /dev/null 2>&1; then
+                    /opt/keycloak/bin/kcadm.sh update clients/$ORDER_CLIENT_UUID/roles/$ROLE -r foodies-keycloak -s "description=$ROLE_DESC access to order-service API"
+                  else
+                    /opt/keycloak/bin/kcadm.sh create clients/$ORDER_CLIENT_UUID/roles -r foodies-keycloak -s name=$ROLE -s "description=$ROLE_DESC access to order-service API"
+                  fi
+                done
+              fi
+
               echo "Configuring audience client scopes for service-to-service tokens..."
               for TARGET in $SERVICE_CLIENTS; do
                 SCOPE_NAME="aud-$TARGET"

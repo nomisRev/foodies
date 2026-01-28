@@ -262,6 +262,24 @@
         "name": "user",
         "description": "Regular user with standard permissions"
       }
-    ]
+    ],
+    "client": {
+      "order-service": [
+        {
+          "name": "read",
+          "description": "Read access to order-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "write",
+          "description": "Write access to order-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        }
+      ]
+    }
   }
 }
