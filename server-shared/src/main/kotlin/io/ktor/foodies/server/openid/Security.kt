@@ -14,7 +14,10 @@ import io.ktor.server.auth.jwt.jwt
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Auth(val issuer: String)
+data class Auth(
+    val issuer: String,
+    val audience: String = "foodies",
+)
 
 suspend fun Application.security(auth: Auth) {
     HttpClient(Apache5) {
@@ -31,9 +34,7 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
 
     install(Authentication) {
         jwt("user") {
-            verifier(config.jwks(), config.issuer) {
-                withAudience("foodies")
-            }
+            verifier(config.jwks(), config.issuer) { withAudience(auth.audience) }
             validate { credential ->
                 val payload = credential.payload
                 val email = payload.getClaim("email").asString()
@@ -52,9 +53,7 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
         }
 
         jwt("service") {
-            verifier(config.jwks(), config.issuer) {
-                withAudience("foodies")
-            }
+            verifier(config.jwks(), config.issuer) { withAudience(auth.audience) }
             validate { credential ->
                 val payload = credential.payload
                 val clientId = payload.getClaim("azp").asString()

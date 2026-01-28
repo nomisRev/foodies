@@ -10,6 +10,7 @@ Values come from `config` in `src/main/resources/application.yaml` (env override
 
 - `HOST` / `PORT`: bind address and port (default `0.0.0.0:8083`)
 - `AUTH_ISSUER`: Keycloak OIDC issuer URL (default `http://localhost:9090/realms/foodies-keycloak`)
+- `AUTH_AUDIENCE`: Expected audience/client ID for JWT validation (default `basket-service`)
 - `REDIS_HOST` / `REDIS_PORT` / `REDIS_PASSWORD`: Redis connection (defaults to `localhost:6379`, empty password)
 - `MENU_SERVICE_URL`: Menu service base URL (default `http://localhost:8082`)
 - `RABBITMQ_HOST` / `RABBITMQ_PORT` / `RABBITMQ_USERNAME` / `RABBITMQ_PASSWORD`: RabbitMQ connection (defaults to `localhost:5672`, `guest/guest`)
