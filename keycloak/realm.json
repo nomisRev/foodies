@@ -18,6 +18,56 @@
       "attributes": {
         "post.logout.redirect.uris": "http://localhost:8080/*"
       }
+    },
+    {
+      "clientId": "basket-service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "basket_service_client_secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "menu-service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "menu_service_client_secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "order-service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "order_service_client_secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "payment-service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "payment_service_client_secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false
+    },
+    {
+      "clientId": "profile-service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "profile_service_client_secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false
     }
   ],
   "users": [

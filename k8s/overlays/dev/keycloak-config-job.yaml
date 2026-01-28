@@ -211,6 +211,33 @@ spec:
               echo "Assigning 'foodies-audience' scope to client as default scope..."
               /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_ID/default-client-scopes/$SCOPE_ID -r foodies-keycloak 2>/dev/null || echo "Scope already assigned or assignment created"
 
+              echo "Ensuring service-to-service clients exist..."
+              SERVICE_CLIENTS="basket-service menu-service order-service payment-service profile-service"
+              for CLIENT in $SERVICE_CLIENTS; do
+                CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=$CLIENT --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+                SECRET_VALUE="$(echo "$CLIENT" | tr '-' '_' )_client_secret"
+
+                cat > /tmp/client-service.json << EOF
+              {
+                "clientId": "$CLIENT",
+                "protocol": "openid-connect",
+                "publicClient": false,
+                "secret": "$SECRET_VALUE",
+                "serviceAccountsEnabled": true,
+                "standardFlowEnabled": false,
+                "implicitFlowEnabled": false,
+                "directAccessGrantsEnabled": false
+              }
+              EOF
+
+                if [ -n "$CLIENT_UUID" ]; then
+                  /opt/keycloak/bin/kcadm.sh update clients/$CLIENT_UUID -r foodies-keycloak -f /tmp/client-service.json
+                else
+                  /opt/keycloak/bin/kcadm.sh create clients -r foodies-keycloak -f /tmp/client-service.json
+                  CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=$CLIENT --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+                fi
+              done
+
               echo "Checking if user 'food3_lover' exists..."
               # Use query parameter for more reliable lookup
               USER_ID=$(/opt/keycloak/bin/kcadm.sh get users -r foodies-keycloak -q username=food3_lover --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
