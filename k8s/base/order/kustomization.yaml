@@ -15,9 +15,15 @@ configMapGenerator:
       - AUTH_AUDIENCE=order-service
       - DB_URL=jdbc:postgresql://order-postgres:5432/foodies-order-database
       - BASKET_BASE_URL=http://basket:8083
+      - BASKET_CLIENT_ID=order-service
       - PAYMENT_BASE_URL=http://payment:8085
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_PORT=5672
       - RABBITMQ_EXCHANGE=foodies
       - RABBITMQ_ROUTING_KEY=order.created
       - ORDER_GRACE_PERIOD_SECONDS=60
+
+secretGenerator:
+  - name: order-service-auth
+    literals:
+      - BASKET_CLIENT_SECRET=order_service_client_secret

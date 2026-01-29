@@ -10,6 +10,8 @@ config:
     password: "$DB_PASSWORD:foodies_password"
   basket:
     baseUrl: "$BASKET_BASE_URL:http://localhost:8083"
+    clientId: "$BASKET_CLIENT_ID:order-service"
+    clientSecret: "$BASKET_CLIENT_SECRET:order_service_client_secret"
   payment:
     baseUrl: "$PAYMENT_BASE_URL:http://localhost:8085"
   rabbit:

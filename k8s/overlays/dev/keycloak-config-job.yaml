@@ -331,55 +331,37 @@ spec:
                 done
               done
 
-              echo "Assigning basket-service read role to order-service service account..."
-              ORDER_CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=order-service --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
-              if [ -n "$ORDER_CLIENT_UUID" ]; then
-                ORDER_SERVICE_ACCOUNT_ID=$(/opt/keycloak/bin/kcadm.sh get clients/$ORDER_CLIENT_UUID/service-account-user -r foodies-keycloak --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
-              fi
+              echo "Assigning service account roles for service-to-service calls..."
+              SERVICE_ROLE_MAPPINGS="order-service:basket-service=read order-service:payment-service=write basket-service:menu-service=read"
+              for ENTRY in $SERVICE_ROLE_MAPPINGS; do
+                CALLER=${ENTRY%%:*}
+                TARGET_AND_ROLES=${ENTRY#*:}
+                TARGET=${TARGET_AND_ROLES%%=*}
+                ROLE_LIST=${TARGET_AND_ROLES#*=}
 
-              if [ -n "$ORDER_SERVICE_ACCOUNT_ID" ]; then
-                if /opt/keycloak/bin/kcadm.sh add-roles -r foodies-keycloak --uid "$ORDER_SERVICE_ACCOUNT_ID" --cclientid basket-service --rolename read 2>/dev/null; then
-                  echo "Assigned 'basket-service:read' to service-account-order-service"
-                else
-                  echo "basket-service:read already assigned to service-account-order-service or assignment failed"
+                CALLER_CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=$CALLER --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+                if [ -z "$CALLER_CLIENT_UUID" ]; then
+                  echo "Could not determine client ID for '$CALLER', skipping role assignments"
+                  continue
                 fi
-              else
-                echo "Service account for 'order-service' not found; skipping basket-service role assignment"
-              fi
 
-              echo "Assigning payment-service write role to order-service service account..."
-              if [ -z "$ORDER_CLIENT_UUID" ]; then
-                ORDER_CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=order-service --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
-              fi
-              if [ -n "$ORDER_CLIENT_UUID" ] && [ -z "$ORDER_SERVICE_ACCOUNT_ID" ]; then
-                ORDER_SERVICE_ACCOUNT_ID=$(/opt/keycloak/bin/kcadm.sh get clients/$ORDER_CLIENT_UUID/service-account-user -r foodies-keycloak --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
-              fi
-
-              if [ -n "$ORDER_SERVICE_ACCOUNT_ID" ]; then
-                if /opt/keycloak/bin/kcadm.sh add-roles -r foodies-keycloak --uid "$ORDER_SERVICE_ACCOUNT_ID" --cclientid payment-service --rolename write 2>/dev/null; then
-                  echo "Assigned 'payment-service:write' to service-account-order-service"
-                else
-                  echo "payment-service:write already assigned to service-account-order-service or assignment failed"
+                CALLER_SERVICE_ACCOUNT_ID=$(/opt/keycloak/bin/kcadm.sh get clients/$CALLER_CLIENT_UUID/service-account-user -r foodies-keycloak --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
+                if [ -z "$CALLER_SERVICE_ACCOUNT_ID" ]; then
+                  echo "Service account for '$CALLER' not found; skipping role assignments"
+                  continue
                 fi
-              else
-                echo "Service account for 'order-service' not found; skipping payment-service role assignment"
-              fi
 
-              echo "Assigning menu-service read role to basket-service service account..."
-              BASKET_CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r foodies-keycloak -q clientId=basket-service --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
-              if [ -n "$BASKET_CLIENT_UUID" ]; then
-                BASKET_SERVICE_ACCOUNT_ID=$(/opt/keycloak/bin/kcadm.sh get clients/$BASKET_CLIENT_UUID/service-account-user -r foodies-keycloak --fields id 2>/dev/null | grep -o '"id" *: *"[^"]*"' | head -1 | sed 's/.*"id" *: *"\([^"]*\)".*/\1/' || echo "")
-              fi
-
-              if [ -n "$BASKET_SERVICE_ACCOUNT_ID" ]; then
-                if /opt/keycloak/bin/kcadm.sh add-roles -r foodies-keycloak --uid "$BASKET_SERVICE_ACCOUNT_ID" --cclientid menu-service --rolename read 2>/dev/null; then
-                  echo "Assigned 'menu-service:read' to service-account-basket-service"
-                else
-                  echo "menu-service:read already assigned to service-account-basket-service or assignment failed"
-                fi
-              else
-                echo "Service account for 'basket-service' not found; skipping menu-service role assignment"
-              fi
+                for ROLE in $(echo "$ROLE_LIST" | tr ',' ' '); do
+                  if [ -z "$ROLE" ]; then
+                    continue
+                  fi
+                  if /opt/keycloak/bin/kcadm.sh add-roles -r foodies-keycloak --uid "$CALLER_SERVICE_ACCOUNT_ID" --cclientid "$TARGET" --rolename "$ROLE" 2>/dev/null; then
+                    echo "Assigned '$TARGET:$ROLE' to service-account-$CALLER"
+                  else
+                    echo "Role '$TARGET:$ROLE' already assigned to service-account-$CALLER or assignment failed"
+                  fi
+                done
+              done
 
               echo "Checking if user 'food3_lover' exists..."
               # Use query parameter for more reliable lookup

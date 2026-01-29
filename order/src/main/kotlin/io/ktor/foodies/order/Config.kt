@@ -26,6 +26,8 @@ data class OrderConfig(
 @Serializable
 data class BasketServiceConfig(
     val baseUrl: String,
+    val clientId: String,
+    val clientSecret: String,
 )
 
 @Serializable
