@@ -1,0 +1,392 @@
+{
+  "realm": "foodies-keycloak",
+  "sslRequired": "none",
+  "enabled": true,
+  "registrationAllowed": true,
+  "resetPasswordAllowed": true,
+  "eventsEnabled": true,
+  "eventsListeners": ["jboss-logging", "profile-webhook"],
+  "enabledEventTypes": ["REGISTER", "DELETE_ACCOUNT", "UPDATE_PROFILE"],
+  "clients": [
+    {
+      "clientId": "foodies",
+      "directAccessGrantsEnabled": true,
+      "publicClient": false,
+      "secret": "foodies_client_secret",
+      "defaultClientScopes": [
+        "foodies-audience"
+      ],
+      "optionalClientScopes": [
+        "aud-basket-service",
+        "aud-menu-service",
+        "aud-order-service",
+        "aud-payment-service",
+        "aud-profile-service"
+      ],
+      "redirectUris": [
+        "http://foodies.local/oauth/callback",
+        "http://foodies.com/oauth/callback",
+        "https://foodies.com/oauth/callback",
+        "http://localhost:8080/oauth/callback"
+      ],
+      "webOrigins": [
+        "http://foodies.local",
+        "http://foodies.com",
+        "https://foodies.com",
+        "http://localhost:8080"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "http://foodies.local/\nhttp://foodies.com/\nhttps://foodies.com/\nhttp://localhost:8080/*"
+      }
+    },
+    {
+      "clientId": "basket-service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "basket_service_client_secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "optionalClientScopes": [
+        "aud-basket-service",
+        "aud-menu-service",
+        "aud-order-service",
+        "aud-payment-service",
+        "aud-profile-service"
+      ]
+    },
+    {
+      "clientId": "menu-service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "menu_service_client_secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "optionalClientScopes": [
+        "aud-basket-service",
+        "aud-menu-service",
+        "aud-order-service",
+        "aud-payment-service",
+        "aud-profile-service"
+      ]
+    },
+    {
+      "clientId": "order-service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "order_service_client_secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "optionalClientScopes": [
+        "aud-basket-service",
+        "aud-menu-service",
+        "aud-order-service",
+        "aud-payment-service",
+        "aud-profile-service"
+      ]
+    },
+    {
+      "clientId": "payment-service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "payment_service_client_secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "optionalClientScopes": [
+        "aud-basket-service",
+        "aud-menu-service",
+        "aud-order-service",
+        "aud-payment-service",
+        "aud-profile-service"
+      ]
+    },
+    {
+      "clientId": "profile-service",
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "profile_service_client_secret",
+      "serviceAccountsEnabled": true,
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "optionalClientScopes": [
+        "aud-basket-service",
+        "aud-menu-service",
+        "aud-order-service",
+        "aud-payment-service",
+        "aud-profile-service"
+      ]
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "foodies-audience",
+      "description": "Adds foodies audience to tokens for API access",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "foodies",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "aud-basket-service",
+      "description": "Adds basket-service audience for service-to-service access",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "basket-service",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "aud-menu-service",
+      "description": "Adds menu-service audience for service-to-service access",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "menu-service",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "aud-order-service",
+      "description": "Adds order-service audience for service-to-service access",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "order-service",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "aud-payment-service",
+      "description": "Adds payment-service audience for service-to-service access",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "payment-service",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    },
+    {
+      "name": "aud-profile-service",
+      "description": "Adds profile-service audience for service-to-service access",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "false",
+        "display.on.consent.screen": "false"
+      },
+      "protocolMappers": [
+        {
+          "name": "audience-mapper",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "profile-service",
+            "id.token.claim": "true",
+            "access.token.claim": "true"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "food3_lover",
+      "enabled": true,
+      "email": "food_lover@gmail.com",
+      "firstName": "Food",
+      "lastName": "Lover",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": ["user"]
+    },
+    {
+      "username": "service-account-basket-service",
+      "enabled": true,
+      "serviceAccountClientId": "basket-service",
+      "clientRoles": {
+        "menu-service": [
+          "read"
+        ]
+      }
+    },
+    {
+      "username": "service-account-order-service",
+      "enabled": true,
+      "serviceAccountClientId": "order-service",
+      "clientRoles": {
+        "basket-service": [
+          "read"
+        ],
+        "payment-service": [
+          "write"
+        ]
+      }
+    }
+  ],
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "Regular user with standard permissions"
+      }
+    ],
+    "client": {
+      "basket-service": [
+        {
+          "name": "read",
+          "description": "Read access to basket-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "write",
+          "description": "Write access to basket-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        }
+      ],
+      "menu-service": [
+        {
+          "name": "read",
+          "description": "Read access to menu-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "write",
+          "description": "Write access to menu-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        }
+      ],
+      "order-service": [
+        {
+          "name": "read",
+          "description": "Read access to order-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "write",
+          "description": "Write access to order-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        }
+      ],
+      "payment-service": [
+        {
+          "name": "read",
+          "description": "Read access to payment-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "write",
+          "description": "Write access to payment-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        }
+      ],
+      "profile-service": [
+        {
+          "name": "read",
+          "description": "Read access to profile-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        },
+        {
+          "name": "write",
+          "description": "Write access to profile-service API",
+          "composite": false,
+          "clientRole": true,
+          "attributes": {}
+        }
+      ]
+    }
+  }
+}
