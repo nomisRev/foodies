@@ -8,7 +8,6 @@ import de.infix.testBalloon.framework.core.Test
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.auth.ServicePrincipal
 import io.ktor.foodies.server.auth.UserPrincipal
-import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.application.install
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.JWTCredential

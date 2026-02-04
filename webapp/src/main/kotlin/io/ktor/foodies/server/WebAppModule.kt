@@ -7,6 +7,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
+import io.ktor.foodies.server.auth.AuthContextPlugin
 import io.ktor.foodies.server.htmx.basket.BasketService
 import io.ktor.foodies.server.htmx.basket.HttpBasketService
 import io.ktor.foodies.server.htmx.menu.HttpMenuService
@@ -40,6 +41,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
         install(KtorClientTelemetry) {
             setOpenTelemetry(telemetry)
         }
+        install(AuthContextPlugin)
     }
     monitor.subscribe(ApplicationStopped) { httpClient.close() }
 

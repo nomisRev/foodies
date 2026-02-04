@@ -11,6 +11,8 @@ import io.ktor.foodies.server.security.UserSession
 import io.ktor.foodies.server.security.withUserSession
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
+import io.ktor.foodies.server.auth.secureUser
+import io.ktor.foodies.server.auth.userPrincipal
 import io.ktor.foodies.server.security.jwt
 import io.ktor.foodies.server.security.userSession
 import io.ktor.foodies.server.test.testApplication
@@ -65,10 +67,10 @@ val userSessionScopeSpec by testSuite {
         }
         install(Sessions) { cookie<UserSession>("USER_SESSION", SessionStorageMemory()) }
         routing {
-            withUserSession {
+            secureUser {
                 get("/protected") {
                     println("/protected before userSession()")
-                    println("Handling /protected request. ${userSession()}")
+                    println("Handling /protected request. ${userPrincipal()}")
                     call.respondText("OK")
                 }
             }
@@ -89,9 +91,9 @@ val userSessionScopeSpec by testSuite {
                 call.respondText("Session set")
             }
             route("/protected") {
-                withUserSession {
+                secureUser {
                     get {
-                        val session = userSession()
+                        val session = userPrincipal()
                         call.respondText("Hello ${session.accessToken}")
                     }
                 }
