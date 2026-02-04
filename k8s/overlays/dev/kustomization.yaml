@@ -5,7 +5,7 @@ resources:
   - ../../base/rabbitmq-operator
   - ../../base/cert-manager
   - ../../base
-  - keycloak-config-job.yaml
+  - keycloak-config-cli-job.yaml
 
 images:
   - name: foodies-keycloak
@@ -24,10 +24,14 @@ images:
     newTag: latest
 
 patches:
-  - path: keycloak-patch.yaml
-    target:
+  - target:
       kind: Deployment
       name: keycloak
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/args
+        value:
+          - start-dev
   - target:
       kind: PersistentVolumeClaim
       name: redis-data

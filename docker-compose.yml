@@ -55,7 +55,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./keycloak:/opt/keycloak/data/import/
+      - ./k8s/base/keycloak:/opt/keycloak/data/import/
       - ./keycloak-rabbitmq-publisher/build/libs:/opt/keycloak/providers
     depends_on:
       - rabbitmq

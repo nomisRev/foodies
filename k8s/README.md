@@ -287,10 +287,8 @@ k8s/
 │   ├── rabbitmq/              # RabbitMQ message broker
 │   └── redis/                 # Redis cache with persistence
 └── overlays/                  # Environment-specific overlays
-    ├── dev/                   # Development overlay (includes Keycloak config job)
-    │   ├── kustomization.yaml # Development-specific settings
-    │   ├── keycloak-config-job.yaml # Keycloak realm configuration job
-    │   └── keycloak-realm-import-patch.yaml # Keycloak deployment patch
+    ├── dev/                   # Development overlay (host: foodies.local + storage tweaks)
+    │   └── kustomization.yaml # Development-specific settings
     └── prod/                  # Production overlay (scaled + security-hardened)
         └── kustomization.yaml # Production-specific settings
 ```
