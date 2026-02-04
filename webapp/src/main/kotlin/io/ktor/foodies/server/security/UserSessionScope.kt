@@ -37,7 +37,7 @@ fun Route.userSession(build: context(UserSessionScope) Route.() -> Unit): Route 
     install(createRouteScopedPlugin("SecureUserSession") {
         route!!.intercept(ApplicationCallPipeline.Call) {
             val principal = requireNotNull(call.principal<UserSession>()) { "UserSession not found" }
-            withContext(AuthContext.UserAuth(principal.accessToken)) { proceed() }
+            withContext(AuthContext.UserAuth(principal.idToken)) { proceed() }
         }
     })
     with(UserSessionScope {
