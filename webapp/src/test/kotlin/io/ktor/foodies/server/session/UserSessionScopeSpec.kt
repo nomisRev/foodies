@@ -8,7 +8,6 @@ import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.plugin
 import io.ktor.foodies.server.security.UserSession
-import io.ktor.foodies.server.security.withUserSession
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.foodies.server.auth.secureUser
@@ -62,15 +61,13 @@ val userSessionScopeSpec by testSuite {
     val provider = TestJwkProvider()
 
     testApplication("returns 401 and HX-Redirect when no session") {
-        install(Authentication) {
-            jwt(provider, "issuer")
-        }
+        install(Authentication) { jwt(provider, "issuer") }
         install(Sessions) { cookie<UserSession>("USER_SESSION", SessionStorageMemory()) }
         routing {
-            secureUser {
+            userSession {
                 get("/protected") {
                     println("/protected before userSession()")
-                    println("Handling /protected request. ${userPrincipal()}")
+                    println("Handling /protected request. ${userSession()}")
                     call.respondText("OK")
                 }
             }
@@ -91,9 +88,9 @@ val userSessionScopeSpec by testSuite {
                 call.respondText("Session set")
             }
             route("/protected") {
-                secureUser {
+                userSession {
                     get {
-                        val session = userPrincipal()
+                        val session = userSession()
                         call.respondText("Hello ${session.accessToken}")
                     }
                 }

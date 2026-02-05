@@ -17,7 +17,7 @@ val keyCloakSpec by e2eSuite(testConfig = TestConfig.testScope(true, timeout = 3
         val authServerUrl = keycloak().authServerUrl
         assertNotNull(authServerUrl)
 
-        val registrationUrl = "$authServerUrl/realms/foodies-keycloak/protocol/openid-connect/registrations?client_id=foodies&response_type=code"
+        val registrationUrl = "$authServerUrl/realms/foodies-keycloak/protocol/openid-connect/registrations?client_id=foodies&response_type=code&redirect_uri=http://localhost:8080/oauth/callback"
 
         page().navigate(registrationUrl)
         page().waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE)

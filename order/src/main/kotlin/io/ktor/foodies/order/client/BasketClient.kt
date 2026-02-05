@@ -10,7 +10,6 @@ import io.ktor.foodies.server.auth.ServiceTokenProvider
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import sun.jvm.hotspot.HelloWorld.e
 
 @Serializable
 data class BasketItem(

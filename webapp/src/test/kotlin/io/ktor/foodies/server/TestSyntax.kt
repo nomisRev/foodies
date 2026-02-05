@@ -30,7 +30,7 @@ data class ServiceContext(
 fun TestSuite.serviceContext(): ServiceContext {
     val fixture = testFixture {
         val redis = RedisContainer("redis:7-alpine")
-        val realmFile = Paths.get("../keycloak/realm.json").toAbsolutePath().normalize()
+        val realmFile = Paths.get("../k8s/base/keycloak/realm.json").toAbsolutePath().normalize()
         val keycloak = KeycloakContainer("quay.io/keycloak/keycloak:26.5.0")
             .withCopyFileToContainer(
                 MountableFile.forHostPath(realmFile),
