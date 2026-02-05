@@ -11,7 +11,6 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
-import io.ktor.server.util.getOrFail
 import io.ktor.utils.io.ExperimentalKtorApi
 import java.math.RoundingMode
 import kotlinx.html.ButtonType

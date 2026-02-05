@@ -6,12 +6,9 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.client.plugins.cookies.HttpCookies
-import io.ktor.client.plugins.plugin
 import io.ktor.foodies.server.security.UserSession
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
-import io.ktor.foodies.server.auth.secureUser
-import io.ktor.foodies.server.auth.userPrincipal
 import io.ktor.foodies.server.security.jwt
 import io.ktor.foodies.server.security.userSession
 import io.ktor.foodies.server.test.testApplication
