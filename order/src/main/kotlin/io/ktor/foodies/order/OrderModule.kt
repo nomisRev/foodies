@@ -14,8 +14,9 @@ import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
+import io.ktor.foodies.server.auth.AuthContextPlugin
+import io.ktor.foodies.server.auth.ClientCredentialsTokenProvider
 import io.ktor.foodies.server.dataSource
-import io.ktor.foodies.server.telemetry.Monitoring
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
@@ -46,12 +47,21 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): OrderModule {
 
     val httpClient = HttpClient(CIO) {
         install(ClientContentNegotiation) { json() }
+        install(AuthContextPlugin)
         install(KtorClientTelemetry) {
             setOpenTelemetry(telemetry)
         }
     }
 
-    val basketClient = HttpBasketClient(httpClient, config.basket.baseUrl)
+    val basketTokenProvider = ClientCredentialsTokenProvider(
+        httpClient = httpClient,
+        tokenEndpoint = "${config.auth.issuer}/protocol/openid-connect/token",
+        clientId = config.basket.clientId,
+        clientSecret = config.basket.clientSecret,
+        scope = "aud-basket-service"
+    )
+
+    val basketClient = HttpBasketClient(httpClient, config.basket.baseUrl, basketTokenProvider)
 
     val rabbitFactory =
         rabbitConnectionFactory(config.rabbit.host, config.rabbit.port, config.rabbit.username, config.rabbit.password)

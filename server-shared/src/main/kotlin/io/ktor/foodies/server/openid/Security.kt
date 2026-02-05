@@ -1,5 +1,6 @@
 package io.ktor.foodies.server.openid
 
+import com.auth0.jwt.interfaces.Payload
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.HttpRequestRetry
@@ -14,7 +15,10 @@ import io.ktor.server.auth.jwt.jwt
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class Auth(val issuer: String)
+data class Auth(
+    val issuer: String,
+    val audience: String = "foodies",
+)
 
 suspend fun Application.security(auth: Auth) {
     HttpClient(Apache5) {
@@ -31,20 +35,16 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
 
     install(Authentication) {
         jwt("user") {
-            verifier(config.jwks(), config.issuer) {
-                withAudience("foodies")
-            }
+            verifier(config.jwks(), config.issuer) { withAudience(auth.audience) }
             validate { credential ->
                 val payload = credential.payload
                 val email = payload.getClaim("email").asString()
                 val authHeader = request.headers["Authorization"]?.removePrefix("Bearer ") ?: ""
                 if (email != null) {
-                    val roles = payload.getClaim("realm_access")
-                        ?.asMap()?.get("roles") as? List<*> ?: emptyList<String>()
                     UserPrincipal(
                         userId = payload.subject,
                         email = email,
-                        roles = roles.filterIsInstance<String>().toSet(),
+                        roles = payload.realmRoles(),
                         accessToken = authHeader
                     )
                 } else null
@@ -52,23 +52,30 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
         }
 
         jwt("service") {
-            verifier(config.jwks(), config.issuer) {
-                withAudience("foodies")
-            }
+            verifier(config.jwks(), config.issuer) { withAudience(auth.audience) }
             validate { credential ->
                 val payload = credential.payload
                 val clientId = payload.getClaim("azp").asString()
                     ?: payload.getClaim("client_id").asString()
                 if (clientId?.endsWith("-service") == true) {
-                    val roles = payload.getClaim("realm_access")
-                        ?.asMap()?.get("roles") as? List<*> ?: emptyList<String>()
                     ServicePrincipal(
                         serviceAccountId = payload.subject,
                         clientId = clientId,
-                        roles = roles.filterIsInstance<String>().toSet()
+                        roles = payload.resourceRoles(auth.audience)
                     )
                 } else null
             }
         }
     }
+}
+
+private fun Payload.realmRoles(): Set<String> {
+    val roles = getClaim("realm_access")?.asMap()?.get("roles") as? List<*>
+    return roles?.filterIsInstance<String>()?.toSet() ?: emptySet()
+}
+
+private fun Payload.resourceRoles(audience: String): Set<String> {
+    val resourceAccess = getClaim("resource_access")?.asMap()
+    val roles = (resourceAccess?.get(audience) as? Map<*, *>)?.get("roles") as? List<*>
+    return roles?.filterIsInstance<String>()?.toSet() ?: emptySet()
 }

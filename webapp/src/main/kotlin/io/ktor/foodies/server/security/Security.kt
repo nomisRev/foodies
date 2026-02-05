@@ -1,7 +1,6 @@
 package io.ktor.foodies.server.security
 
 import com.auth0.jwk.JwkProvider
-import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.client.HttpClient
 import io.ktor.foodies.server.Config
 import io.ktor.foodies.server.openid.OpenIdConfiguration
@@ -13,7 +12,6 @@ import io.ktor.http.auth.HttpAuthHeader
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.install
-import io.ktor.server.application.log
 import io.ktor.server.auth.AuthenticationConfig
 import io.ktor.server.auth.OAuthAccessTokenResponse
 import io.ktor.server.auth.OAuthServerSettings
@@ -37,7 +35,6 @@ import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import kotlinx.serialization.Serializable
-import java.net.URI
 
 @Serializable
 data class UserSession(
@@ -126,7 +123,7 @@ private fun AuthenticationConfig.oauth(
             requestMethod = HttpMethod.Post,
             clientId = config.clientId,
             clientSecret = config.clientSecret,
-            defaultScopes = listOf("openid", "profile", "email"),
+            defaultScopes = listOf("openid", "profile", "email", "aud-basket-service"),
         )
     }
 }

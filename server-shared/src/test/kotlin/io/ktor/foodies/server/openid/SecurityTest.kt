@@ -172,7 +172,7 @@ val securitySpec by testSuite {
         val token = com.auth0.jwt.JWT.create()
             .withSubject("service-account-payment-service")
             .withClaim("client_id", "payment-service")
-            .withClaim("realm_access", mapOf("roles" to listOf("service:order:read")))
+            .withClaim("resource_access", mapOf(config.audience to mapOf("roles" to listOf("service:order:read"))))
             .withAudience(config.audience)
             .withIssuer(config.issuer)
             .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600000))
@@ -198,7 +198,7 @@ val securitySpec by testSuite {
         val invalidServiceToken = com.auth0.jwt.JWT.create()
             .withSubject("invalid-service-account")
             .withClaim("azp", "not-a-service-client")
-            .withClaim("realm_access", mapOf("roles" to listOf("service:read")))
+            .withClaim("resource_access", mapOf(config.audience to mapOf("roles" to listOf("service:read"))))
             .withAudience(config.audience)
             .withIssuer(config.issuer)
             .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600000))
@@ -211,7 +211,7 @@ val securitySpec by testSuite {
         assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
 
-    authTest("service JWT validation extracts roles from realm_access") { config ->
+    authTest("service JWT validation extracts roles from resource_access for the audience") { config ->
         routing {
             secureService {
                 get("/service") {
@@ -233,7 +233,7 @@ val securitySpec by testSuite {
         assertEquals("service:basket:read,service:basket:write,service:menu:read", response.bodyAsText())
     }
 
-    authTest("service JWT validation handles missing realm_access gracefully") { config ->
+    authTest("service JWT validation handles missing resource_access gracefully") { config ->
         routing {
             secureService {
                 get("/service") {

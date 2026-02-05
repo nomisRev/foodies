@@ -10,6 +10,7 @@ Values come from `config` in `src/main/resources/application.yaml` (env override
 
 - `HOST` / `PORT`: bind address and port (default `0.0.0.0:8084`)
 - `AUTH_ISSUER`: Keycloak OIDC issuer URL (default `http://localhost:8000/realms/foodies-keycloak`)
+- `AUTH_AUDIENCE`: Expected audience/client ID for JWT validation (default `order-service`)
 - `DB_URL` / `DB_USERNAME` / `DB_PASSWORD`: PostgreSQL connection (defaults to `jdbc:postgresql://localhost:5433/foodies-order-database`, `foodies_admin/foodies_password`)
 - `BASKET_BASE_URL`: Basket service base URL (default `http://localhost:8083`)
 - `PAYMENT_BASE_URL`: Payment service base URL (default `http://localhost:8085`)

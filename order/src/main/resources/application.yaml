@@ -3,12 +3,15 @@ config:
   port: "$PORT:8084"
   auth:
     issuer: "$AUTH_ISSUER:http://localhost:8000/realms/foodies-keycloak"
+    audience: "$AUTH_AUDIENCE:order-service"
   database:
     url: "$DB_URL:jdbc:postgresql://localhost:5433/foodies-order-database"
     username: "$DB_USERNAME:foodies_admin"
     password: "$DB_PASSWORD:foodies_password"
   basket:
     baseUrl: "$BASKET_BASE_URL:http://localhost:8083"
+    clientId: "$BASKET_CLIENT_ID:order-service"
+    clientSecret: "$BASKET_CLIENT_SECRET:order_service_client_secret"
   payment:
     baseUrl: "$PAYMENT_BASE_URL:http://localhost:8085"
   rabbit:

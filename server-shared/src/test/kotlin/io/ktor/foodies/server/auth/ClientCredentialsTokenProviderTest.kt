@@ -5,8 +5,10 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.forms.FormDataContent
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.Parameters
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.async
@@ -137,9 +139,49 @@ val clientCredentialsTokenProviderSpec by testSuite {
     test("should send correct OAuth2 client credentials parameters") {
         var requestUrl: String? = null
         var requestMethod: String? = null
+        var formData: Parameters? = null
         val mockEngine = MockEngine { request ->
             requestUrl = request.url.toString()
             requestMethod = request.method.value
+            formData = (request.body as FormDataContent).formData
+            val tokenResponse = TokenResponse(
+                accessToken = "test-token",
+                expiresIn = 300,
+                tokenType = "Bearer"
+            )
+            respond(
+                content = Json.encodeToString(tokenResponse),
+                status = HttpStatusCode.OK,
+                headers = headersOf("Content-Type", ContentType.Application.Json.toString())
+            )
+        }
+
+        val client = HttpClient(mockEngine) {
+            install(ContentNegotiation) { json() }
+        }
+
+        val provider = ClientCredentialsTokenProvider(
+            httpClient = client,
+            tokenEndpoint = "http://keycloak/token",
+            clientId = "my-service",
+            clientSecret = "my-secret",
+            scope = "aud-order-service"
+        )
+
+        provider.getToken()
+
+        assertEquals("http://keycloak/token", requestUrl)
+        assertEquals("POST", requestMethod)
+        assertEquals("client_credentials", formData?.get("grant_type"))
+        assertEquals("my-service", formData?.get("client_id"))
+        assertEquals("my-secret", formData?.get("client_secret"))
+        assertEquals("aud-order-service", formData?.get("scope"))
+    }
+
+    test("should omit scope when not provided") {
+        var formData: Parameters? = null
+        val mockEngine = MockEngine { request ->
+            formData = (request.body as FormDataContent).formData
             val tokenResponse = TokenResponse(
                 accessToken = "test-token",
                 expiresIn = 300,
@@ -165,8 +207,7 @@ val clientCredentialsTokenProviderSpec by testSuite {
 
         provider.getToken()
 
-        assertEquals("http://keycloak/token", requestUrl)
-        assertEquals("POST", requestMethod)
+        assertEquals(null, formData?.get("scope"))
     }
 
     test("should calculate expiry time correctly") {

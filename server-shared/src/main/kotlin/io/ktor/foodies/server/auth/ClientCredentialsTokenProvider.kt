@@ -25,7 +25,8 @@ class ClientCredentialsTokenProvider(
     private val httpClient: HttpClient,
     private val tokenEndpoint: String,
     private val clientId: String,
-    private val clientSecret: String
+    private val clientSecret: String,
+    private val scope: String? = null
 ) : ServiceTokenProvider {
 
     private var cachedToken: ServiceToken? = null
@@ -42,6 +43,7 @@ class ClientCredentialsTokenProvider(
                 append("grant_type", "client_credentials")
                 append("client_id", clientId)
                 append("client_secret", clientSecret)
+                scope?.let { append("scope", it) }
             }
         ).body()
 

@@ -4,6 +4,7 @@ import io.ktor.foodies.server.getValue
 import io.ktor.foodies.server.htmx.MenuIntersectTrigger
 import io.ktor.foodies.server.htmx.respondHtmxFragment
 import io.ktor.foodies.server.security.UserSession
+import io.ktor.foodies.server.security.public
 import io.ktor.server.application.Application
 import io.ktor.server.htmx.hx
 import io.ktor.server.routing.get
@@ -29,8 +30,8 @@ import kotlinx.html.span
 import kotlin.collections.set
 
 @OptIn(ExperimentalKtorApi::class)
-fun Application.menuRoutes(menuService: MenuService) {
-    routing {
+fun Application.menuRoutes(menuService: MenuService) = routing {
+    public {
         hx {
             get("/menu") {
                 val offset: Int by call.parameters

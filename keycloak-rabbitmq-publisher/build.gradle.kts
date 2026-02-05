@@ -77,10 +77,11 @@ tasks {
     }
 
     withType<Test>().configureEach {
-        dependsOn(publishImageToLocalRegistry)
+//        dependsOn(publishImageToLocalRegistry)
         dependsOn("installPlaywrightBrowsers")
         systemProperty("keycloak.image", imageTag)
         systemProperty("headless", project.findProperty("headless") ?: "true")
+        systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
     }
 }
 

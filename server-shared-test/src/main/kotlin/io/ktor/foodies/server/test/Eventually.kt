@@ -11,7 +11,6 @@ import kotlin.time.TimeSource
 
 @OptIn(ExperimentalContracts::class)
 suspend fun eventually(timeout: Duration = 3.seconds, block: suspend CoroutineScope.() -> Unit) {
-    contract { callsInPlace(block, InvocationKind.UNKNOWN) }
     var last: Throwable? = null
     val startTime = TimeSource.Monotonic.markNow()
     while (startTime.elapsedNow() < timeout) {

@@ -13,5 +13,7 @@ configMapGenerator:
       - HOST=0.0.0.0
       - PORT=8082
       - DB_URL=jdbc:postgresql://menu-postgres:5432/foodies-menu-database
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
       - RABBITMQ_EXCHANGE=foodies
       - RABBITMQ_QUEUE=menu.stock-validation
