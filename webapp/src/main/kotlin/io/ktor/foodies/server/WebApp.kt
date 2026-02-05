@@ -22,13 +22,7 @@ import kotlinx.coroutines.Dispatchers
 
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
-    embeddedServer(Netty, configure = {
-        connector {
-            host = config.host
-            port = config.port
-        }
-        shutdownGracePeriod = 30_000L
-    }) {
+    embeddedServer(Netty, host = config.host, port = config.port) {
         val (_, openTelemetry) = monitoring(config.telemetry)
         app(config, module(config, openTelemetry))
     }.start(wait = true)
