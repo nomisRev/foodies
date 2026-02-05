@@ -73,12 +73,12 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: basket-service-user-credentials
+                  name: basket-service-credentials
                   key: username
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: basket-service-user-credentials
+                  name: basket-service-credentials
                   key: password
             - name: RABBITMQ_QUEUE
               valueFrom:

@@ -4,9 +4,11 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
-import io.ktor.client.request.header
 import io.ktor.foodies.server.SerializableBigDecimal
+import io.ktor.foodies.server.auth.AuthContext
+import io.ktor.foodies.server.auth.ServiceTokenProvider
 import io.ktor.http.HttpStatusCode
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -30,18 +32,20 @@ interface BasketClient {
 
 class HttpBasketClient(
     private val httpClient: HttpClient,
-    private val baseUrl: String
+    private val baseUrl: String,
+    private val tokenProvider: ServiceTokenProvider
 ) : BasketClient {
     private val basketBaseUrl = baseUrl.trimEnd('/')
 
     override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? {
-        return try {
-            httpClient.get("$basketBaseUrl/basket") {
-                header("Authorization", "Bearer $token")
-            }.body<CustomerBasket>()
-        } catch (e: ClientRequestException) {
-            if (e.response.status == HttpStatusCode.NotFound) null
-            else throw e
+        val serviceToken = tokenProvider.getToken().accessToken
+        return withContext(AuthContext.ServiceAuth(serviceToken, token)) {
+            try {
+                httpClient.get("$basketBaseUrl/basket").body<CustomerBasket>()
+            } catch (e: ClientRequestException) {
+                if (e.response.status == HttpStatusCode.NotFound) null
+                else throw e
+            }
         }
     }
 }

@@ -74,18 +74,24 @@ spec:
                   name: postgres-credentials
                   key: POSTGRES_PASSWORD
             - name: RABBITMQ_HOST
-              value: rabbitmq
+              valueFrom:
+                configMapKeyRef:
+                  name: menu-config
+                  key: RABBITMQ_HOST
             - name: RABBITMQ_PORT
-              value: "5672"
+              valueFrom:
+                configMapKeyRef:
+                  name: menu-config
+                  key: RABBITMQ_PORT
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: menu-service-user-credentials
+                  name: menu-service-credentials
                   key: username
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: menu-service-user-credentials
+                  name: menu-service-credentials
                   key: password
             - name: RABBITMQ_EXCHANGE
               valueFrom:

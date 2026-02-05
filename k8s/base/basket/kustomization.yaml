@@ -11,7 +11,7 @@ configMapGenerator:
       - HOST=0.0.0.0
       - PORT=8083
       - AUTH_ISSUER=http://keycloak:8000/auth/realms/foodies-keycloak
-      - AUTH_AUDIENCE=account
+      - AUTH_AUDIENCE=basket-service
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - REDIS_PASSWORD=""

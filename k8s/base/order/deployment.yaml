@@ -88,6 +88,16 @@ spec:
                 configMapKeyRef:
                   name: order-config
                   key: BASKET_BASE_URL
+            - name: BASKET_CLIENT_ID
+              valueFrom:
+                configMapKeyRef:
+                  name: order-config
+                  key: BASKET_CLIENT_ID
+            - name: BASKET_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: order-service-auth
+                  key: BASKET_CLIENT_SECRET
             - name: PAYMENT_BASE_URL
               valueFrom:
                 configMapKeyRef:
@@ -106,12 +116,12 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: order-service-user-credentials
+                  name: order-service-credentials
                   key: username
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: order-service-user-credentials
+                  name: order-service-credentials
                   key: password
             - name: RABBITMQ_EXCHANGE
               valueFrom:

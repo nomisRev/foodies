@@ -31,7 +31,7 @@ fun TestSuite.keycloak(rabbit: TestFixture<RabbitContainer>) = testFixture {
         withEnv("RABBITMQ_PORT", rabbit.amqpPort.toString())
         withEnv("RABBITMQ_USERNAME", rabbit.adminUsername)
         withEnv("RABBITMQ_PASSWORD", rabbit.adminPassword)
-        val realmFile = Paths.get("../keycloak/realm.json").toAbsolutePath().normalize()
+        val realmFile = Paths.get("../k8s/base/keycloak/realm.json").toAbsolutePath().normalize()
         withCopyFileToContainer(MountableFile.forHostPath(realmFile), "/opt/keycloak/data/import/realm.json")
         start()
     }
@@ -61,7 +61,7 @@ fun e2eSuite(
     @TestElementName name: String = "",
     @TestDisplayName displayName: String = name,
     testConfig: TestConfig = TestConfig,
-    browserType: AppBrowserType = AppBrowserType.CHROMIUM,
+    browserType: AppBrowserType = AppBrowserType.WEBKIT ,
     authenticated: Boolean = true,
     content: context(E2EContext) TestSuite.() -> Unit
 ): Lazy<TestSuite> = testSuite(name, displayName, testConfig) {

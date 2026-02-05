@@ -3,6 +3,7 @@ config:
   port: "$PORT:8083"
   auth:
     issuer: "$AUTH_ISSUER:http://localhost:9090/realms/foodies-keycloak"
+    audience: "$AUTH_AUDIENCE:basket-service"
   redis:
     host: "$REDIS_HOST:localhost"
     port: "$REDIS_PORT:6379"

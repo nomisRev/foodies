@@ -1,14 +1,13 @@
 package io.ktor.foodies.server.htmx
 
 import io.ktor.foodies.server.security.UserSession
+import io.ktor.foodies.server.security.public
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import io.ktor.server.sessions.get
-import io.ktor.server.sessions.sessions
 import kotlinx.html.FlowContent
 import kotlinx.html.a
 import kotlinx.html.body
@@ -29,7 +28,7 @@ import kotlinx.html.title
 const val DefaultMenuPageSize = 12
 const val MenuIntersectTrigger = "intersect once rootMargin: 800px"
 
-fun Route.home() = authenticate(optional = true) {
+fun Route.home() = public {
     get("/") {
         val userOrNull = call.principal<UserSession>()
         val isLoggedIn = userOrNull != null
