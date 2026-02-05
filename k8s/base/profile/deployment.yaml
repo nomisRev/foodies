@@ -86,12 +86,12 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: profile-service-user-credentials
+                  name: profile-service-credentials
                   key: username
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: profile-service-user-credentials
+                  name: profile-service-credentials
                   key: password
             - name: RABBITMQ_QUEUE
               valueFrom:

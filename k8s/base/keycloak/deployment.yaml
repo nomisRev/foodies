@@ -90,12 +90,12 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: keycloak-service-user-credentials
+                  name: keycloak-service-credentials
                   key: username
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: keycloak-service-user-credentials
+                  name: keycloak-service-credentials
                   key: password
             - name: RABBITMQ_QUEUE
               valueFrom:

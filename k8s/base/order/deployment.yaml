@@ -116,12 +116,12 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: order-service-user-credentials
+                  name: order-service-credentials
                   key: username
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: order-service-user-credentials
+                  name: order-service-credentials
                   key: password
             - name: RABBITMQ_EXCHANGE
               valueFrom:

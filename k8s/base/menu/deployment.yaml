@@ -80,12 +80,12 @@ spec:
             - name: RABBITMQ_USERNAME
               valueFrom:
                 secretKeyRef:
-                  name: menu-service-user-credentials
+                  name: menu-service-credentials
                   key: username
             - name: RABBITMQ_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: menu-service-user-credentials
+                  name: menu-service-credentials
                   key: password
             - name: RABBITMQ_EXCHANGE
               valueFrom:
