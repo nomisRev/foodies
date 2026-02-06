@@ -57,8 +57,8 @@ private data class SessionPayload(
     val idToken: String,
     val accessToken: String,
     val expiresIn: Long,
-    val refreshToken: String?,
-    val expiresAtEpochSeconds: Long?
+    val refreshToken: String,
+    val expiresAtEpochSeconds: Long
 )
 
 context(ctx: ServiceContext)
@@ -110,7 +110,7 @@ val userSessionScopeSpec by ctxSuite(context = { serviceContext() }, testConfig 
                             accessToken = payload.accessToken,
                             expiresIn = payload.expiresIn,
                             refreshToken = payload.refreshToken,
-                            expiresAt = payload.expiresAtEpochSeconds?.let { Instant.fromEpochSeconds(it) }
+                            expiresAt = Instant.fromEpochSeconds(payload.expiresAtEpochSeconds)
                         )
                     )
                     call.respondText("Session set")
@@ -164,7 +164,7 @@ val userSessionScopeSpec by ctxSuite(context = { serviceContext() }, testConfig 
                             accessToken = payload.accessToken,
                             expiresIn = payload.expiresIn,
                             refreshToken = payload.refreshToken,
-                            expiresAt = payload.expiresAtEpochSeconds?.let { Instant.fromEpochSeconds(it) }
+                            expiresAt = Instant.fromEpochSeconds(payload.expiresAtEpochSeconds)
                         )
                     )
                     call.respondText("Session set")
