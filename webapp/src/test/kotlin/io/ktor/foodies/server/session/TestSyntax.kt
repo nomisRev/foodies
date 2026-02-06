@@ -10,12 +10,12 @@ import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.coroutines
 
-data class ServiceContext(
+data class RedisContext(
     val redisContainer: TestFixture<RedisContainer>,
     val redisClient: TestFixture<RedisClient>
 )
 
-fun TestSuite.serviceContext(): ServiceContext {
+fun TestSuite.redisContext(): RedisContext {
     val container = testFixture {
         RedisContainer("redis:7-alpine").apply { start() }
     }
@@ -23,12 +23,12 @@ fun TestSuite.serviceContext(): ServiceContext {
     val redisClient = testFixture {
         RedisClient.create(container().redisURI)
     }
-    return ServiceContext(container, redisClient)
+    return RedisContext(container, redisClient)
 }
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 @TestRegistering
-context(ctx: ServiceContext)
+context(ctx: RedisContext)
 fun TestSuite.testRedis(
     name: String,
     ttlSeconds: Long = 3600,

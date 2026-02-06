@@ -1,18 +1,18 @@
 package io.ktor.foodies.server.security
 
-import io.ktor.foodies.server.auth.AuthContext
-import io.ktor.foodies.server.auth.SecuredUser
-import io.ktor.foodies.server.auth.UserPrincipal
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCallPipeline
-import io.ktor.server.application.call
-import io.ktor.server.application.createRouteScopedPlugin
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingContext
-import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import org.slf4j.LoggerFactory
+import kotlin.time.Instant
+
+@Serializable
+data class UserSession(
+    val idToken: String,
+    val accessToken: String,
+    val expiresIn: Long,
+    val refreshToken: String,
+    val expiresAt: Instant,
+)
 
 fun interface UserSessionScope {
     context(ctx: RoutingContext)
@@ -21,30 +21,3 @@ fun interface UserSessionScope {
 
 context(scope: UserSessionScope)
 suspend fun RoutingContext.userSession(): UserSession = scope.userSession()
-
-fun Route.public(build: Route.() -> Unit): Route = authenticate(optional = true) {
-    install(createRouteScopedPlugin("SecureUserSession") {
-        route!!.intercept(ApplicationCallPipeline.Call) {
-            val user = call.principal<UserSession>()
-            if (user == null) proceed()
-            else withContext(AuthContext.UserAuth(user.accessToken)) { proceed() }
-        }
-    })
-    build()
-}
-
-fun Route.userSession(build: context(UserSessionScope) Route.() -> Unit): Route = authenticate {
-    install(createRouteScopedPlugin("SecureUserSession") {
-        route!!.intercept(ApplicationCallPipeline.Call) {
-            val principal = requireNotNull(call.principal<UserSession>()) { "UserSession not found" }
-            withContext(AuthContext.UserAuth(principal.idToken)) { proceed() }
-        }
-    })
-    with(UserSessionScope {
-        requireNotNull(contextOf<RoutingContext>().call.principal<UserSession>()) {
-            "UserSession not found - route not properly secured with userSession"
-        }
-    }) {
-        build()
-    }
-}
