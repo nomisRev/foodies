@@ -52,3 +52,4 @@ TODO.MD
 buildSrc/build/
 custom-ralph.main.kts
 .worktrees
+.worktree
