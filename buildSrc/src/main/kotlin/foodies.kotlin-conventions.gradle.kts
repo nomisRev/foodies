@@ -15,6 +15,7 @@ kotlin {
 }
 
 dependencies {
+    testImplementation(kotlin("test"))
     testImplementation("de.infix.testBalloon:testBalloon-framework-core:0.8.1-K2.3.0")
 }
 

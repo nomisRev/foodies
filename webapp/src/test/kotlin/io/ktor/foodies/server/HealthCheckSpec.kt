@@ -3,7 +3,6 @@ package io.ktor.foodies.server
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.foodies.server.test.ctxSuite
-import io.ktor.foodies.server.test.eventually
 import io.ktor.http.HttpStatusCode
 import kotlin.test.assertEquals
 import kotlin.test.assertContains
