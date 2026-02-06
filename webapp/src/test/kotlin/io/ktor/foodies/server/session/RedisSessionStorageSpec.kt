@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
-val redisSessionStorageSpec by ctxSuite(context = { serviceContext() }) {
+val redisSessionStorageSpec by ctxSuite(context = { redisContext() }) {
 
     testRedis("write and read session") { storage ->
         val sessionValue = "test-session-data"

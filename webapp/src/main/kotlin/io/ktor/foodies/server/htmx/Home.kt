@@ -3,7 +3,6 @@ package io.ktor.foodies.server.htmx
 import io.ktor.foodies.server.security.UserSession
 import io.ktor.foodies.server.security.public
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtml
 import io.ktor.server.routing.Route
