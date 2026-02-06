@@ -116,6 +116,9 @@ suspend fun Application.security(
             }.buildString())
         }
     }
+
+    attributes[RefresherKey] =
+        TokenRefresher(httpClient, openIdConfig.tokenEndpoint, config.clientId, config.clientSecret)
 }
 
 fun Route.public(build: Route.() -> Unit): Route = authenticate(optional = true) {
