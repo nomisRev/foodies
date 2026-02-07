@@ -1,7 +1,7 @@
 package io.ktor.foodies.server.htmx.menu
 
 import io.ktor.foodies.server.getValue
-import io.ktor.foodies.server.htmx.MenuIntersectTrigger
+import io.ktor.foodies.server.htmx.MENU_INTERSECT_TRIGGER
 import io.ktor.foodies.server.htmx.respondHtmxFragment
 import io.ktor.foodies.server.security.UserSession
 import io.ktor.foodies.server.security.public
@@ -99,7 +99,7 @@ private fun TagConsumer<Appendable>.menuSentinel(nextOffset: Int, limit: Int) {
     div(classes = "sentinel") {
         id = "feed-sentinel"
         attributes["hx-get"] = "/menu?offset=$nextOffset&limit=$limit"
-        attributes["hx-trigger"] = MenuIntersectTrigger
+        attributes["hx-trigger"] = MENU_INTERSECT_TRIGGER
         attributes["hx-swap"] = "outerHTML"
         attributes["hx-indicator"] = "#feed-spinner"
         span { +"Loading more dishes..." }

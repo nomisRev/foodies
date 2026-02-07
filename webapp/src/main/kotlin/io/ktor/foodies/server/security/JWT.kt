@@ -9,9 +9,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 
-internal fun AuthenticationConfig.jwt(jwks: JwkProvider, issuer: String) = jwt {
+internal fun AuthenticationConfig.jwt(jwks: JwkProvider, issuer: String, leeway: Long = 3) = jwt {
     verifier(jwks, issuer) {
-        acceptLeeway(3)
+        acceptLeeway(leeway)
         withAudience("foodies")
     }
     authHeader { call ->

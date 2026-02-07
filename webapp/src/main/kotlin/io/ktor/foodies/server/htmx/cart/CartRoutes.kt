@@ -1,3 +1,4 @@
+@file:Suppress("TooManyFunctions")
 package io.ktor.foodies.server.htmx.cart
 
 import io.ktor.foodies.server.getValue
@@ -22,6 +23,7 @@ import io.ktor.utils.io.ExperimentalKtorApi
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlinx.html.ButtonType
+import kotlinx.html.Entities
 import kotlinx.html.FlowContent
 import kotlinx.html.HTML
 import kotlinx.html.TagConsumer
@@ -49,18 +51,11 @@ import kotlinx.html.span
 import kotlinx.html.title
 
 @OptIn(ExperimentalKtorApi::class)
-fun Application.cartRoutes(basketService: BasketService) {
-    routing {
+fun Application.cartRoutes(basketService: BasketService) = routing {
         hx {
             get("/cart/badge") {
                 val session = call.sessions.get<UserSession>()
-                val itemCount =
-                    if (session != null) {
-                        runCatching { basketService.getBasket().items.sumOf { it.quantity } }
-                            .getOrDefault(0)
-                    } else {
-                        0
-                    }
+                val itemCount = if (session != null) basketService.count() else 0
                 call.respondHtmxFragment { cartBadge(itemCount) }
             }
         }
@@ -123,295 +118,253 @@ fun Application.cartRoutes(basketService: BasketService) {
             }
         }
     }
-}
 
-private fun TagConsumer<*>.cartBadge(itemCount: Int) {
-    a(href = "/cart", classes = "cart-link") {
-        id = "cart-badge"
-        attributes["hx-get"] = "/cart/badge"
-        attributes["hx-trigger"] = "cart-updated from:body"
-        attributes["hx-swap"] = "outerHTML"
-        span(classes = "cart-icon") { +"Cart" }
-        if (itemCount > 0) {
-            span(classes = "cart-count") { +itemCount.toString() }
-        }
-    }
-}
-
-private fun FlowContent.cartBadgeFlow(itemCount: Int) {
-    a(href = "/cart", classes = "cart-link") {
-        id = "cart-badge"
-        attributes["hx-get"] = "/cart/badge"
-        attributes["hx-trigger"] = "cart-updated from:body"
-        attributes["hx-swap"] = "outerHTML"
-        span(classes = "cart-icon") { +"Cart" }
-        if (itemCount > 0) {
-            span(classes = "cart-count") { +itemCount.toString() }
-        }
-    }
-}
-
-private fun TagConsumer<*>.cartBadgeOob(itemCount: Int) {
-    a(href = "/cart", classes = "cart-link") {
-        id = "cart-badge"
-        attributes["hx-swap-oob"] = "true"
-        attributes["hx-get"] = "/cart/badge"
-        attributes["hx-trigger"] = "cart-updated from:body"
-        span(classes = "cart-icon") { +"Cart" }
-        if (itemCount > 0) {
-            span(classes = "cart-count") { +itemCount.toString() }
-        }
-    }
-}
-
-private fun TagConsumer<*>.addToCartSuccess() {
-    div(classes = "toast success") {
-        id = "toast"
-        attributes["hx-swap-oob"] = "true"
-        +"Added to cart!"
-    }
-}
-
-private fun HTML.cartPage(basket: CustomerBasket) {
-    lang = "en"
-    head {
-        meta { charset = "utf-8" }
-        meta {
-            name = "viewport"
-            content = "width=device-width, initial-scale=1"
-        }
-        title { +"Foodies - Your Cart" }
-        link(rel = "stylesheet", href = "/static/home.css")
-        link(rel = "stylesheet", href = "/static/cart.css")
-        script(src = "https://unpkg.com/htmx.org@1.9.12") {}
-    }
-
-    body {
-        header {
-            a(href = "/", classes = "logo") { +"Foodies" }
-            div(classes = "actions") {
-                cartBadgeFlow(basket.items.sumOf { it.quantity })
-                a(href = "/logout", classes = "button secondary") { +"Log out" }
+    private fun TagConsumer<*>.cartBadge(itemCount: Int) {
+        a(href = "/cart", classes = "cart-link") {
+            id = "cart-badge"
+            attributes["hx-get"] = "/cart/badge"
+            attributes["hx-trigger"] = "cart-updated from:body"
+            attributes["hx-swap"] = "outerHTML"
+            span(classes = "cart-icon") { +"Cart" }
+            if (itemCount > 0) {
+                span(classes = "cart-count") { +itemCount.toString() }
             }
         }
+    }
 
-        main {
-            section(classes = "cart-section") {
-                h1 { +"Your Cart" }
+    private fun FlowContent.cartBadgeFlow(itemCount: Int) {
+        a(href = "/cart", classes = "cart-link") {
+            id = "cart-badge"
+            attributes["hx-get"] = "/cart/badge"
+            attributes["hx-trigger"] = "cart-updated from:body"
+            attributes["hx-swap"] = "outerHTML"
+            span(classes = "cart-icon") { +"Cart" }
+            if (itemCount > 0) {
+                span(classes = "cart-count") { +itemCount.toString() }
+            }
+        }
+    }
 
-                if (basket.items.isEmpty()) {
-                    cartEmptyFlow()
-                } else {
-                    div(classes = "cart-container") {
-                        div(classes = "cart-items") {
-                            id = "cart-items"
-                            basket.items.forEach { item -> cartItemCardFlow(item) }
+    private fun TagConsumer<*>.cartBadgeOob(itemCount: Int) {
+        a(href = "/cart", classes = "cart-link") {
+            id = "cart-badge"
+            attributes["hx-swap-oob"] = "true"
+            attributes["hx-get"] = "/cart/badge"
+            attributes["hx-trigger"] = "cart-updated from:body"
+            span(classes = "cart-icon") { +"Cart" }
+            if (itemCount > 0) {
+                span(classes = "cart-count") { +itemCount.toString() }
+            }
+        }
+    }
+
+    private fun TagConsumer<*>.addToCartSuccess() {
+        div(classes = "toast success") {
+            id = "toast"
+            attributes["hx-swap-oob"] = "true"
+            +"Added to cart!"
+        }
+    }
+
+    private fun HTML.cartPage(basket: CustomerBasket) {
+        lang = "en"
+        head {
+            meta { charset = "utf-8" }
+            meta {
+                name = "viewport"
+                content = "width=device-width, initial-scale=1"
+            }
+            title { +"Foodies - Your Cart" }
+            link(rel = "stylesheet", href = "/static/home.css")
+            link(rel = "stylesheet", href = "/static/cart.css")
+            script(src = "https://unpkg.com/htmx.org@1.9.12") {}
+        }
+
+        body {
+            header {
+                a(href = "/", classes = "logo") { +"Foodies" }
+                div(classes = "actions") {
+                    cartBadgeFlow(basket.items.sumOf { it.quantity })
+                    a(href = "/logout", classes = "button secondary") { +"Log out" }
+                }
+            }
+
+            main {
+                section(classes = "cart-section") {
+                    h1 { +"Your Cart" }
+
+                    if (basket.items.isEmpty()) {
+                        cartEmptyFlow()
+                    } else {
+                        div(classes = "cart-container") {
+                            div(classes = "cart-items") {
+                                id = "cart-items"
+                                basket.items.forEach { item -> cartItemCardFlow(item) }
+                            }
+
+                            cartSummaryFlow(basket)
                         }
-
-                        cartSummaryFlow(basket)
                     }
                 }
             }
-        }
 
-        // Toast container for notifications
-        div(classes = "toast-container") { div { id = "toast" } }
-    }
-}
-
-private fun TagConsumer<*>.cartItemsFragment(basket: CustomerBasket) {
-    div(classes = "cart-items") {
-        id = "cart-items"
-        if (basket.items.isEmpty()) {
-            cartEmpty()
-        } else {
-            basket.items.forEach { item -> cartItemCard(item) }
+            // Toast container for notifications
+            div(classes = "toast-container") { div { id = "toast" } }
         }
     }
-}
 
-private fun TagConsumer<*>.cartEmpty() {
-    div(classes = "cart-empty") {
-        h2 { +"Your cart is empty" }
-        p { +"Looks like you haven't added any items yet." }
-        a(href = "/", classes = "button primary") { +"Browse Menu" }
-    }
-}
-
-private fun FlowContent.cartEmptyFlow() {
-    div(classes = "cart-empty") {
-        h2 { +"Your cart is empty" }
-        p { +"Looks like you haven't added any items yet." }
-        a(href = "/", classes = "button primary") { +"Browse Menu" }
-    }
-}
-
-private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
-    div(classes = "cart-item") {
-        id = "cart-item-${item.id}"
-        img(src = item.menuItemImageUrl, alt = item.menuItemName, classes = "cart-item-image")
-
-        div(classes = "cart-item-details") {
-            h3 { +item.menuItemName }
-            p(classes = "cart-item-description") { +item.menuItemDescription }
-            span(classes = "cart-item-price") {
-                +"$${item.unitPrice.setScale(2, RoundingMode.HALF_UP).toPlainString()}"
-            }
-        }
-
-        div(classes = "cart-item-actions") {
-            // Quantity controls
-            form(classes = "quantity-form") {
-                attributes["hx-put"] = "/cart/items/${item.id}"
-                attributes["hx-target"] = "#cart-items"
-                attributes["hx-swap"] = "outerHTML"
-
-                button(type = ButtonType.button, classes = "qty-btn") {
-                    attributes["onclick"] =
-                        "this.nextElementSibling.stepDown(); this.form.requestSubmit();"
-                    +"-"
-                }
-                numberInput(name = "quantity", classes = "quantity-input") {
-                    value = item.quantity.toString()
-                    min = "1"
-                    max = "99"
-                    attributes["onchange"] = "this.form.requestSubmit();"
-                }
-                button(type = ButtonType.button, classes = "qty-btn") {
-                    attributes["onclick"] =
-                        "this.previousElementSibling.stepUp(); this.form.requestSubmit();"
-                    +"+"
-                }
-            }
-
-            // Item subtotal
-            span(classes = "cart-item-subtotal") {
-                val subtotal =
-                    item.unitPrice
-                        .multiply(BigDecimal(item.quantity))
-                        .setScale(2, RoundingMode.HALF_UP)
-                        .toPlainString()
-                +"$$subtotal"
-            }
-
-            // Remove button
-            button(classes = "remove-btn") {
-                attributes["hx-delete"] = "/cart/items/${item.id}"
-                attributes["hx-target"] = "#cart-items"
-                attributes["hx-swap"] = "outerHTML"
-                attributes["hx-confirm"] = "Remove this item from your cart?"
-                +"Remove"
+    private fun TagConsumer<*>.cartItemsFragment(basket: CustomerBasket) {
+        div(classes = "cart-items") {
+            id = "cart-items"
+            if (basket.items.isEmpty()) {
+                cartEmpty()
+            } else {
+                basket.items.forEach { item -> cartItemCard(item) }
             }
         }
     }
-}
 
-private fun FlowContent.cartItemCardFlow(item: BasketItem) {
-    div(classes = "cart-item") {
-        id = "cart-item-${item.id}"
-        img(src = item.menuItemImageUrl, alt = item.menuItemName, classes = "cart-item-image")
-
-        div(classes = "cart-item-details") {
-            h3 { +item.menuItemName }
-            p(classes = "cart-item-description") { +item.menuItemDescription }
-            span(classes = "cart-item-price") {
-                +"$${item.unitPrice.setScale(2, RoundingMode.HALF_UP).toPlainString()}"
-            }
+    private fun TagConsumer<*>.cartEmpty() {
+        div(classes = "cart-empty") {
+            h2 { +"Your cart is empty" }
+            p { +"Looks like you haven't added any items yet." }
+            a(href = "/", classes = "button primary") { +"Browse Menu" }
         }
+    }
 
-        div(classes = "cart-item-actions") {
-            // Quantity controls
-            form(classes = "quantity-form") {
-                attributes["hx-put"] = "/cart/items/${item.id}"
-                attributes["hx-target"] = "#cart-items"
-                attributes["hx-swap"] = "outerHTML"
+    private fun FlowContent.cartEmptyFlow() {
+        div(classes = "cart-empty") {
+            h2 { +"Your cart is empty" }
+            p { +"Looks like you haven't added any items yet." }
+            a(href = "/", classes = "button primary") { +"Browse Menu" }
+        }
+    }
 
-                button(type = ButtonType.button, classes = "qty-btn") {
-                    attributes["onclick"] =
-                        "this.nextElementSibling.stepDown(); this.form.requestSubmit();"
-                    +"-"
-                }
-                numberInput(name = "quantity", classes = "quantity-input") {
-                    value = item.quantity.toString()
-                    min = "1"
-                    max = "99"
-                    attributes["onchange"] = "this.form.requestSubmit();"
-                }
-                button(type = ButtonType.button, classes = "qty-btn") {
-                    attributes["onclick"] =
-                        "this.previousElementSibling.stepUp(); this.form.requestSubmit();"
-                    +"+"
+    private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
+        div(classes = "cart-item") {
+            id = "cart-item-${item.id}"
+            img(src = item.menuItemImageUrl, alt = item.menuItemName, classes = "cart-item-image")
+
+            div(classes = "cart-item-details") {
+                h3 { +item.menuItemName }
+                p(classes = "cart-item-description") { +item.menuItemDescription }
+                span(classes = "cart-item-price") {
+                    +"$${item.unitPrice.setScale(2, RoundingMode.HALF_UP).toPlainString()}"
                 }
             }
 
-            // Item subtotal
-            span(classes = "cart-item-subtotal") {
-                val subtotal =
-                    item.unitPrice
-                        .multiply(BigDecimal(item.quantity))
-                        .setScale(2, RoundingMode.HALF_UP)
-                        .toPlainString()
-                +"$$subtotal"
-            }
+            div(classes = "cart-item-actions") {
+                // Quantity controls
+                form(classes = "quantity-form") {
+                    attributes["hx-put"] = "/cart/items/${item.id}"
+                    attributes["hx-target"] = "#cart-items"
+                    attributes["hx-swap"] = "outerHTML"
 
-            // Remove button
-            button(classes = "remove-btn") {
-                attributes["hx-delete"] = "/cart/items/${item.id}"
-                attributes["hx-target"] = "#cart-items"
-                attributes["hx-swap"] = "outerHTML"
-                attributes["hx-confirm"] = "Remove this item from your cart?"
-                +"Remove"
+                    button(type = ButtonType.button, classes = "qty-btn") {
+                        attributes["onclick"] =
+                            "this.nextElementSibling.stepDown(); this.form.requestSubmit();"
+                        +"-"
+                    }
+                    numberInput(name = "quantity", classes = "quantity-input") {
+                        value = item.quantity.toString()
+                        min = "1"
+                        max = "99"
+                        attributes["onchange"] = "this.form.requestSubmit();"
+                    }
+                    button(type = ButtonType.button, classes = "qty-btn") {
+                        attributes["onclick"] =
+                            "this.previousElementSibling.stepUp(); this.form.requestSubmit();"
+                        +"+"
+                    }
+                }
+
+                // Item subtotal
+                span(classes = "cart-item-subtotal") {
+                    val subtotal =
+                        item.unitPrice
+                            .multiply(BigDecimal(item.quantity))
+                            .setScale(2, RoundingMode.HALF_UP)
+                            .toPlainString()
+                    +"$$subtotal"
+                }
+
+                // Remove button
+                button(classes = "remove-btn") {
+                    attributes["hx-delete"] = "/cart/items/${item.id}"
+                    attributes["hx-target"] = "#cart-items"
+                    attributes["hx-swap"] = "outerHTML"
+                    attributes["hx-confirm"] = "Remove this item from your cart?"
+                    +"Remove"
+                }
             }
         }
     }
-}
 
-private fun FlowContent.cartSummaryFlow(basket: CustomerBasket) {
-    div(classes = "cart-summary") {
-        id = "cart-summary"
-        h2 { +"Order Summary" }
+    private fun FlowContent.cartItemCardFlow(item: BasketItem) {
+        div(classes = "cart-item") {
+            id = "cart-item-${item.id}"
+            img(src = item.menuItemImageUrl, alt = item.menuItemName, classes = "cart-item-image")
 
-        val subtotal =
-            basket.items
-                .fold(BigDecimal.ZERO) { acc, item ->
-                    acc + item.unitPrice.multiply(BigDecimal(item.quantity))
+            div(classes = "cart-item-details") {
+                h3 { +item.menuItemName }
+                p(classes = "cart-item-description") { +item.menuItemDescription }
+                span(classes = "cart-item-price") {
+                    +"$${item.unitPrice.setScale(2, RoundingMode.HALF_UP).toPlainString()}"
                 }
-                .setScale(2, RoundingMode.HALF_UP)
+            }
 
-        div(classes = "summary-row") {
-            span { +"Subtotal (${basket.items.sumOf { it.quantity }} items)" }
-            span { +"$$subtotal" }
-        }
+            div(classes = "cart-item-actions") {
+                // Quantity controls
+                form(classes = "quantity-form") {
+                    attributes["hx-put"] = "/cart/items/${item.id}"
+                    attributes["hx-target"] = "#cart-items"
+                    attributes["hx-swap"] = "outerHTML"
 
-        div(classes = "summary-row total") {
-            span { +"Total" }
-            span { +"$$subtotal" }
-        }
+                    button(type = ButtonType.button, classes = "qty-btn") {
+                        attributes["onclick"] =
+                            "this.nextElementSibling.stepDown(); this.form.requestSubmit();"
+                        +"-"
+                    }
+                    numberInput(name = "quantity", classes = "quantity-input") {
+                        value = item.quantity.toString()
+                        min = "1"
+                        max = "99"
+                        attributes["onchange"] = "this.form.requestSubmit();"
+                    }
+                    button(type = ButtonType.button, classes = "qty-btn") {
+                        attributes["onclick"] =
+                            "this.previousElementSibling.stepUp(); this.form.requestSubmit();"
+                        +"+"
+                    }
+                }
 
-        div(classes = "cart-actions") {
-            a(href = "/", classes = "button secondary") { +"Continue Shopping" }
-            a(href = "/checkout", classes = "button primary") { +"Proceed to Checkout" }
-        }
+                // Item subtotal
+                span(classes = "cart-item-subtotal") {
+                    val subtotal =
+                        item.unitPrice
+                            .multiply(BigDecimal(item.quantity))
+                            .setScale(2, RoundingMode.HALF_UP)
+                            .toPlainString()
+                    +"$$subtotal"
+                }
 
-        button(classes = "clear-cart-btn") {
-            attributes["hx-delete"] = "/cart"
-            attributes["hx-target"] = "#cart-items"
-            attributes["hx-swap"] = "outerHTML"
-            attributes["hx-confirm"] = "Clear your entire cart?"
-            +"Clear Cart"
+                // Remove button
+                button(classes = "remove-btn") {
+                    attributes["hx-delete"] = "/cart/items/${item.id}"
+                    attributes["hx-target"] = "#cart-items"
+                    attributes["hx-swap"] = "outerHTML"
+                    attributes["hx-confirm"] = "Remove this item from your cart?"
+                    +"Remove"
+                }
+            }
         }
     }
-}
 
-private fun TagConsumer<*>.cartSummaryOob(basket: CustomerBasket) {
-    div(classes = "cart-summary") {
-        id = "cart-summary"
-        attributes["hx-swap-oob"] = "true"
-        h2 { +"Order Summary" }
+    private fun FlowContent.cartSummaryFlow(basket: CustomerBasket) {
+        div(classes = "cart-summary") {
+            id = "cart-summary"
+            h2 { +"Order Summary" }
 
-        if (basket.items.isEmpty()) {
-            p { +"Your cart is empty" }
-        } else {
             val subtotal =
                 basket.items
                     .fold(BigDecimal.ZERO) { acc, item ->
@@ -443,4 +396,45 @@ private fun TagConsumer<*>.cartSummaryOob(basket: CustomerBasket) {
             }
         }
     }
-}
+
+    private fun TagConsumer<*>.cartSummaryOob(basket: CustomerBasket) {
+        div(classes = "cart-summary") {
+            id = "cart-summary"
+            attributes["hx-swap-oob"] = "true"
+            h2 { +"Order Summary" }
+
+            if (basket.items.isEmpty()) {
+                p { +"Your cart is empty" }
+            } else {
+                val subtotal =
+                    basket.items
+                        .fold(BigDecimal.ZERO) { acc, item ->
+                            acc + item.unitPrice.multiply(BigDecimal(item.quantity))
+                        }
+                        .setScale(2, RoundingMode.HALF_UP)
+
+                div(classes = "summary-row") {
+                    span { +"Subtotal (${basket.items.sumOf { it.quantity }} items)" }
+                    span { +"$$subtotal" }
+                }
+
+                div(classes = "summary-row total") {
+                    span { +"Total" }
+                    span { +"$$subtotal" }
+                }
+
+                div(classes = "cart-actions") {
+                    a(href = "/", classes = "button secondary") { +"Continue Shopping" }
+                    a(href = "/checkout", classes = "button primary") { +"Proceed to Checkout" }
+                }
+
+                button(classes = "clear-cart-btn") {
+                    attributes["hx-delete"] = "/cart"
+                    attributes["hx-target"] = "#cart-items"
+                    attributes["hx-swap"] = "outerHTML"
+                    attributes["hx-confirm"] = "Clear your entire cart?"
+                    +"Clear Cart"
+                }
+            }
+        }
+    }

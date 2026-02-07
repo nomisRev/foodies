@@ -19,6 +19,9 @@ interface BasketService {
      */
     suspend fun getBasket(): CustomerBasket
 
+    suspend fun count(): Int =
+        runCatching { getBasket().items.sumOf { it.quantity } }.getOrDefault(0)
+
     /**
      * Add an item to the basket. If the menu item already exists, increments the quantity.
      *

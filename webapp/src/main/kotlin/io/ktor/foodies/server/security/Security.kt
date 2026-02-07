@@ -251,6 +251,7 @@ private fun AuthenticationConfig.oauth(
         }
     }
 
+@Suppress("MagicNumber")
 private fun ApplicationCall.requestUrl(callback: String): String {
     val portSuffix =
         when {

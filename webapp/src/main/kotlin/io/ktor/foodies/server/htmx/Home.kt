@@ -24,8 +24,8 @@ import kotlinx.html.section
 import kotlinx.html.span
 import kotlinx.html.title
 
-const val DefaultMenuPageSize = 12
-const val MenuIntersectTrigger = "intersect once rootMargin: 800px"
+const val DEFAULT_MENU_PAGE_SIZE = 12
+const val MENU_INTERSECT_TRIGGER = "intersect once rootMargin: 800px"
 
 fun Route.home() = public {
     get("/") {
@@ -70,8 +70,8 @@ fun Route.home() = public {
 
                             div(classes = "sentinel") {
                                 id = "feed-sentinel"
-                                attributes["hx-get"] = "/menu?offset=0&limit=$DefaultMenuPageSize"
-                                attributes["hx-trigger"] = MenuIntersectTrigger
+                                attributes["hx-get"] = "/menu?offset=0&limit=$DEFAULT_MENU_PAGE_SIZE"
+                                attributes["hx-trigger"] = MENU_INTERSECT_TRIGGER
                                 attributes["hx-swap"] = "outerHTML"
                                 attributes["hx-indicator"] = "#feed-spinner"
                                 span { +"Loading menu..." }
