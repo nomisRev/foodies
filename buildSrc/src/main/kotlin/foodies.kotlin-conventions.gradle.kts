@@ -8,6 +8,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
     id("de.infix.testBalloon")
     id("foodies.spotless-conventions")
+    id("foodies.detekt-conventions")
 }
 
 kotlin {

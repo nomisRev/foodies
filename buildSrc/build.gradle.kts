@@ -26,4 +26,7 @@ dependencies {
 
     val spotlessVersion = libs.findVersion("spotless").get().requiredVersion
     implementation("com.diffplug.spotless:spotless-plugin-gradle:$spotlessVersion")
+
+    val detektVersion = libs.findVersion("detekt").get().requiredVersion
+    implementation("dev.detekt:detekt-gradle-plugin:$detektVersion")
 }
