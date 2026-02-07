@@ -5,10 +5,7 @@
   "registrationAllowed": true,
   "resetPasswordAllowed": true,
   "eventsEnabled": true,
-  "eventsListeners": [
-    "jboss-logging",
-    "profile-webhook"
-  ],
+  "eventsListeners": ["jboss-logging", "profile-webhook"],
   "enabledEventTypes": [
     "REGISTER",
     "DELETE_ACCOUNT",
@@ -30,6 +27,7 @@
         "aud-basket-service"
       ],
       "optionalClientScopes": [
+        "aud-basket-service",
         "aud-menu-service",
         "aud-order-service",
         "aud-payment-service",
@@ -37,18 +35,14 @@
       ],
       "redirectUris": [
         "http://foodies.local/oauth/callback",
-        "http://foodies.com/oauth/callback",
-        "https://foodies.com/oauth/callback",
-        "http://localhost:8080/oauth/callback"
+        "https://foodies.com/oauth/callback"
       ],
       "webOrigins": [
         "http://foodies.local",
-        "http://foodies.com",
-        "https://foodies.com",
-        "http://localhost:8080"
+        "https://foodies.com"
       ],
       "attributes": {
-        "post.logout.redirect.uris": "http://foodies.local/\nhttp://foodies.com/\nhttps://foodies.com/\nhttp://localhost:8080/*"
+        "post.logout.redirect.uris": "http://foodies.local/##https://foodies.com/"
       }
     },
     {
