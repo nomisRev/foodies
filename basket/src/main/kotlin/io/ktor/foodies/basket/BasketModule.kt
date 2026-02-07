@@ -7,41 +7,39 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
-import io.ktor.foodies.events.order.OrderCreatedEvent
 import io.ktor.foodies.basket.events.orderCreatedEventConsumer
+import io.ktor.foodies.events.order.OrderCreatedEvent
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.rabbitmq.subscribe
-import io.ktor.serialization.kotlinx.json.json
 import io.ktor.foodies.server.telemetry.Monitoring
+import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
-import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines
-import io.opentelemetry.api.OpenTelemetry
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.Flow
+import io.opentelemetry.instrumentation.ktor.v3_0.KtorClientTelemetry
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 data class BasketModule(
     val basketService: BasketService,
     val consumers: List<Flow<Unit>>,
-    val readinessCheck: HealthCheckRegistry
+    val readinessCheck: HealthCheckRegistry,
 )
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun Application.module(config: Config, monitoring: Monitoring): BasketModule {
     val telemetry = monitoring.opentelemetry
-    val httpClient = HttpClient(Apache5) {
-        install(ContentNegotiation) { json() }
-        install(KtorClientTelemetry) {
-            setOpenTelemetry(telemetry)
+    val httpClient =
+        HttpClient(Apache5) {
+            install(ContentNegotiation) { json() }
+            install(KtorClientTelemetry) { setOpenTelemetry(telemetry) }
         }
-    }
     monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
     val menuClient = HttpMenuClient(httpClient, config.menu.baseUrl)
@@ -53,26 +51,36 @@ fun Application.module(config: Config, monitoring: Monitoring): BasketModule {
     val basketService = BasketServiceImpl(basketRepository, menuClient)
 
     val connectionFactory =
-        rabbitConnectionFactory(config.rabbit.host, config.rabbit.port, config.rabbit.username, config.rabbit.password)
+        rabbitConnectionFactory(
+            config.rabbit.host,
+            config.rabbit.port,
+            config.rabbit.username,
+            config.rabbit.password,
+        )
     val connection = connectionFactory.newConnection("basket-service")
     monitor.subscribe(ApplicationStopped) { connection.close() }
 
     val subscriber = RabbitMQSubscriber(connection, config.rabbit.exchange)
 
-    val orderCreatedConsumer = orderCreatedEventConsumer(
-        subscriber.subscribe(OrderCreatedEvent.serializer(), config.rabbit.queue),
-        basketRepository
-    )
+    val orderCreatedConsumer =
+        orderCreatedEventConsumer(
+            subscriber.subscribe(OrderCreatedEvent.serializer(), config.rabbit.queue),
+            basketRepository,
+        )
 
-    val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
-        register(RedisHealthCheck(redisCommands), Duration.ZERO, 5.seconds)
-        register("menu-service", EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") })
-        register(RabbitConnectionHealthCheck(connection), Duration.ZERO, 5.seconds)
-    }
+    val readinessCheck =
+        HealthCheckRegistry(Dispatchers.IO) {
+            register(RedisHealthCheck(redisCommands), Duration.ZERO, 5.seconds)
+            register(
+                "menu-service",
+                EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") },
+            )
+            register(RabbitConnectionHealthCheck(connection), Duration.ZERO, 5.seconds)
+        }
 
     return BasketModule(
         basketService = basketService,
         consumers = listOf(orderCreatedConsumer),
-        readinessCheck = readinessCheck
+        readinessCheck = readinessCheck,
     )
 }

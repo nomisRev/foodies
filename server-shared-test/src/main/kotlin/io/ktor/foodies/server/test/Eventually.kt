@@ -1,13 +1,11 @@
 package io.ktor.foodies.server.test
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.contracts.ExperimentalContracts
-import kotlin.contracts.InvocationKind
-import kotlin.contracts.contract
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withTimeoutOrNull
 
 @OptIn(ExperimentalContracts::class)
 suspend fun eventually(timeout: Duration = 3.seconds, block: suspend CoroutineScope.() -> Unit) {
@@ -17,7 +15,8 @@ suspend fun eventually(timeout: Duration = 3.seconds, block: suspend CoroutineSc
         val remaining = timeout - startTime.elapsedNow()
         if (remaining <= Duration.ZERO) break
         try {
-            return withTimeoutOrNull(remaining) { block() } ?: throw AssertionError("Timeout exceeded")
+            return withTimeoutOrNull(remaining) { block() }
+                ?: throw AssertionError("Timeout exceeded")
         } catch (e: Throwable) {
             last = e
         }

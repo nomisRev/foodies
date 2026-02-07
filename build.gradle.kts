@@ -1,5 +1,18 @@
+import com.diffplug.spotless.kotlin.KtfmtStep.TrailingCommaManagementStrategy.COMPLETE
+
 plugins {
     id("org.jetbrains.kotlin.plugin.power-assert")
+    id(libs.plugins.spotless.get().pluginId)
+}
+
+spotless {
+    kotlinGradle {
+        target("*.gradle.kts", "buildSrc/*.gradle.kts", "buildSrc/src/**/*.gradle.kts")
+        ktfmt(libs.versions.ktfmt.get()).kotlinlangStyle().configure {
+            it.setRemoveUnusedImports(true)
+            it.setTrailingCommaManagementStrategy(COMPLETE)
+        }
+    }
 }
 
 tasks.register<Exec>("kustomizeDev") {
@@ -16,7 +29,8 @@ tasks.register<Exec>("kustomizeDev") {
     dependsOn(":payment:publishImageToLocalRegistry")
     dependsOn(":keycloak-rabbitmq-publisher:publishImageToLocalRegistry")
 
-    inputs.dir("k8s")
+    inputs
+        .dir("k8s")
         .withPropertyName("kubernetesManifests")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }

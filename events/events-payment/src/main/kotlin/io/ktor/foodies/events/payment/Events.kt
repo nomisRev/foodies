@@ -1,8 +1,8 @@
 package io.ktor.foodies.events.payment
 
 import io.ktor.foodies.events.common.PaymentFailureCode
-import io.ktor.foodies.rabbitmq.RoutingKey
 import io.ktor.foodies.rabbitmq.HasRoutingKey
+import io.ktor.foodies.rabbitmq.RoutingKey
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
@@ -16,13 +16,13 @@ data class OrderPaymentSucceededEvent(
     val transactionId: String,
     val amount: SerializableBigDecimal,
     val currency: String,
-    val processedAt: Instant
+    val processedAt: Instant,
 ) : HasRoutingKey<OrderPaymentSucceededEvent> {
-    @Transient
-    override val routingKey: RoutingKey<OrderPaymentSucceededEvent> = key()
+    @Transient override val routingKey: RoutingKey<OrderPaymentSucceededEvent> = key()
 
     companion object {
-        fun key(): RoutingKey<OrderPaymentSucceededEvent> = RoutingKey("payment.succeeded", serializer())
+        fun key(): RoutingKey<OrderPaymentSucceededEvent> =
+            RoutingKey("payment.succeeded", serializer())
     }
 }
 
@@ -32,10 +32,9 @@ data class OrderPaymentFailedEvent(
     val orderId: Long,
     val failureReason: String,
     val failureCode: PaymentFailureCode,
-    val occurredAt: Instant
+    val occurredAt: Instant,
 ) : HasRoutingKey<OrderPaymentFailedEvent> {
-    @Transient
-    override val routingKey: RoutingKey<OrderPaymentFailedEvent> = key()
+    @Transient override val routingKey: RoutingKey<OrderPaymentFailedEvent> = key()
 
     companion object {
         fun key(): RoutingKey<OrderPaymentFailedEvent> = RoutingKey("payment.failed", serializer())

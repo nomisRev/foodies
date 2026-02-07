@@ -19,9 +19,7 @@ val adminRoutesSpec by testSuite {
 
         val token = createUserToken()
 
-        val response = client.get("/admin/orders") {
-            header("Authorization", "Bearer $token")
-        }
+        val response = client.get("/admin/orders") { header("Authorization", "Bearer $token") }
 
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
@@ -30,16 +28,16 @@ val adminRoutesSpec by testSuite {
         val orderService = createTestContext().service
         installTestAuth()
         install(ContentNegotiation) { json() }
-        routing {
-            adminRoutes(orderService)
-        }
+        routing { adminRoutes(orderService) }
 
         val token = createUserToken(roles = listOf("admin"))
 
-        val response = client.get("/admin/orders") {
-            header("Authorization", "Bearer $token")
-        }
+        val response = client.get("/admin/orders") { header("Authorization", "Bearer $token") }
 
-        assertEquals(HttpStatusCode.OK, response.status, "Response status should be OK, but was ${response.status}")
+        assertEquals(
+            HttpStatusCode.OK,
+            response.status,
+            "Response status should be OK, but was ${response.status}",
+        )
     }
 }

@@ -1,7 +1,3 @@
-plugins {
-    id("foodies.kotlin-domain-conventions")
-}
+plugins { id("foodies.kotlin-domain-conventions") }
 
-dependencies {
-    implementation(libs.serialization.core)
-}
+dependencies { implementation(libs.serialization.core) }

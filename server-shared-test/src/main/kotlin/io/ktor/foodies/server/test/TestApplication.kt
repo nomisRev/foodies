@@ -11,9 +11,9 @@ import io.ktor.server.testing.testApplication
 @TestRegistering
 fun TestSuite.testApplication(
     name: String,
-    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.() -> Unit,
+    block:
+        suspend context(Test.ExecutionScope)
+        ApplicationTestBuilder.() -> Unit,
 ) = test(name) { testApplication { block() } }
 
-fun ApplicationTestBuilder.jsonClient() = createClient {
-    install(ContentNegotiation) { json() }
-}
+fun ApplicationTestBuilder.jsonClient() = createClient { install(ContentNegotiation) { json() } }

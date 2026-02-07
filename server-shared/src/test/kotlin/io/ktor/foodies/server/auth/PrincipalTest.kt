@@ -7,12 +7,13 @@ import kotlin.test.assertTrue
 
 val principalSpec by testSuite {
     test("UserPrincipal construction with all fields") {
-        val principal = UserPrincipal(
-            userId = "user-123",
-            email = "test@example.com",
-            roles = setOf("user", "admin"),
-            accessToken = "token-abc"
-        )
+        val principal =
+            UserPrincipal(
+                userId = "user-123",
+                email = "test@example.com",
+                roles = setOf("user", "admin"),
+                accessToken = "token-abc",
+            )
 
         assertEquals("user-123", principal.userId)
         assertEquals("test@example.com", principal.email)
@@ -21,12 +22,13 @@ val principalSpec by testSuite {
     }
 
     test("UserPrincipal with null email") {
-        val principal = UserPrincipal(
-            userId = "user-456",
-            email = null,
-            roles = setOf("user"),
-            accessToken = "token-xyz"
-        )
+        val principal =
+            UserPrincipal(
+                userId = "user-456",
+                email = null,
+                roles = setOf("user"),
+                accessToken = "token-xyz",
+            )
 
         assertEquals("user-456", principal.userId)
         assertNull(principal.email)
@@ -35,12 +37,13 @@ val principalSpec by testSuite {
     }
 
     test("UserPrincipal with empty roles set") {
-        val principal = UserPrincipal(
-            userId = "user-789",
-            email = "empty@example.com",
-            roles = emptySet(),
-            accessToken = "token-empty"
-        )
+        val principal =
+            UserPrincipal(
+                userId = "user-789",
+                email = "empty@example.com",
+                roles = emptySet(),
+                accessToken = "token-empty",
+            )
 
         assertEquals("user-789", principal.userId)
         assertEquals("empty@example.com", principal.email)
@@ -49,11 +52,12 @@ val principalSpec by testSuite {
     }
 
     test("ServicePrincipal construction with all fields") {
-        val principal = ServicePrincipal(
-            serviceAccountId = "service-123",
-            clientId = "client-abc",
-            roles = setOf("service", "admin")
-        )
+        val principal =
+            ServicePrincipal(
+                serviceAccountId = "service-123",
+                clientId = "client-abc",
+                roles = setOf("service", "admin"),
+            )
 
         assertEquals("service-123", principal.serviceAccountId)
         assertEquals("client-abc", principal.clientId)
@@ -62,12 +66,13 @@ val principalSpec by testSuite {
     }
 
     test("ServicePrincipal with null userContext") {
-        val principal = ServicePrincipal(
-            serviceAccountId = "service-456",
-            clientId = "client-xyz",
-            roles = setOf("service"),
-            userContext = null
-        )
+        val principal =
+            ServicePrincipal(
+                serviceAccountId = "service-456",
+                clientId = "client-xyz",
+                roles = setOf("service"),
+                userContext = null,
+            )
 
         assertEquals("service-456", principal.serviceAccountId)
         assertEquals("client-xyz", principal.clientId)
@@ -76,19 +81,21 @@ val principalSpec by testSuite {
     }
 
     test("ServicePrincipal with non-null userContext") {
-        val userContext = UserPrincipal(
-            userId = "user-999",
-            email = "context@example.com",
-            roles = setOf("user"),
-            accessToken = "user-token"
-        )
+        val userContext =
+            UserPrincipal(
+                userId = "user-999",
+                email = "context@example.com",
+                roles = setOf("user"),
+                accessToken = "user-token",
+            )
 
-        val principal = ServicePrincipal(
-            serviceAccountId = "service-789",
-            clientId = "client-def",
-            roles = setOf("service"),
-            userContext = userContext
-        )
+        val principal =
+            ServicePrincipal(
+                serviceAccountId = "service-789",
+                clientId = "client-def",
+                roles = setOf("service"),
+                userContext = userContext,
+            )
 
         assertEquals("service-789", principal.serviceAccountId)
         assertEquals("client-def", principal.clientId)

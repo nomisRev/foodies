@@ -3,16 +3,15 @@ package io.ktor.foodies.rabbitmq
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.server.test.channel
 import io.ktor.foodies.server.test.rabbitContainer
+import kotlin.test.assertEquals
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.json.Json
-import kotlin.test.assertEquals
 
 @Serializable
 data class TestEvent(val id: String) : HasRoutingKey<TestEvent> {
-    @Transient
-    override val routingKey: RoutingKey<TestEvent> = key()
+    @Transient override val routingKey: RoutingKey<TestEvent> = key()
 
     companion object {
         fun key(): RoutingKey<TestEvent> = RoutingKey("test.key", serializer())
@@ -42,7 +41,10 @@ val publisherSpec by testSuite {
         }
 
         rabbit().newConnection().use { connection ->
-            val message = RabbitMQSubscriber(connection, exchangeName).subscribe(TestEvent.key(), queueName).first()
+            val message =
+                RabbitMQSubscriber(connection, exchangeName)
+                    .subscribe(TestEvent.key(), queueName)
+                    .first()
             assertEquals("event-1", message.value.id)
             assertEquals(routingKey, message.value.routingKey.key)
             message.ack()

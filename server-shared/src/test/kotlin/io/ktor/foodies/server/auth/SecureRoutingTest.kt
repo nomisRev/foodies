@@ -12,10 +12,10 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
-import kotlinx.coroutines.currentCoroutineContext
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlinx.coroutines.currentCoroutineContext
 
 val secureRoutingSpec by testSuite {
     authTest("secureUser should authenticate valid user token") { config ->
@@ -31,22 +31,15 @@ val secureRoutingSpec by testSuite {
         }
 
         val token = createUserToken(config)
-        val response = client.get("/protected") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val response =
+            client.get("/protected") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("Hello user-123", response.bodyAsText())
     }
 
     authTest("secureUser should reject request without token") { config ->
-        routing {
-            secureUser {
-                get("/protected") {
-                    call.respondText("Secret")
-                }
-            }
-        }
+        routing { secureUser { get("/protected") { call.respondText("Secret") } } }
 
         val response = client.get("/protected")
         assertEquals(HttpStatusCode.Unauthorized, response.status)
@@ -65,9 +58,7 @@ val secureRoutingSpec by testSuite {
         }
 
         val token = createUserToken(config)
-        val response = client.get("/context") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val response = client.get("/context") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
     }
@@ -82,11 +73,9 @@ val secureRoutingSpec by testSuite {
             }
         }
 
-        val token =
-            createServiceToken(config, clientId = "order-service")
-        val response = client.get("/service-endpoint") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val token = createServiceToken(config, clientId = "order-service")
+        val response =
+            client.get("/service-endpoint") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("Service: order-service", response.bodyAsText())
@@ -95,20 +84,16 @@ val secureRoutingSpec by testSuite {
     authTest("secureService should enforce required roles") { config ->
         routing {
             secureService("service:write") {
-                get("/write-endpoint") {
-                    call.respondText("Write allowed")
-                }
+                get("/write-endpoint") { call.respondText("Write allowed") }
             }
         }
 
-        val tokenWithoutRole = createServiceToken(
-            config,
-            clientId = "test-service",
-            roles = listOf("service:read")
-        )
-        val response = client.get("/write-endpoint") {
-            header(HttpHeaders.Authorization, "Bearer $tokenWithoutRole")
-        }
+        val tokenWithoutRole =
+            createServiceToken(config, clientId = "test-service", roles = listOf("service:read"))
+        val response =
+            client.get("/write-endpoint") {
+                header(HttpHeaders.Authorization, "Bearer $tokenWithoutRole")
+            }
 
         assertEquals(HttpStatusCode.Forbidden, response.status)
     }
@@ -116,26 +101,27 @@ val secureRoutingSpec by testSuite {
     authTest("secureService should allow access when all required roles present") { config ->
         routing {
             secureService("service:read", "service:write") {
-                get("/rw-endpoint") {
-                    call.respondText("Full access")
-                }
+                get("/rw-endpoint") { call.respondText("Full access") }
             }
         }
 
-        val tokenWithBothRoles = createServiceToken(
-            config,
-            clientId = "admin-service",
-            roles = listOf("service:read", "service:write", "service:admin")
-        )
-        val response = client.get("/rw-endpoint") {
-            header(HttpHeaders.Authorization, "Bearer $tokenWithBothRoles")
-        }
+        val tokenWithBothRoles =
+            createServiceToken(
+                config,
+                clientId = "admin-service",
+                roles = listOf("service:read", "service:write", "service:admin"),
+            )
+        val response =
+            client.get("/rw-endpoint") {
+                header(HttpHeaders.Authorization, "Bearer $tokenWithBothRoles")
+            }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("Full access", response.bodyAsText())
     }
 
-    authTest("secureService should establish ServiceAuth context with X-User-Context header") { config ->
+    authTest("secureService should establish ServiceAuth context with X-User-Context header") {
+        config ->
         routing {
             secureService {
                 get("/context") {
@@ -149,10 +135,11 @@ val secureRoutingSpec by testSuite {
 
         val serviceToken = createServiceToken(config)
         val userToken = createUserToken(config)
-        val response = client.get("/context") {
-            header(HttpHeaders.Authorization, "Bearer $serviceToken")
-            header("X-User-Context", "Bearer $userToken")
-        }
+        val response =
+            client.get("/context") {
+                header(HttpHeaders.Authorization, "Bearer $serviceToken")
+                header("X-User-Context", "Bearer $userToken")
+            }
 
         assertEquals(HttpStatusCode.OK, response.status)
     }
@@ -162,26 +149,28 @@ val secureRoutingSpec by testSuite {
             secureUser {
                 get("/me") {
                     val principal = userPrincipal()
-                    call.respondText("${principal.userId}:${principal.email}:${principal.roles.size}")
+                    call.respondText(
+                        "${principal.userId}:${principal.email}:${principal.roles.size}"
+                    )
                 }
             }
         }
 
-        val token = createUserToken(
-            config,
-            userId = "user-456",
-            email = "admin@example.com",
-            roles = listOf("user", "admin")
-        )
-        val response = client.get("/me") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val token =
+            createUserToken(
+                config,
+                userId = "user-456",
+                email = "admin@example.com",
+                roles = listOf("user", "admin"),
+            )
+        val response = client.get("/me") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("user-456:admin@example.com:2", response.bodyAsText())
     }
 
-    authTest("servicePrincipal extension should return principal in secureService route") { config ->
+    authTest("servicePrincipal extension should return principal in secureService route") { config
+        ->
         routing {
             secureService {
                 get("/info") {
@@ -191,14 +180,13 @@ val secureRoutingSpec by testSuite {
             }
         }
 
-        val token = createServiceToken(
-            config,
-            clientId = "basket-service",
-            roles = listOf("service:read", "service:write")
-        )
-        val response = client.get("/info") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val token =
+            createServiceToken(
+                config,
+                clientId = "basket-service",
+                roles = listOf("service:read", "service:write"),
+            )
+        val response = client.get("/info") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("basket-service:2", response.bodyAsText())

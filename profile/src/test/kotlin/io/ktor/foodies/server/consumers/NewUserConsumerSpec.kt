@@ -1,19 +1,19 @@
-//package io.ktor.foodies.server.consumers
+// package io.ktor.foodies.server.consumers
 //
-//import de.infix.testBalloon.framework.core.testSuite
-//import io.ktor.foodies.rabbitmq.messages
-//import io.ktor.foodies.server.customers.migratedPostgresDataSource
-//import io.ktor.foodies.server.profile.ExposedProfileRepository
-//import io.ktor.foodies.server.test.channel
-//import io.ktor.foodies.server.test.rabbitContainer
-//import io.ktor.foodies.events.user.UserEvent
-//import kotlinx.coroutines.flow.first
-//import kotlinx.serialization.json.Json
-//import kotlin.test.assertEquals
-//import kotlin.test.assertNotNull
-//import kotlin.test.assertNull
+// import de.infix.testBalloon.framework.core.testSuite
+// import io.ktor.foodies.rabbitmq.messages
+// import io.ktor.foodies.server.customers.migratedPostgresDataSource
+// import io.ktor.foodies.server.profile.ExposedProfileRepository
+// import io.ktor.foodies.server.test.channel
+// import io.ktor.foodies.server.test.rabbitContainer
+// import io.ktor.foodies.events.user.UserEvent
+// import kotlinx.coroutines.flow.first
+// import kotlinx.serialization.json.Json
+// import kotlin.test.assertEquals
+// import kotlin.test.assertNotNull
+// import kotlin.test.assertNull
 //
-//val newUserConsumerSpec by testSuite {
+// val newUserConsumerSpec by testSuite {
 //    val dataSource = migratedPostgresDataSource()
 //    val rabbit = testFixture { rabbitContainer()().connectionFactory() }
 //    val repository = testFixture { ExposedProfileRepository(dataSource().database) }
@@ -166,4 +166,4 @@
 //        val profile = repository().findBySubject("missing-user")
 //        assertNull(profile)
 //    }
-//}
+// }

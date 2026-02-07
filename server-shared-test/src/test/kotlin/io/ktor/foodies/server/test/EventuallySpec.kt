@@ -1,11 +1,11 @@
 package io.ktor.foodies.server.test
 
 import de.infix.testBalloon.framework.core.testSuite
-import kotlinx.coroutines.delay
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.delay
 
 val eventuallySpec by testSuite {
     test("eventually succeeds when block passes immediately") {
@@ -28,21 +28,21 @@ val eventuallySpec by testSuite {
 
     test("eventually throws last exception when timeout is exceeded") {
         var counter = 0
-        val exception = assertFailsWith<AssertionError> {
-            eventually(timeout = 100.milliseconds) {
-                counter++
-                throw AssertionError("Always fails")
+        val exception =
+            assertFailsWith<AssertionError> {
+                eventually(timeout = 100.milliseconds) {
+                    counter++
+                    throw AssertionError("Always fails")
+                }
             }
-        }
         assertEquals("Always fails", exception.message)
     }
 
     test("eventually throws timeout error when no exception is caught") {
-        val exception = assertFailsWith<AssertionError> {
-            eventually(timeout = 100.milliseconds) {
-                delay(200.milliseconds)
+        val exception =
+            assertFailsWith<AssertionError> {
+                eventually(timeout = 100.milliseconds) { delay(200.milliseconds) }
             }
-        }
         assertEquals("Timeout exceeded", exception.message)
     }
 

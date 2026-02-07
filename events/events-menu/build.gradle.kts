@@ -1,6 +1,4 @@
-plugins {
-    id("foodies.kotlin-domain-conventions")
-}
+plugins { id("foodies.kotlin-domain-conventions") }
 
 dependencies {
     implementation(project(":events-common"))

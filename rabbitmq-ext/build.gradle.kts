@@ -1,6 +1,4 @@
-plugins {
-    id("foodies.kotlin-conventions")
-}
+plugins { id("foodies.kotlin-conventions") }
 
 dependencies {
     implementation(ktorLibs.server.core)
@@ -11,4 +9,3 @@ dependencies {
 
     testImplementation(project(":server-shared-test"))
 }
-

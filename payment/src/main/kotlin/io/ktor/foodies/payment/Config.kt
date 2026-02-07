@@ -13,10 +13,7 @@ data class Config(
     val gateway: PaymentGatewayConfig,
     val telemetry: Telemetry,
 ) {
-    @Serializable
-    data class Telemetry(
-        @SerialName("otlp_endpoint") val otlpEndpoint: String,
-    )
+    @Serializable data class Telemetry(@SerialName("otlp_endpoint") val otlpEndpoint: String)
 }
 
 @Serializable

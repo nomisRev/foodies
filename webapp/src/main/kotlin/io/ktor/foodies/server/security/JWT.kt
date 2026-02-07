@@ -14,7 +14,9 @@ internal fun AuthenticationConfig.jwt(jwks: JwkProvider, issuer: String) = jwt {
         acceptLeeway(3)
         withAudience("foodies")
     }
-    authHeader { call -> call.sessions.get<UserSession>()?.idToken?.let { HttpAuthHeader.Single("Bearer", it) } }
+    authHeader { call ->
+        call.sessions.get<UserSession>()?.idToken?.let { HttpAuthHeader.Single("Bearer", it) }
+    }
     validate { _ -> sessions.get<UserSession>() }
     challenge { _, _ ->
         call.response.headers.append("HX-Redirect", "/login")

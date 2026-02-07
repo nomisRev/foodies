@@ -5,5 +5,5 @@ internal data class RabbitConfig(
     val port: Int,
     val username: String,
     val password: String,
-    val queue: String
+    val queue: String,
 )

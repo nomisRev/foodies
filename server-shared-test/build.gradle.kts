@@ -1,6 +1,4 @@
-plugins {
-    id("foodies.kotlin-conventions")
-}
+plugins { id("foodies.kotlin-conventions") }
 
 dependencies {
     implementation(project(":server-shared"))
@@ -25,4 +23,3 @@ dependencies {
     api(libs.testcontainers.rabbitmq)
     api(libs.testballoon)
 }
-

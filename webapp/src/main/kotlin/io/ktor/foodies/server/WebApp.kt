@@ -12,7 +12,6 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.getAs
-import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.netty.Netty
@@ -23,9 +22,10 @@ import kotlinx.coroutines.Dispatchers
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
-        val (_, openTelemetry) = monitoring(config.telemetry)
-        app(config, module(config, openTelemetry))
-    }.start(wait = true)
+            val (_, openTelemetry) = monitoring(config.telemetry)
+            app(config, module(config, openTelemetry))
+        }
+        .start(wait = true)
 }
 
 suspend fun Application.app(config: Config, module: WebAppModule) {

@@ -1,17 +1,18 @@
-import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED
+import org.gradle.api.tasks.testing.logging.TestLogEvent.PASSED
+import org.gradle.api.tasks.testing.logging.TestLogEvent.SKIPPED
 
 plugins {
     kotlin("jvm")
     id("org.jetbrains.kotlin.plugin.power-assert")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("de.infix.testBalloon")
+    id("foodies.spotless-conventions")
 }
 
 kotlin {
     jvmToolchain(21)
-    compilerOptions {
-        freeCompilerArgs.add("-Xcontext-parameters")
-    }
+    compilerOptions { freeCompilerArgs.add("-Xcontext-parameters") }
 }
 
 dependencies {
@@ -21,7 +22,5 @@ dependencies {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
-    testLogging {
-        events(TestLogEvent.FAILED, TestLogEvent.PASSED, TestLogEvent.SKIPPED)
-    }
+    testLogging { events(FAILED, PASSED, SKIPPED) }
 }

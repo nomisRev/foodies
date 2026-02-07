@@ -37,20 +37,20 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
 import io.ktor.server.sessions.SessionStorage
 import io.ktor.server.sessions.Sessions
+import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.cookie
 import io.ktor.server.sessions.get
-import io.ktor.server.sessions.clear
 import io.ktor.server.sessions.sessions
 import io.ktor.server.sessions.set
 import io.ktor.util.AttributeKey
 import io.ktor.util.pipeline.PipelineContext
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
+import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import org.slf4j.LoggerFactory
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.seconds
 
 private val logger = LoggerFactory.getLogger("UserSessionScope")
 
@@ -58,7 +58,7 @@ private val logger = LoggerFactory.getLogger("UserSessionScope")
 suspend fun Application.security(
     config: Config.Security,
     httpClient: HttpClient,
-    sessionStorage: SessionStorage
+    sessionStorage: SessionStorage,
 ) {
     install(Sessions) {
         cookie<UserSession>("USER_SESSION", sessionStorage) {
@@ -79,11 +79,10 @@ suspend fun Application.security(
 
     routing {
         authenticate("oauth") {
-            get("/login") { }
+            get("/login") {}
 
             get("/oauth/callback") {
-                val oauth2 =
-                    call.authentication.principal<OAuthAccessTokenResponse.OAuth2>()
+                val oauth2 = call.authentication.principal<OAuthAccessTokenResponse.OAuth2>()
                 val idToken = oauth2?.extraParameters["id_token"]
                 val refreshToken = oauth2?.refreshToken
                 when {
@@ -98,7 +97,7 @@ suspend fun Application.security(
                                 oauth2.accessToken,
                                 oauth2.expiresIn,
                                 refreshToken,
-                                expiresAt
+                                expiresAt,
                             )
                         )
                         call.respondRedirect("/")
@@ -110,10 +109,14 @@ suspend fun Application.security(
         get("/logout") {
             val session = call.sessions.get<UserSession>() ?: return@get call.respondRedirect("/")
             call.sessions.clear<UserSession>()
-            call.respondRedirect(URLBuilder(openIdConfig.endSessionEndpoint).apply {
-                parameters.append("id_token_hint", session.idToken)
-                parameters.append("post_logout_redirect_uri", call.requestUrl("/"))
-            }.buildString())
+            call.respondRedirect(
+                URLBuilder(openIdConfig.endSessionEndpoint)
+                    .apply {
+                        parameters.append("id_token_hint", session.idToken)
+                        parameters.append("post_logout_redirect_uri", call.requestUrl("/"))
+                    }
+                    .buildString()
+            )
         }
     }
 
@@ -121,19 +124,26 @@ suspend fun Application.security(
         TokenRefresher(httpClient, openIdConfig.tokenEndpoint, config.clientId, config.clientSecret)
 }
 
-fun Route.public(build: Route.() -> Unit): Route = authenticate(optional = true) {
-    install(createRouteScopedPlugin("SecureUserSession") {
-        route!!.intercept(ApplicationCallPipeline.Call) {
-            val user = call.principal<UserSession>()
-            if (user == null) proceed() else user.refresh()
-        }
-    })
-    build()
-}
+fun Route.public(build: Route.() -> Unit): Route =
+    authenticate(optional = true) {
+        install(
+            createRouteScopedPlugin("SecureUserSession") {
+                route!!.intercept(ApplicationCallPipeline.Call) {
+                    val user = call.principal<UserSession>()
+                    if (user == null) proceed() else user.refresh()
+                }
+            }
+        )
+        build()
+    }
 
-fun Route.userSession(build: context(UserSessionScope) Route.() -> Unit): Route =
-    authenticate {
-        install(createRouteScopedPlugin("SecureUserSession") {
+fun Route.userSession(
+    build:
+        context(UserSessionScope)
+        Route.() -> Unit
+): Route = authenticate {
+    install(
+        createRouteScopedPlugin("SecureUserSession") {
             route!!.intercept(ApplicationCallPipeline.Call) {
                 val user = call.principal<UserSession>()
                 if (user == null) {
@@ -143,26 +153,26 @@ fun Route.userSession(build: context(UserSessionScope) Route.() -> Unit): Route 
                     user.refresh()
                 }
             }
-        })
-        with(UserSessionScope {
+        }
+    )
+    with(
+        UserSessionScope {
             requireNotNull(contextOf<RoutingContext>().call.sessions.get<UserSession>()) {
                 "UserSession not found - route not properly secured with userSession"
             }
-        }) { build() }
+        }
+    ) {
+        build()
     }
+}
 
 @Serializable
 private data class RefreshTokenResponse(
-    @SerialName("access_token")
-    val accessToken: String,
-    @SerialName("id_token")
-    val idToken: String,
-    @SerialName("expires_in")
-    val expiresIn: Long,
-    @SerialName("refresh_token")
-    val refreshToken: String? = null,
-    @SerialName("token_type")
-    val tokenType: String = "Bearer"
+    @SerialName("access_token") val accessToken: String,
+    @SerialName("id_token") val idToken: String,
+    @SerialName("expires_in") val expiresIn: Long,
+    @SerialName("refresh_token") val refreshToken: String? = null,
+    @SerialName("token_type") val tokenType: String = "Bearer",
 )
 
 private val RefresherKey = AttributeKey<TokenRefresher>("refresher")
@@ -171,32 +181,36 @@ private class TokenRefresher(
     private val httpClient: HttpClient,
     private val tokenEndpoint: String,
     private val clientId: String,
-    private val clientSecret: String
+    private val clientSecret: String,
 ) {
     private suspend fun refresh(refreshToken: String): RefreshTokenResponse {
         logger.debug("Refreshing access token")
-        return httpClient.submitForm(
-            url = tokenEndpoint,
-            formParameters = parameters {
-                append("grant_type", "refresh_token")
-                append("refresh_token", refreshToken)
-                append("client_id", clientId)
-                append("client_secret", clientSecret)
-            }
-        ).body()
+        return httpClient
+            .submitForm(
+                url = tokenEndpoint,
+                formParameters =
+                    parameters {
+                        append("grant_type", "refresh_token")
+                        append("refresh_token", refreshToken)
+                        append("client_id", clientId)
+                        append("client_secret", clientSecret)
+                    },
+            )
+            .body()
     }
 
     suspend fun refreshSession(session: UserSession): UserSession {
         logger.debug("Token expiring soon, refreshing...")
         val response = refresh(session.refreshToken)
         val now = Clock.System.now()
-        val refreshedSession = session.copy(
-            idToken = response.idToken,
-            accessToken = response.accessToken,
-            expiresIn = response.expiresIn,
-            expiresAt = now + response.expiresIn.seconds,
-            refreshToken = response.refreshToken ?: session.refreshToken
-        )
+        val refreshedSession =
+            session.copy(
+                idToken = response.idToken,
+                accessToken = response.accessToken,
+                expiresIn = response.expiresIn,
+                expiresAt = now + response.expiresIn.seconds,
+                refreshToken = response.refreshToken ?: session.refreshToken,
+            )
         logger.debug("Token refreshed successfully, new expiration: {}", refreshedSession.expiresAt)
         return refreshedSession
     }
@@ -218,28 +232,31 @@ private fun UserSession.shouldRefresh(bufferSeconds: Long = 60): Boolean =
 private fun AuthenticationConfig.oauth(
     openIdConfig: OpenIdConfiguration,
     config: Config.Security,
-    httpClient: HttpClient
-) = oauth("oauth") {
-    client = httpClient
-    urlProvider = { requestUrl("/oauth/callback") }
-    providerLookup = {
-        OAuthServerSettings.OAuth2ServerSettings(
-            name = "foodies-oauth",
-            authorizeUrl = openIdConfig.authorizationEndpoint,
-            accessTokenUrl = openIdConfig.tokenEndpoint,
-            requestMethod = HttpMethod.Post,
-            clientId = config.clientId,
-            clientSecret = config.clientSecret,
-            defaultScopes = listOf("openid", "profile", "email", "offline_access", "aud-basket-service"),
-        )
+    httpClient: HttpClient,
+) =
+    oauth("oauth") {
+        client = httpClient
+        urlProvider = { requestUrl("/oauth/callback") }
+        providerLookup = {
+            OAuthServerSettings.OAuth2ServerSettings(
+                name = "foodies-oauth",
+                authorizeUrl = openIdConfig.authorizationEndpoint,
+                accessTokenUrl = openIdConfig.tokenEndpoint,
+                requestMethod = HttpMethod.Post,
+                clientId = config.clientId,
+                clientSecret = config.clientSecret,
+                defaultScopes =
+                    listOf("openid", "profile", "email", "offline_access", "aud-basket-service"),
+            )
+        }
     }
-}
 
 private fun ApplicationCall.requestUrl(callback: String): String {
-    val portSuffix = when {
-        request.origin.scheme == "http" && request.port() == 80 -> ""
-        request.origin.scheme == "https" && request.port() == 443 -> ""
-        else -> ":${request.port()}"
-    }
+    val portSuffix =
+        when {
+            request.origin.scheme == "http" && request.port() == 80 -> ""
+            request.origin.scheme == "https" && request.port() == 443 -> ""
+            else -> ":${request.port()}"
+        }
     return "${request.origin.scheme}://${request.host()}$portSuffix$callback"
 }

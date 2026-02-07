@@ -37,7 +37,10 @@ fun Route.home() = public {
 
             head {
                 meta { charset = "utf-8" }
-                meta { name = "viewport"; content = "width=device-width, initial-scale=1" }
+                meta {
+                    name = "viewport"
+                    content = "width=device-width, initial-scale=1"
+                }
                 title { +"Foodies - Discover the menu" }
                 link(rel = "stylesheet", href = "/static/home.css")
                 script(src = "https://unpkg.com/htmx.org@1.9.12") {}
@@ -61,7 +64,6 @@ fun Route.home() = public {
                 main {
                     section(classes = "hero") {
                         h1 { +"Your favorite dishes, one click away." }
-
 
                         div(classes = "menu-grid") {
                             id = "menu-feed"
@@ -87,9 +89,7 @@ fun Route.home() = public {
                     }
                 }
 
-                div(classes = "toast-container") {
-                    div { id = "toast" }
-                }
+                div(classes = "toast-container") { div { id = "toast" } }
             }
         }
     }

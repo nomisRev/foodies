@@ -13,8 +13,6 @@ import io.ktor.foodies.server.htmx.basket.HttpBasketService
 import io.ktor.foodies.server.htmx.menu.HttpMenuService
 import io.ktor.foodies.server.htmx.menu.MenuService
 import io.ktor.foodies.server.security.RedisSessionStorage
-import io.ktor.foodies.server.telemetry.Monitoring
-import io.ktor.foodies.server.telemetry.openTelemetry
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
@@ -31,18 +29,17 @@ data class WebAppModule(
     val basketService: BasketService,
     val httpClient: HttpClient,
     val readinessCheck: HealthCheckRegistry,
-    val sessionStorage: SessionStorage
+    val sessionStorage: SessionStorage,
 )
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)
 fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
-    val httpClient = HttpClient(Apache5) {
-        install(ContentNegotiation) { json() }
-        install(KtorClientTelemetry) {
-            setOpenTelemetry(telemetry)
+    val httpClient =
+        HttpClient(Apache5) {
+            install(ContentNegotiation) { json() }
+            install(KtorClientTelemetry) { setOpenTelemetry(telemetry) }
+            install(AuthContextPlugin)
         }
-        install(AuthContextPlugin)
-    }
     monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
     val menuService = HttpMenuService(config.menu.baseUrl, httpClient)
@@ -56,17 +53,24 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
         client.shutdown()
     }
 
-    val readinessCheck = HealthCheckRegistry(Dispatchers.IO) {
-        register("menu-service", EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") })
-        register("basket-service", EndpointHealthCheck { it.get("${config.basket.baseUrl}/healthz/readiness") })
-        register("redis", RedisHealthCheck(connection))
-    }
+    val readinessCheck =
+        HealthCheckRegistry(Dispatchers.IO) {
+            register(
+                "menu-service",
+                EndpointHealthCheck { it.get("${config.menu.baseUrl}/healthz/readiness") },
+            )
+            register(
+                "basket-service",
+                EndpointHealthCheck { it.get("${config.basket.baseUrl}/healthz/readiness") },
+            )
+            register("redis", RedisHealthCheck(connection))
+        }
 
     return WebAppModule(
         menuService = menuService,
         basketService = basketService,
         httpClient = httpClient,
         readinessCheck = readinessCheck,
-        sessionStorage = RedisSessionStorage(connection.coroutines(), config.redis.ttlSeconds)
+        sessionStorage = RedisSessionStorage(connection.coroutines(), config.redis.ttlSeconds),
     )
 }

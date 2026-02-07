@@ -7,20 +7,18 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.client.request.get
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import kotlinx.coroutines.withContext
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.withContext
 
 private fun createMockClient(capturedHeaders: MutableMap<String, String>): HttpClient {
     return HttpClient(MockEngine) {
         install(AuthContextPlugin)
         engine {
             addHandler { request ->
-                request.headers.forEach { name, values ->
-                    capturedHeaders[name] = values.first()
-                }
+                request.headers.forEach { name, values -> capturedHeaders[name] = values.first() }
                 respond("OK", HttpStatusCode.OK)
             }
         }
@@ -33,9 +31,7 @@ private fun createMultiRequestMockClient(requests: MutableList<Map<String, Strin
         engine {
             addHandler { request ->
                 val headers = mutableMapOf<String, String>()
-                request.headers.forEach { name, values ->
-                    headers[name] = values.first()
-                }
+                request.headers.forEach { name, values -> headers[name] = values.first() }
                 requests.add(headers)
                 respond("OK", HttpStatusCode.OK)
             }
@@ -48,9 +44,7 @@ val authContextPluginSpec by testSuite {
         val capturedHeaders = mutableMapOf<String, String>()
         val client = createMockClient(capturedHeaders)
 
-        withContext(AuthContext.UserAuth("user-jwt-token")) {
-            client.get("http://example.com/api")
-        }
+        withContext(AuthContext.UserAuth("user-jwt-token")) { client.get("http://example.com/api") }
 
         assertEquals("Bearer user-jwt-token", capturedHeaders[HttpHeaders.Authorization])
         assertFalse(capturedHeaders.containsKey("X-User-Context"))
@@ -94,9 +88,7 @@ val authContextPluginSpec by testSuite {
         val requests = mutableListOf<Map<String, String>>()
         val client = createMultiRequestMockClient(requests)
 
-        withContext(AuthContext.UserAuth("user-token-1")) {
-            client.get("http://example.com/api/1")
-        }
+        withContext(AuthContext.UserAuth("user-token-1")) { client.get("http://example.com/api/1") }
 
         withContext(AuthContext.ServiceAuth("service-token-2")) {
             client.get("http://example.com/api/2")
@@ -139,19 +131,18 @@ val authContextPluginSpec by testSuite {
 
     test("should correctly format Bearer token in Authorization header") {
         var authHeader: String? = null
-        val client = HttpClient(MockEngine) {
-            install(AuthContextPlugin)
-            engine {
-                addHandler { request ->
-                    authHeader = request.headers[HttpHeaders.Authorization]
-                    respond("OK", HttpStatusCode.OK)
+        val client =
+            HttpClient(MockEngine) {
+                install(AuthContextPlugin)
+                engine {
+                    addHandler { request ->
+                        authHeader = request.headers[HttpHeaders.Authorization]
+                        respond("OK", HttpStatusCode.OK)
+                    }
                 }
             }
-        }
 
-        withContext(AuthContext.UserAuth("my-token-value")) {
-            client.get("http://example.com/api")
-        }
+        withContext(AuthContext.UserAuth("my-token-value")) { client.get("http://example.com/api") }
 
         assertEquals("Bearer my-token-value", authHeader)
         assertTrue(authHeader!!.startsWith("Bearer "))
@@ -159,15 +150,16 @@ val authContextPluginSpec by testSuite {
 
     test("should correctly format Bearer token in X-User-Context header") {
         var userContextHeader: String? = null
-        val client = HttpClient(MockEngine) {
-            install(AuthContextPlugin)
-            engine {
-                addHandler { request ->
-                    userContextHeader = request.headers["X-User-Context"]
-                    respond("OK", HttpStatusCode.OK)
+        val client =
+            HttpClient(MockEngine) {
+                install(AuthContextPlugin)
+                engine {
+                    addHandler { request ->
+                        userContextHeader = request.headers["X-User-Context"]
+                        respond("OK", HttpStatusCode.OK)
+                    }
                 }
             }
-        }
 
         withContext(AuthContext.ServiceAuth("service-token", "user-context-token")) {
             client.get("http://example.com/api")

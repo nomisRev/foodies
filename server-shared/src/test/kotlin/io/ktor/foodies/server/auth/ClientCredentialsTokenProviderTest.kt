@@ -11,43 +11,43 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
-import kotlin.time.Clock
-import kotlinx.serialization.json.Json
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertTrue
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
+import kotlinx.serialization.json.Json
 
 val clientCredentialsTokenProviderSpec by testSuite {
     test("should cache token until expiration") {
         var requestCount = 0
         val mockEngine = MockEngine { request ->
             requestCount++
-            val tokenResponse = TokenResponse(
-                accessToken = "cached-token-$requestCount",
-                expiresIn = 300,
-                tokenType = "Bearer"
-            )
+            val tokenResponse =
+                TokenResponse(
+                    accessToken = "cached-token-$requestCount",
+                    expiresIn = 300,
+                    tokenType = "Bearer",
+                )
             respond(
                 content = Json.encodeToString(tokenResponse),
                 status = HttpStatusCode.OK,
-                headers = headersOf("Content-Type", ContentType.Application.Json.toString())
+                headers = headersOf("Content-Type", ContentType.Application.Json.toString()),
             )
         }
 
-        val client = HttpClient(mockEngine) {
-            install(ContentNegotiation) { json() }
-        }
+        val client = HttpClient(mockEngine) { install(ContentNegotiation) { json() } }
 
-        val provider = ClientCredentialsTokenProvider(
-            httpClient = client,
-            tokenEndpoint = "http://keycloak/token",
-            clientId = "test-service",
-            clientSecret = "secret"
-        )
+        val provider =
+            ClientCredentialsTokenProvider(
+                httpClient = client,
+                tokenEndpoint = "http://keycloak/token",
+                clientId = "test-service",
+                clientSecret = "secret",
+            )
 
         val token1 = provider.getToken()
         val token2 = provider.getToken()
@@ -62,28 +62,28 @@ val clientCredentialsTokenProviderSpec by testSuite {
         var requestCount = 0
         val mockEngine = MockEngine { request ->
             requestCount++
-            val tokenResponse = TokenResponse(
-                accessToken = "token-$requestCount",
-                expiresIn = 1,
-                tokenType = "Bearer"
-            )
+            val tokenResponse =
+                TokenResponse(
+                    accessToken = "token-$requestCount",
+                    expiresIn = 1,
+                    tokenType = "Bearer",
+                )
             respond(
                 content = Json.encodeToString(tokenResponse),
                 status = HttpStatusCode.OK,
-                headers = headersOf("Content-Type", ContentType.Application.Json.toString())
+                headers = headersOf("Content-Type", ContentType.Application.Json.toString()),
             )
         }
 
-        val client = HttpClient(mockEngine) {
-            install(ContentNegotiation) { json() }
-        }
+        val client = HttpClient(mockEngine) { install(ContentNegotiation) { json() } }
 
-        val provider = ClientCredentialsTokenProvider(
-            httpClient = client,
-            tokenEndpoint = "http://keycloak/token",
-            clientId = "test-service",
-            clientSecret = "secret"
-        )
+        val provider =
+            ClientCredentialsTokenProvider(
+                httpClient = client,
+                tokenEndpoint = "http://keycloak/token",
+                clientId = "test-service",
+                clientSecret = "secret",
+            )
 
         val token1 = provider.getToken()
         delay(2.seconds)
@@ -100,28 +100,28 @@ val clientCredentialsTokenProviderSpec by testSuite {
         val mockEngine = MockEngine { request ->
             requestCount++
             delay(100)
-            val tokenResponse = TokenResponse(
-                accessToken = "concurrent-token-$requestCount",
-                expiresIn = 300,
-                tokenType = "Bearer"
-            )
+            val tokenResponse =
+                TokenResponse(
+                    accessToken = "concurrent-token-$requestCount",
+                    expiresIn = 300,
+                    tokenType = "Bearer",
+                )
             respond(
                 content = Json.encodeToString(tokenResponse),
                 status = HttpStatusCode.OK,
-                headers = headersOf("Content-Type", ContentType.Application.Json.toString())
+                headers = headersOf("Content-Type", ContentType.Application.Json.toString()),
             )
         }
 
-        val client = HttpClient(mockEngine) {
-            install(ContentNegotiation) { json() }
-        }
+        val client = HttpClient(mockEngine) { install(ContentNegotiation) { json() } }
 
-        val provider = ClientCredentialsTokenProvider(
-            httpClient = client,
-            tokenEndpoint = "http://keycloak/token",
-            clientId = "test-service",
-            clientSecret = "secret"
-        )
+        val provider =
+            ClientCredentialsTokenProvider(
+                httpClient = client,
+                tokenEndpoint = "http://keycloak/token",
+                clientId = "test-service",
+                clientSecret = "secret",
+            )
 
         val deferred1 = async { provider.getToken() }
         val deferred2 = async { provider.getToken() }
@@ -144,29 +144,25 @@ val clientCredentialsTokenProviderSpec by testSuite {
             requestUrl = request.url.toString()
             requestMethod = request.method.value
             formData = (request.body as FormDataContent).formData
-            val tokenResponse = TokenResponse(
-                accessToken = "test-token",
-                expiresIn = 300,
-                tokenType = "Bearer"
-            )
+            val tokenResponse =
+                TokenResponse(accessToken = "test-token", expiresIn = 300, tokenType = "Bearer")
             respond(
                 content = Json.encodeToString(tokenResponse),
                 status = HttpStatusCode.OK,
-                headers = headersOf("Content-Type", ContentType.Application.Json.toString())
+                headers = headersOf("Content-Type", ContentType.Application.Json.toString()),
             )
         }
 
-        val client = HttpClient(mockEngine) {
-            install(ContentNegotiation) { json() }
-        }
+        val client = HttpClient(mockEngine) { install(ContentNegotiation) { json() } }
 
-        val provider = ClientCredentialsTokenProvider(
-            httpClient = client,
-            tokenEndpoint = "http://keycloak/token",
-            clientId = "my-service",
-            clientSecret = "my-secret",
-            scope = "aud-order-service"
-        )
+        val provider =
+            ClientCredentialsTokenProvider(
+                httpClient = client,
+                tokenEndpoint = "http://keycloak/token",
+                clientId = "my-service",
+                clientSecret = "my-secret",
+                scope = "aud-order-service",
+            )
 
         provider.getToken()
 
@@ -182,28 +178,24 @@ val clientCredentialsTokenProviderSpec by testSuite {
         var formData: Parameters? = null
         val mockEngine = MockEngine { request ->
             formData = (request.body as FormDataContent).formData
-            val tokenResponse = TokenResponse(
-                accessToken = "test-token",
-                expiresIn = 300,
-                tokenType = "Bearer"
-            )
+            val tokenResponse =
+                TokenResponse(accessToken = "test-token", expiresIn = 300, tokenType = "Bearer")
             respond(
                 content = Json.encodeToString(tokenResponse),
                 status = HttpStatusCode.OK,
-                headers = headersOf("Content-Type", ContentType.Application.Json.toString())
+                headers = headersOf("Content-Type", ContentType.Application.Json.toString()),
             )
         }
 
-        val client = HttpClient(mockEngine) {
-            install(ContentNegotiation) { json() }
-        }
+        val client = HttpClient(mockEngine) { install(ContentNegotiation) { json() } }
 
-        val provider = ClientCredentialsTokenProvider(
-            httpClient = client,
-            tokenEndpoint = "http://keycloak/token",
-            clientId = "my-service",
-            clientSecret = "my-secret"
-        )
+        val provider =
+            ClientCredentialsTokenProvider(
+                httpClient = client,
+                tokenEndpoint = "http://keycloak/token",
+                clientId = "my-service",
+                clientSecret = "my-secret",
+            )
 
         provider.getToken()
 
@@ -212,28 +204,28 @@ val clientCredentialsTokenProviderSpec by testSuite {
 
     test("should calculate expiry time correctly") {
         val mockEngine = MockEngine { request ->
-            val tokenResponse = TokenResponse(
-                accessToken = "expiry-test-token",
-                expiresIn = 300,
-                tokenType = "Bearer"
-            )
+            val tokenResponse =
+                TokenResponse(
+                    accessToken = "expiry-test-token",
+                    expiresIn = 300,
+                    tokenType = "Bearer",
+                )
             respond(
                 content = Json.encodeToString(tokenResponse),
                 status = HttpStatusCode.OK,
-                headers = headersOf("Content-Type", ContentType.Application.Json.toString())
+                headers = headersOf("Content-Type", ContentType.Application.Json.toString()),
             )
         }
 
-        val client = HttpClient(mockEngine) {
-            install(ContentNegotiation) { json() }
-        }
+        val client = HttpClient(mockEngine) { install(ContentNegotiation) { json() } }
 
-        val provider = ClientCredentialsTokenProvider(
-            httpClient = client,
-            tokenEndpoint = "http://keycloak/token",
-            clientId = "test-service",
-            clientSecret = "secret"
-        )
+        val provider =
+            ClientCredentialsTokenProvider(
+                httpClient = client,
+                tokenEndpoint = "http://keycloak/token",
+                clientId = "test-service",
+                clientSecret = "secret",
+            )
 
         val beforeRequest = Clock.System.now()
         val token = provider.getToken()
@@ -248,50 +240,47 @@ val clientCredentialsTokenProviderSpec by testSuite {
             respond(
                 content = """{"error": "invalid_client"}""",
                 status = HttpStatusCode.Unauthorized,
-                headers = headersOf("Content-Type", ContentType.Application.Json.toString())
+                headers = headersOf("Content-Type", ContentType.Application.Json.toString()),
             )
         }
 
-        val client = HttpClient(mockEngine) {
-            install(ContentNegotiation) { json() }
-        }
+        val client = HttpClient(mockEngine) { install(ContentNegotiation) { json() } }
 
-        val provider = ClientCredentialsTokenProvider(
-            httpClient = client,
-            tokenEndpoint = "http://keycloak/token",
-            clientId = "test-service",
-            clientSecret = "wrong-secret"
-        )
+        val provider =
+            ClientCredentialsTokenProvider(
+                httpClient = client,
+                tokenEndpoint = "http://keycloak/token",
+                clientId = "test-service",
+                clientSecret = "wrong-secret",
+            )
 
-        assertFailsWith<Exception> {
-            provider.getToken()
-        }
+        assertFailsWith<Exception> { provider.getToken() }
     }
 
     test("should use Bearer as token type from response") {
         val mockEngine = MockEngine { request ->
-            val tokenResponse = TokenResponse(
-                accessToken = "type-test-token",
-                expiresIn = 300,
-                tokenType = "Bearer"
-            )
+            val tokenResponse =
+                TokenResponse(
+                    accessToken = "type-test-token",
+                    expiresIn = 300,
+                    tokenType = "Bearer",
+                )
             respond(
                 content = Json.encodeToString(tokenResponse),
                 status = HttpStatusCode.OK,
-                headers = headersOf("Content-Type", ContentType.Application.Json.toString())
+                headers = headersOf("Content-Type", ContentType.Application.Json.toString()),
             )
         }
 
-        val client = HttpClient(mockEngine) {
-            install(ContentNegotiation) { json() }
-        }
+        val client = HttpClient(mockEngine) { install(ContentNegotiation) { json() } }
 
-        val provider = ClientCredentialsTokenProvider(
-            httpClient = client,
-            tokenEndpoint = "http://keycloak/token",
-            clientId = "test-service",
-            clientSecret = "secret"
-        )
+        val provider =
+            ClientCredentialsTokenProvider(
+                httpClient = client,
+                tokenEndpoint = "http://keycloak/token",
+                clientId = "test-service",
+                clientSecret = "secret",
+            )
 
         val token = provider.getToken()
         assertEquals("Bearer", token.tokenType)

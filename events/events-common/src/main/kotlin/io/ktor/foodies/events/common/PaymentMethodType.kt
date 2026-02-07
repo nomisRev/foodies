@@ -7,5 +7,5 @@ enum class PaymentMethodType {
     CREDIT_CARD,
     DEBIT_CARD,
     DIGITAL_WALLET,
-    BANK_TRANSFER
+    BANK_TRANSFER,
 }

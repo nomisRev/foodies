@@ -54,12 +54,13 @@ fun Application.cartRoutes(basketService: BasketService) {
         hx {
             get("/cart/badge") {
                 val session = call.sessions.get<UserSession>()
-                val itemCount = if (session != null) {
-                    runCatching { basketService.getBasket().items.sumOf { it.quantity } }
-                        .getOrDefault(0)
-                } else {
-                    0
-                }
+                val itemCount =
+                    if (session != null) {
+                        runCatching { basketService.getBasket().items.sumOf { it.quantity } }
+                            .getOrDefault(0)
+                    } else {
+                        0
+                    }
                 call.respondHtmxFragment { cartBadge(itemCount) }
             }
         }
@@ -130,9 +131,7 @@ private fun TagConsumer<*>.cartBadge(itemCount: Int) {
         attributes["hx-get"] = "/cart/badge"
         attributes["hx-trigger"] = "cart-updated from:body"
         attributes["hx-swap"] = "outerHTML"
-        span(classes = "cart-icon") {
-            +"Cart"
-        }
+        span(classes = "cart-icon") { +"Cart" }
         if (itemCount > 0) {
             span(classes = "cart-count") { +itemCount.toString() }
         }
@@ -145,9 +144,7 @@ private fun FlowContent.cartBadgeFlow(itemCount: Int) {
         attributes["hx-get"] = "/cart/badge"
         attributes["hx-trigger"] = "cart-updated from:body"
         attributes["hx-swap"] = "outerHTML"
-        span(classes = "cart-icon") {
-            +"Cart"
-        }
+        span(classes = "cart-icon") { +"Cart" }
         if (itemCount > 0) {
             span(classes = "cart-count") { +itemCount.toString() }
         }
@@ -160,9 +157,7 @@ private fun TagConsumer<*>.cartBadgeOob(itemCount: Int) {
         attributes["hx-swap-oob"] = "true"
         attributes["hx-get"] = "/cart/badge"
         attributes["hx-trigger"] = "cart-updated from:body"
-        span(classes = "cart-icon") {
-            +"Cart"
-        }
+        span(classes = "cart-icon") { +"Cart" }
         if (itemCount > 0) {
             span(classes = "cart-count") { +itemCount.toString() }
         }
@@ -181,7 +176,10 @@ private fun HTML.cartPage(basket: CustomerBasket) {
     lang = "en"
     head {
         meta { charset = "utf-8" }
-        meta { name = "viewport"; content = "width=device-width, initial-scale=1" }
+        meta {
+            name = "viewport"
+            content = "width=device-width, initial-scale=1"
+        }
         title { +"Foodies - Your Cart" }
         link(rel = "stylesheet", href = "/static/home.css")
         link(rel = "stylesheet", href = "/static/cart.css")
@@ -207,9 +205,7 @@ private fun HTML.cartPage(basket: CustomerBasket) {
                     div(classes = "cart-container") {
                         div(classes = "cart-items") {
                             id = "cart-items"
-                            basket.items.forEach { item ->
-                                cartItemCardFlow(item)
-                            }
+                            basket.items.forEach { item -> cartItemCardFlow(item) }
                         }
 
                         cartSummaryFlow(basket)
@@ -219,9 +215,7 @@ private fun HTML.cartPage(basket: CustomerBasket) {
         }
 
         // Toast container for notifications
-        div(classes = "toast-container") {
-            div { id = "toast" }
-        }
+        div(classes = "toast-container") { div { id = "toast" } }
     }
 }
 
@@ -231,9 +225,7 @@ private fun TagConsumer<*>.cartItemsFragment(basket: CustomerBasket) {
         if (basket.items.isEmpty()) {
             cartEmpty()
         } else {
-            basket.items.forEach { item ->
-                cartItemCard(item)
-            }
+            basket.items.forEach { item -> cartItemCard(item) }
         }
     }
 }
@@ -275,7 +267,8 @@ private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
                 attributes["hx-swap"] = "outerHTML"
 
                 button(type = ButtonType.button, classes = "qty-btn") {
-                    attributes["onclick"] = "this.nextElementSibling.stepDown(); this.form.requestSubmit();"
+                    attributes["onclick"] =
+                        "this.nextElementSibling.stepDown(); this.form.requestSubmit();"
                     +"-"
                 }
                 numberInput(name = "quantity", classes = "quantity-input") {
@@ -285,16 +278,19 @@ private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
                     attributes["onchange"] = "this.form.requestSubmit();"
                 }
                 button(type = ButtonType.button, classes = "qty-btn") {
-                    attributes["onclick"] = "this.previousElementSibling.stepUp(); this.form.requestSubmit();"
+                    attributes["onclick"] =
+                        "this.previousElementSibling.stepUp(); this.form.requestSubmit();"
                     +"+"
                 }
             }
 
             // Item subtotal
             span(classes = "cart-item-subtotal") {
-                val subtotal = item.unitPrice.multiply(BigDecimal(item.quantity))
-                    .setScale(2, RoundingMode.HALF_UP)
-                    .toPlainString()
+                val subtotal =
+                    item.unitPrice
+                        .multiply(BigDecimal(item.quantity))
+                        .setScale(2, RoundingMode.HALF_UP)
+                        .toPlainString()
                 +"$$subtotal"
             }
 
@@ -331,7 +327,8 @@ private fun FlowContent.cartItemCardFlow(item: BasketItem) {
                 attributes["hx-swap"] = "outerHTML"
 
                 button(type = ButtonType.button, classes = "qty-btn") {
-                    attributes["onclick"] = "this.nextElementSibling.stepDown(); this.form.requestSubmit();"
+                    attributes["onclick"] =
+                        "this.nextElementSibling.stepDown(); this.form.requestSubmit();"
                     +"-"
                 }
                 numberInput(name = "quantity", classes = "quantity-input") {
@@ -341,16 +338,19 @@ private fun FlowContent.cartItemCardFlow(item: BasketItem) {
                     attributes["onchange"] = "this.form.requestSubmit();"
                 }
                 button(type = ButtonType.button, classes = "qty-btn") {
-                    attributes["onclick"] = "this.previousElementSibling.stepUp(); this.form.requestSubmit();"
+                    attributes["onclick"] =
+                        "this.previousElementSibling.stepUp(); this.form.requestSubmit();"
                     +"+"
                 }
             }
 
             // Item subtotal
             span(classes = "cart-item-subtotal") {
-                val subtotal = item.unitPrice.multiply(BigDecimal(item.quantity))
-                    .setScale(2, RoundingMode.HALF_UP)
-                    .toPlainString()
+                val subtotal =
+                    item.unitPrice
+                        .multiply(BigDecimal(item.quantity))
+                        .setScale(2, RoundingMode.HALF_UP)
+                        .toPlainString()
                 +"$$subtotal"
             }
 
@@ -371,9 +371,12 @@ private fun FlowContent.cartSummaryFlow(basket: CustomerBasket) {
         id = "cart-summary"
         h2 { +"Order Summary" }
 
-        val subtotal = basket.items.fold(BigDecimal.ZERO) { acc, item ->
-            acc + item.unitPrice.multiply(BigDecimal(item.quantity))
-        }.setScale(2, RoundingMode.HALF_UP)
+        val subtotal =
+            basket.items
+                .fold(BigDecimal.ZERO) { acc, item ->
+                    acc + item.unitPrice.multiply(BigDecimal(item.quantity))
+                }
+                .setScale(2, RoundingMode.HALF_UP)
 
         div(classes = "summary-row") {
             span { +"Subtotal (${basket.items.sumOf { it.quantity }} items)" }
@@ -409,9 +412,12 @@ private fun TagConsumer<*>.cartSummaryOob(basket: CustomerBasket) {
         if (basket.items.isEmpty()) {
             p { +"Your cart is empty" }
         } else {
-            val subtotal = basket.items.fold(BigDecimal.ZERO) { acc, item ->
-                acc + item.unitPrice.multiply(BigDecimal(item.quantity))
-            }.setScale(2, RoundingMode.HALF_UP)
+            val subtotal =
+                basket.items
+                    .fold(BigDecimal.ZERO) { acc, item ->
+                        acc + item.unitPrice.multiply(BigDecimal(item.quantity))
+                    }
+                    .setScale(2, RoundingMode.HALF_UP)
 
             div(classes = "summary-row") {
                 span { +"Subtotal (${basket.items.sumOf { it.quantity }} items)" }

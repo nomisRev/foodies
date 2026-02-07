@@ -28,54 +28,74 @@ fun interface SecuredService {
 
 fun Route.secureUser(
     vararg roles: String,
-    build: context(SecuredUser) Route.() -> Unit
-): Route = authenticate("user") {
-    install(createRouteScopedPlugin("SecureUserContext") {
-        route!!.intercept(ApplicationCallPipeline.Call) {
-            val principal = requireNotNull(call.principal<UserPrincipal>()) { "UserPrincipal not found" }
-            if (roles.isNotEmpty()) {
-                val missingRoles = roles.filter { it !in principal.roles }
-                if (missingRoles.isNotEmpty()) {
-                    return@intercept call.respond(HttpStatusCode.Forbidden)
+    build:
+        context(SecuredUser)
+        Route.() -> Unit,
+): Route =
+    authenticate("user") {
+        install(
+            createRouteScopedPlugin("SecureUserContext") {
+                route!!.intercept(ApplicationCallPipeline.Call) {
+                    val principal =
+                        requireNotNull(call.principal<UserPrincipal>()) {
+                            "UserPrincipal not found"
+                        }
+                    if (roles.isNotEmpty()) {
+                        val missingRoles = roles.filter { it !in principal.roles }
+                        if (missingRoles.isNotEmpty()) {
+                            return@intercept call.respond(HttpStatusCode.Forbidden)
+                        }
+                    }
+                    withContext(AuthContext.UserAuth(principal.accessToken)) { proceed() }
                 }
             }
-            withContext(AuthContext.UserAuth(principal.accessToken)) { proceed() }
+        )
+        with(
+            SecuredUser {
+                requireNotNull(contextOf<RoutingContext>().call.principal<UserPrincipal>()) {
+                    "UserPrincipal not found - route not properly secured with secureUser"
+                }
+            }
+        ) {
+            build()
         }
-    })
-    with(SecuredUser {
-        requireNotNull(contextOf<RoutingContext>().call.principal<UserPrincipal>()) {
-            "UserPrincipal not found - route not properly secured with secureUser"
-        }
-    }) {
-        build()
     }
-}
 
 fun Route.secureService(
     vararg roles: String,
-    build: context(SecuredService) Route.() -> Unit
-): Route = authenticate("service") {
-    install(createRouteScopedPlugin("SecureServiceContext") {
-        route!!.intercept(ApplicationCallPipeline.Call) {
-            val principal = call.principal<ServicePrincipal>()
-                ?: return@intercept call.respond(HttpStatusCode.Unauthorized)
+    build:
+        context(SecuredService)
+        Route.() -> Unit,
+): Route =
+    authenticate("service") {
+        install(
+            createRouteScopedPlugin("SecureServiceContext") {
+                route!!.intercept(ApplicationCallPipeline.Call) {
+                    val principal =
+                        call.principal<ServicePrincipal>()
+                            ?: return@intercept call.respond(HttpStatusCode.Unauthorized)
 
-            if (roles.isNotEmpty()) {
-                val missingRoles = roles.filter { it !in principal.roles }
-                if (missingRoles.isNotEmpty()) {
-                    return@intercept call.respond(HttpStatusCode.Forbidden)
+                    if (roles.isNotEmpty()) {
+                        val missingRoles = roles.filter { it !in principal.roles }
+                        if (missingRoles.isNotEmpty()) {
+                            return@intercept call.respond(HttpStatusCode.Forbidden)
+                        }
+                    }
+
+                    val userContextToken =
+                        call.request.headers["X-User-Context"]?.removePrefix("Bearer ")
+                    val serviceToken =
+                        call.request.headers["Authorization"]!!.removePrefix("Bearer ")
+                    val authContext = AuthContext.ServiceAuth(serviceToken, userContextToken)
+
+                    withContext(authContext) { proceed() }
                 }
             }
-
-            val userContextToken = call.request.headers["X-User-Context"]?.removePrefix("Bearer ")
-            val serviceToken = call.request.headers["Authorization"]!!.removePrefix("Bearer ")
-            val authContext = AuthContext.ServiceAuth(serviceToken, userContextToken)
-
-            withContext(authContext) { proceed() }
+        )
+        val context = SecuredService {
+            requireNotNull(contextOf<RoutingContext>().call.principal<ServicePrincipal>()) {
+                "ServicePrincipal not found"
+            }
         }
-    })
-    val context = SecuredService {
-        requireNotNull(contextOf<RoutingContext>().call.principal<ServicePrincipal>()) { "ServicePrincipal not found" }
+        with(context) { build() }
     }
-    with(context) { build() }
-}

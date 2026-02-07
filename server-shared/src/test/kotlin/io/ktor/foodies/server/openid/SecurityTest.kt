@@ -4,14 +4,13 @@ import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
-import io.ktor.foodies.server.test.authTest
-import io.ktor.foodies.server.test.createServiceToken
-import io.ktor.foodies.server.test.createUserToken
-import io.ktor.foodies.server.test.installTestAuth
 import io.ktor.foodies.server.auth.secureService
 import io.ktor.foodies.server.auth.secureUser
 import io.ktor.foodies.server.auth.servicePrincipal
 import io.ktor.foodies.server.auth.userPrincipal
+import io.ktor.foodies.server.test.authTest
+import io.ktor.foodies.server.test.createServiceToken
+import io.ktor.foodies.server.test.createUserToken
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respondText
@@ -32,9 +31,7 @@ val securitySpec by testSuite {
         }
 
         val token = createUserToken(config, userId = "user-456")
-        val response = client.get("/user") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val response = client.get("/user") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("user-456", response.bodyAsText())
@@ -51,9 +48,7 @@ val securitySpec by testSuite {
         }
 
         val token = createUserToken(config, email = "admin@foodies.com")
-        val response = client.get("/user") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val response = client.get("/user") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("admin@foodies.com", response.bodyAsText())
@@ -70,34 +65,26 @@ val securitySpec by testSuite {
         }
 
         val token = createUserToken(config, roles = listOf("user", "admin", "moderator"))
-        val response = client.get("/user") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val response = client.get("/user") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("admin,moderator,user", response.bodyAsText())
     }
 
     authTest("user JWT validation rejects token without email") { config ->
-        routing {
-            secureUser {
-                get("/user") {
-                    call.respondText("Success")
-                }
-            }
-        }
+        routing { secureUser { get("/user") { call.respondText("Success") } } }
 
-        val tokenWithoutEmail = com.auth0.jwt.JWT.create()
-            .withSubject("user-no-email")
-            .withClaim("realm_access", mapOf("roles" to listOf("user")))
-            .withAudience(config.audience)
-            .withIssuer(config.issuer)
-            .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600000))
-            .sign(config.algorithm)
+        val tokenWithoutEmail =
+            com.auth0.jwt.JWT.create()
+                .withSubject("user-no-email")
+                .withClaim("realm_access", mapOf("roles" to listOf("user")))
+                .withAudience(config.audience)
+                .withIssuer(config.issuer)
+                .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600000))
+                .sign(config.algorithm)
 
-        val response = client.get("/user") {
-            header(HttpHeaders.Authorization, "Bearer $tokenWithoutEmail")
-        }
+        val response =
+            client.get("/user") { header(HttpHeaders.Authorization, "Bearer $tokenWithoutEmail") }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
@@ -113,9 +100,7 @@ val securitySpec by testSuite {
         }
 
         val token = createUserToken(config)
-        val response = client.get("/user") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val response = client.get("/user") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertTrue(response.bodyAsText().startsWith("Token length:"))
@@ -132,9 +117,7 @@ val securitySpec by testSuite {
         }
 
         val token = createServiceToken(config, serviceAccountId = "service-account-basket-service")
-        val response = client.get("/service") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val response = client.get("/service") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("service-account-basket-service", response.bodyAsText())
@@ -151,15 +134,14 @@ val securitySpec by testSuite {
         }
 
         val token = createServiceToken(config, clientId = "basket-service")
-        val response = client.get("/service") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val response = client.get("/service") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("basket-service", response.bodyAsText())
     }
 
-    authTest("service JWT validation extracts clientId from client_id claim as fallback") { config ->
+    authTest("service JWT validation extracts clientId from client_id claim as fallback") { config
+        ->
         routing {
             secureService {
                 get("/service") {
@@ -169,49 +151,51 @@ val securitySpec by testSuite {
             }
         }
 
-        val token = com.auth0.jwt.JWT.create()
-            .withSubject("service-account-payment-service")
-            .withClaim("client_id", "payment-service")
-            .withClaim("resource_access", mapOf(config.audience to mapOf("roles" to listOf("service:order:read"))))
-            .withAudience(config.audience)
-            .withIssuer(config.issuer)
-            .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600000))
-            .sign(config.algorithm)
+        val token =
+            com.auth0.jwt.JWT.create()
+                .withSubject("service-account-payment-service")
+                .withClaim("client_id", "payment-service")
+                .withClaim(
+                    "resource_access",
+                    mapOf(config.audience to mapOf("roles" to listOf("service:order:read"))),
+                )
+                .withAudience(config.audience)
+                .withIssuer(config.issuer)
+                .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600000))
+                .sign(config.algorithm)
 
-        val response = client.get("/service") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val response = client.get("/service") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("payment-service", response.bodyAsText())
     }
 
     authTest("service JWT validation requires clientId ending with -service") { config ->
-        routing {
-            secureService {
-                get("/service") {
-                    call.respondText("Success")
-                }
+        routing { secureService { get("/service") { call.respondText("Success") } } }
+
+        val invalidServiceToken =
+            com.auth0.jwt.JWT.create()
+                .withSubject("invalid-service-account")
+                .withClaim("azp", "not-a-service-client")
+                .withClaim(
+                    "resource_access",
+                    mapOf(config.audience to mapOf("roles" to listOf("service:read"))),
+                )
+                .withAudience(config.audience)
+                .withIssuer(config.issuer)
+                .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600000))
+                .sign(config.algorithm)
+
+        val response =
+            client.get("/service") {
+                header(HttpHeaders.Authorization, "Bearer $invalidServiceToken")
             }
-        }
-
-        val invalidServiceToken = com.auth0.jwt.JWT.create()
-            .withSubject("invalid-service-account")
-            .withClaim("azp", "not-a-service-client")
-            .withClaim("resource_access", mapOf(config.audience to mapOf("roles" to listOf("service:read"))))
-            .withAudience(config.audience)
-            .withIssuer(config.issuer)
-            .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600000))
-            .sign(config.algorithm)
-
-        val response = client.get("/service") {
-            header(HttpHeaders.Authorization, "Bearer $invalidServiceToken")
-        }
 
         assertEquals(HttpStatusCode.Unauthorized, response.status)
     }
 
-    authTest("service JWT validation extracts roles from resource_access for the audience") { config ->
+    authTest("service JWT validation extracts roles from resource_access for the audience") { config
+        ->
         routing {
             secureService {
                 get("/service") {
@@ -221,16 +205,18 @@ val securitySpec by testSuite {
             }
         }
 
-        val token = createServiceToken(
-            config,
-            roles = listOf("service:basket:read", "service:basket:write", "service:menu:read")
-        )
-        val response = client.get("/service") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
+        val token =
+            createServiceToken(
+                config,
+                roles = listOf("service:basket:read", "service:basket:write", "service:menu:read"),
+            )
+        val response = client.get("/service") { header(HttpHeaders.Authorization, "Bearer $token") }
 
         assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("service:basket:read,service:basket:write,service:menu:read", response.bodyAsText())
+        assertEquals(
+            "service:basket:read,service:basket:write,service:menu:read",
+            response.bodyAsText(),
+        )
     }
 
     authTest("service JWT validation handles missing resource_access gracefully") { config ->
@@ -243,17 +229,19 @@ val securitySpec by testSuite {
             }
         }
 
-        val tokenWithoutRoles = com.auth0.jwt.JWT.create()
-            .withSubject("service-account-minimal-service")
-            .withClaim("azp", "minimal-service")
-            .withAudience(config.audience)
-            .withIssuer(config.issuer)
-            .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600000))
-            .sign(config.algorithm)
+        val tokenWithoutRoles =
+            com.auth0.jwt.JWT.create()
+                .withSubject("service-account-minimal-service")
+                .withClaim("azp", "minimal-service")
+                .withAudience(config.audience)
+                .withIssuer(config.issuer)
+                .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600000))
+                .sign(config.algorithm)
 
-        val response = client.get("/service") {
-            header(HttpHeaders.Authorization, "Bearer $tokenWithoutRoles")
-        }
+        val response =
+            client.get("/service") {
+                header(HttpHeaders.Authorization, "Bearer $tokenWithoutRoles")
+            }
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("Roles: 0", response.bodyAsText())

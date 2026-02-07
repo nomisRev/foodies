@@ -1,14 +1,14 @@
 package io.ktor.foodies.server.auth
 
 import de.infix.testBalloon.framework.core.testSuite
-import kotlinx.coroutines.async
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
+import kotlinx.coroutines.async
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.withContext
 
 val authContextSpec by testSuite {
     test("UserAuth coroutine context propagation") {
@@ -35,10 +35,11 @@ val authContextSpec by testSuite {
     }
 
     test("ServiceAuth coroutine context propagation with user token") {
-        val serviceAuth = AuthContext.ServiceAuth(
-            serviceToken = "service-token-789",
-            userToken = "user-token-original"
-        )
+        val serviceAuth =
+            AuthContext.ServiceAuth(
+                serviceToken = "service-token-789",
+                userToken = "user-token-original",
+            )
 
         withContext(serviceAuth) {
             val context = currentCoroutineContext()[AuthContext]
@@ -53,9 +54,7 @@ val authContextSpec by testSuite {
         val userAuth = AuthContext.UserAuth("nested-token")
 
         withContext(userAuth) {
-            val deferred = async {
-                currentCoroutineContext()[AuthContext]
-            }
+            val deferred = async { currentCoroutineContext()[AuthContext] }
 
             val context = deferred.await()
             assertNotNull(context)
@@ -117,13 +116,9 @@ val authContextSpec by testSuite {
         val userAuth = AuthContext.UserAuth("shared-token")
 
         withContext(userAuth) {
-            val deferred1 = async {
-                currentCoroutineContext()[AuthContext]
-            }
+            val deferred1 = async { currentCoroutineContext()[AuthContext] }
 
-            val deferred2 = async {
-                currentCoroutineContext()[AuthContext]
-            }
+            val deferred2 = async { currentCoroutineContext()[AuthContext] }
 
             val context1 = deferred1.await()
             val context2 = deferred2.await()

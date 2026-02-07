@@ -1,9 +1,8 @@
 package io.ktor.foodies.server.security
 
 import io.ktor.server.routing.RoutingContext
-import kotlinx.serialization.Serializable
-import org.slf4j.LoggerFactory
 import kotlin.time.Instant
+import kotlinx.serialization.Serializable
 
 @Serializable
 data class UserSession(

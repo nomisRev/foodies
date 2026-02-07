@@ -3,8 +3,8 @@ package io.ktor.foodies.server.test
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.auth0.jwt.interfaces.Payload
-import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.core.Test
+import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.auth.ServicePrincipal
 import io.ktor.foodies.server.auth.UserPrincipal
@@ -22,36 +22,38 @@ const val TEST_AUDIENCE = "basket-service"
 data class JwtConfig(
     val algorithm: Algorithm = Algorithm.HMAC256(TEST_JWT_SECRET),
     val issuer: String = TEST_ISSUER,
-    val audience: String = TEST_AUDIENCE
+    val audience: String = TEST_AUDIENCE,
 )
 
 fun createUserToken(
     config: JwtConfig = JwtConfig(),
     userId: String = "user-123",
     email: String = "test@example.com",
-    roles: List<String> = listOf("user")
-): String = JWT.create()
-    .withSubject(userId)
-    .withClaim("email", email)
-    .withClaim("realm_access", mapOf("roles" to roles))
-    .withAudience(config.audience)
-    .withIssuer(config.issuer)
-    .withExpiresAt(Date(System.currentTimeMillis() + 3600000))
-    .sign(config.algorithm)
+    roles: List<String> = listOf("user"),
+): String =
+    JWT.create()
+        .withSubject(userId)
+        .withClaim("email", email)
+        .withClaim("realm_access", mapOf("roles" to roles))
+        .withAudience(config.audience)
+        .withIssuer(config.issuer)
+        .withExpiresAt(Date(System.currentTimeMillis() + 3600000))
+        .sign(config.algorithm)
 
 fun createServiceToken(
     config: JwtConfig = JwtConfig(),
     serviceAccountId: String = "service-account-test-service",
     clientId: String = "test-service",
-    roles: List<String> = listOf("service:read")
-): String = JWT.create()
-    .withSubject(serviceAccountId)
-    .withClaim("azp", clientId)
-    .withClaim("resource_access", mapOf(config.audience to mapOf("roles" to roles)))
-    .withAudience(config.audience)
-    .withIssuer(config.issuer)
-    .withExpiresAt(Date(System.currentTimeMillis() + 3600000))
-    .sign(config.algorithm)
+    roles: List<String> = listOf("service:read"),
+): String =
+    JWT.create()
+        .withSubject(serviceAccountId)
+        .withClaim("azp", clientId)
+        .withClaim("resource_access", mapOf(config.audience to mapOf("roles" to roles)))
+        .withAudience(config.audience)
+        .withIssuer(config.issuer)
+        .withExpiresAt(Date(System.currentTimeMillis() + 3600000))
+        .sign(config.algorithm)
 
 private fun Payload.realmRoles(): Set<String> {
     val roles = getClaim("realm_access")?.asMap()?.get("roles") as? List<*>
@@ -74,10 +76,13 @@ fun ApplicationTestBuilder.installTestAuth(config: JwtConfig = JwtConfig()) = ap
                 val authHeader = request.headers["Authorization"]?.removePrefix("Bearer ") ?: ""
                 if (email != null) {
                     UserPrincipal(
-                        userId = requireNotNull(credential.subject) { "Credential subject (userId) missing" },
+                        userId =
+                            requireNotNull(credential.subject) {
+                                "Credential subject (userId) missing"
+                            },
                         email = email,
                         roles = credential.payload.realmRoles(),
-                        accessToken = authHeader
+                        accessToken = authHeader,
                     )
                 } else null
             }
@@ -90,9 +95,12 @@ fun ApplicationTestBuilder.installTestAuth(config: JwtConfig = JwtConfig()) = ap
                 val clientId = payload["azp"]?.asString() ?: payload["client_id"]?.asString()
                 if (clientId?.endsWith("-service") == true) {
                     ServicePrincipal(
-                        serviceAccountId = requireNotNull(credential.subject) { "Credential subject (serviceAccountId) missing" },
+                        serviceAccountId =
+                            requireNotNull(credential.subject) {
+                                "Credential subject (serviceAccountId) missing"
+                            },
                         clientId = clientId,
-                        roles = credential.payload.resourceRoles(config.audience)
+                        roles = credential.payload.resourceRoles(config.audience),
                     )
                 } else null
             }
@@ -104,8 +112,11 @@ fun ApplicationTestBuilder.installTestAuth(config: JwtConfig = JwtConfig()) = ap
 fun TestSuite.authTest(
     name: String,
     config: JwtConfig = JwtConfig(),
-    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.(JwtConfig) -> Unit,
-) = testApplication(name) {
-    installTestAuth(config)
-    block(config)
-}
+    block:
+        suspend context(Test.ExecutionScope)
+        ApplicationTestBuilder.(JwtConfig) -> Unit,
+) =
+    testApplication(name) {
+        installTestAuth(config)
+        block(config)
+    }

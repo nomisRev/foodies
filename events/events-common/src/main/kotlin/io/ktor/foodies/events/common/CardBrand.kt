@@ -8,5 +8,5 @@ enum class CardBrand(val displayName: String) {
     MASTERCARD("MasterCard"),
     AMEX("American Express"),
     DISCOVER("Discover"),
-    UNKNOWN("Unknown")
+    UNKNOWN("Unknown"),
 }

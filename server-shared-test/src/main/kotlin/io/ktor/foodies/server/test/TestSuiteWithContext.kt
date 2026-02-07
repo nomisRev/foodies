@@ -13,7 +13,7 @@ fun <A> ctxSuite(
     @TestDisplayName displayName: String = name,
     testConfig: TestConfig = TestConfig,
     context: TestSuite.() -> A,
-    content: context(A) TestSuite.() -> Unit
-): Lazy<TestSuite> = testSuite(name, displayName, testConfig) {
-    content(context(), this)
-}
+    content:
+        context(A)
+        TestSuite.() -> Unit,
+): Lazy<TestSuite> = testSuite(name, displayName, testConfig) { content(context(), this) }

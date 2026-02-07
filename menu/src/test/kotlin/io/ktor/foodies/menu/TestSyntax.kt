@@ -16,28 +16,28 @@ import io.ktor.server.testing.ApplicationTestBuilder
 import io.opentelemetry.api.OpenTelemetry
 import org.flywaydb.core.Flyway
 
-fun TestSuite.migratedMenuDataSource(): TestFixture<DataSource> =
-    testFixture {
-        val container = postgresContainer()()
-        val dataSource = container.dataSource()()
-        Flyway.configure().dataSource(dataSource.hikari).load().migrate()
-        dataSource
-    }
+fun TestSuite.migratedMenuDataSource(): TestFixture<DataSource> = testFixture {
+    val container = postgresContainer()()
+    val dataSource = container.dataSource()()
+    Flyway.configure().dataSource(dataSource.hikari).load().migrate()
+    dataSource
+}
 
 data class ServiceContext(
     val container: TestFixture<PostgreSQLContainer>,
     val rabbitContainer: TestFixture<RabbitContainer>,
     val dataSource: TestFixture<DataSource>,
-    val menuService: TestFixture<MenuService>
+    val menuService: TestFixture<MenuService>,
 )
 
 fun TestSuite.serviceContext(): ServiceContext {
     val container = postgresContainer()
     val ds = testFixture { container().dataSource()() }
-    val service = testFixture<MenuService> {
-        val repository = ExposedMenuRepository(ds().database)
-        MenuServiceImpl(repository)
-    }
+    val service =
+        testFixture<MenuService> {
+            val repository = ExposedMenuRepository(ds().database)
+            MenuServiceImpl(repository)
+        }
     val rabbitContainer = rabbitContainer()
     return ServiceContext(container, rabbitContainer, ds, service)
 }
@@ -46,7 +46,9 @@ fun TestSuite.serviceContext(): ServiceContext {
 context(ctx: ServiceContext)
 fun TestSuite.testMenuService(
     name: String,
-    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.() -> Unit
+    block:
+        suspend context(Test.ExecutionScope)
+        ApplicationTestBuilder.() -> Unit,
 ) {
     testApplication(name) {
         application {
@@ -62,11 +64,9 @@ fun TestSuite.testMenuService(
                             ctx.rabbitContainer().adminUsername,
                             ctx.rabbitContainer().adminPassword,
                         ),
-                        telemetry = MonitoringConfig(
-                            otlpEndpoint = "http://localhost:4317"
-                        )
+                        telemetry = MonitoringConfig(otlpEndpoint = "http://localhost:4317"),
                     ),
-                    OpenTelemetry.noop()
+                    OpenTelemetry.noop(),
                 )
             )
         }

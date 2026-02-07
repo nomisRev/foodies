@@ -14,20 +14,17 @@ import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.jwt
 import kotlinx.serialization.Serializable
 
-@Serializable
-data class Auth(
-    val issuer: String,
-    val audience: String = "foodies",
-)
+@Serializable data class Auth(val issuer: String, val audience: String = "foodies")
 
 suspend fun Application.security(auth: Auth) {
     HttpClient(Apache5) {
-        install(ContentNegotiation) { json() }
-        install(HttpRequestRetry) {
-            retryOnExceptionOrServerErrors(maxRetries = 5)
-            exponentialDelay()
+            install(ContentNegotiation) { json() }
+            install(HttpRequestRetry) {
+                retryOnExceptionOrServerErrors(maxRetries = 5)
+                exponentialDelay()
+            }
         }
-    }.use { client -> security(auth, client) }
+        .use { client -> security(auth, client) }
 }
 
 suspend fun Application.security(auth: Auth, client: HttpClient) {
@@ -45,7 +42,7 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
                         userId = payload.subject,
                         email = email,
                         roles = payload.realmRoles(),
-                        accessToken = authHeader
+                        accessToken = authHeader,
                     )
                 } else null
             }
@@ -55,13 +52,13 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
             verifier(config.jwks(), config.issuer) { withAudience(auth.audience) }
             validate { credential ->
                 val payload = credential.payload
-                val clientId = payload.getClaim("azp").asString()
-                    ?: payload.getClaim("client_id").asString()
+                val clientId =
+                    payload.getClaim("azp").asString() ?: payload.getClaim("client_id").asString()
                 if (clientId?.endsWith("-service") == true) {
                     ServicePrincipal(
                         serviceAccountId = payload.subject,
                         clientId = clientId,
-                        roles = payload.resourceRoles(auth.audience)
+                        roles = payload.resourceRoles(auth.audience),
                     )
                 } else null
             }

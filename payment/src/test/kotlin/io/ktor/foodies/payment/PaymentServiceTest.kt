@@ -28,36 +28,38 @@ private class InMemoryPaymentRepository : PaymentRepository {
         payments.values.find { it.orderId == orderId }
 
     override fun findByBuyerId(buyerId: String, limit: Int, offset: Int): List<PaymentRecord> =
-        payments.values.filter { it.buyerId == buyerId }
-            .drop(offset)
-            .take(limit)
+        payments.values.filter { it.buyerId == buyerId }.drop(offset).take(limit)
 
     override fun updateStatus(
         paymentId: Long,
         status: PaymentStatus,
         transactionId: String?,
         failureReason: String?,
-        processedAt: Instant?
+        processedAt: Instant?,
     ): Boolean {
         val payment = payments[paymentId] ?: return false
-        payments[paymentId] = payment.copy(
-            status = status,
-            transactionId = transactionId ?: payment.transactionId,
-            failureReason = failureReason ?: payment.failureReason,
-            processedAt = processedAt ?: payment.processedAt
-        )
+        payments[paymentId] =
+            payment.copy(
+                status = status,
+                transactionId = transactionId ?: payment.transactionId,
+                failureReason = failureReason ?: payment.failureReason,
+                processedAt = processedAt ?: payment.processedAt,
+            )
         return true
     }
 }
 
 private data class TestContext(
     val repository: InMemoryPaymentRepository,
-    val service: PaymentService
+    val service: PaymentService,
 )
 
 private fun createTestContext(alwaysSucceed: Boolean = true): TestContext {
     val repository = InMemoryPaymentRepository()
-    val gateway = SimulatedPaymentGateway(PaymentGatewayConfig(alwaysSucceed = alwaysSucceed, processingDelayMs = 0))
+    val gateway =
+        SimulatedPaymentGateway(
+            PaymentGatewayConfig(alwaysSucceed = alwaysSucceed, processingDelayMs = 0)
+        )
     val service = PaymentServiceImpl(repository, gateway)
     return TestContext(repository, service)
 }
@@ -66,23 +68,25 @@ val paymentServiceSpec by testSuite {
     test("successful payment publishes success event") {
         val ctx = createTestContext(alwaysSucceed = true)
 
-        val result = ctx.service.processPayment(
-            ProcessPaymentRequest(
-                eventId = "evt-123",
-                orderId = 1L,
-                buyerId = "user-123",
-                amount = BigDecimal("49.99"),
-                currency = "USD",
-                paymentMethod = PaymentMethodInfo(
-                    type = PaymentMethodType.CREDIT_CARD,
-                    cardLastFour = "4242",
-                    cardBrand = CardBrand.VISA,
-                    cardHolderName = "John Doe",
-                    expirationMonth = 12,
-                    expirationYear = 2025
+        val result =
+            ctx.service.processPayment(
+                ProcessPaymentRequest(
+                    eventId = "evt-123",
+                    orderId = 1L,
+                    buyerId = "user-123",
+                    amount = BigDecimal("49.99"),
+                    currency = "USD",
+                    paymentMethod =
+                        PaymentMethodInfo(
+                            type = PaymentMethodType.CREDIT_CARD,
+                            cardLastFour = "4242",
+                            cardBrand = CardBrand.VISA,
+                            cardHolderName = "John Doe",
+                            expirationMonth = 12,
+                            expirationYear = 2025,
+                        ),
                 )
             )
-        )
 
         assertTrue(result is PaymentResult.Success)
         val payment = ctx.repository.findByOrderId(1L)
@@ -93,21 +97,23 @@ val paymentServiceSpec by testSuite {
     test("duplicate payment request returns already processed") {
         val ctx = createTestContext(alwaysSucceed = true)
 
-        val request = ProcessPaymentRequest(
-            eventId = "evt-123",
-            orderId = 1L,
-            buyerId = "user-123",
-            amount = BigDecimal("49.99"),
-            currency = "USD",
-            paymentMethod = PaymentMethodInfo(
-                type = PaymentMethodType.CREDIT_CARD,
-                cardLastFour = "4242",
-                cardBrand = CardBrand.VISA,
-                cardHolderName = "John Doe",
-                expirationMonth = 12,
-                expirationYear = 2025
+        val request =
+            ProcessPaymentRequest(
+                eventId = "evt-123",
+                orderId = 1L,
+                buyerId = "user-123",
+                amount = BigDecimal("49.99"),
+                currency = "USD",
+                paymentMethod =
+                    PaymentMethodInfo(
+                        type = PaymentMethodType.CREDIT_CARD,
+                        cardLastFour = "4242",
+                        cardBrand = CardBrand.VISA,
+                        cardHolderName = "John Doe",
+                        expirationMonth = 12,
+                        expirationYear = 2025,
+                    ),
             )
-        )
 
         // First call succeeds
         val first = ctx.service.processPayment(request)
@@ -121,23 +127,25 @@ val paymentServiceSpec by testSuite {
     test("failed payment updates repository with failure") {
         val ctx = createTestContext(alwaysSucceed = false)
 
-        val result = ctx.service.processPayment(
-            ProcessPaymentRequest(
-                eventId = "evt-123",
-                orderId = 1L,
-                buyerId = "user-123",
-                amount = BigDecimal("49.99"),
-                currency = "USD",
-                paymentMethod = PaymentMethodInfo(
-                    type = PaymentMethodType.CREDIT_CARD,
-                    cardLastFour = "0000", // Will fail in SimulatedPaymentGateway
-                    cardBrand = CardBrand.VISA,
-                    cardHolderName = "John Doe",
-                    expirationMonth = 12,
-                    expirationYear = 2025
+        val result =
+            ctx.service.processPayment(
+                ProcessPaymentRequest(
+                    eventId = "evt-123",
+                    orderId = 1L,
+                    buyerId = "user-123",
+                    amount = BigDecimal("49.99"),
+                    currency = "USD",
+                    paymentMethod =
+                        PaymentMethodInfo(
+                            type = PaymentMethodType.CREDIT_CARD,
+                            cardLastFour = "0000", // Will fail in SimulatedPaymentGateway
+                            cardBrand = CardBrand.VISA,
+                            cardHolderName = "John Doe",
+                            expirationMonth = 12,
+                            expirationYear = 2025,
+                        ),
                 )
             )
-        )
 
         assertTrue(result is PaymentResult.Failed)
         assertEquals(PaymentFailureCode.CARD_DECLINED, result.code)

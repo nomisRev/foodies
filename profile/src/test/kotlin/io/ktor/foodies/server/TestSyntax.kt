@@ -36,7 +36,9 @@ fun TestSuite.serviceContext(): ServiceContext {
 context(ctx: ServiceContext)
 fun TestSuite.testProfileService(
     name: String,
-    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.() -> Unit
+    block:
+        suspend context(Test.ExecutionScope)
+        ApplicationTestBuilder.() -> Unit,
 ) {
     testApplication(name) {
         application {
@@ -45,21 +47,23 @@ fun TestSuite.testProfileService(
                     Config(
                         host = "0.0.0.0",
                         port = 8080,
-                        dataSource = DataSource.Config(
-                            ctx.postgreSQLContainer().jdbcUrl,
-                            ctx.postgreSQLContainer().username,
-                            ctx.postgreSQLContainer().password
-                        ),
-                        rabbit = Config.Rabbit(
-                            ctx.rabbitContainer().host,
-                            ctx.rabbitContainer().amqpPort,
-                            ctx.rabbitContainer().adminUsername,
-                            ctx.rabbitContainer().adminPassword,
-                            "profile-queue"
-                        ),
-                        telemetry = Config.Telemetry("http://localhost:4317")
+                        dataSource =
+                            DataSource.Config(
+                                ctx.postgreSQLContainer().jdbcUrl,
+                                ctx.postgreSQLContainer().username,
+                                ctx.postgreSQLContainer().password,
+                            ),
+                        rabbit =
+                            Config.Rabbit(
+                                ctx.rabbitContainer().host,
+                                ctx.rabbitContainer().amqpPort,
+                                ctx.rabbitContainer().adminUsername,
+                                ctx.rabbitContainer().adminPassword,
+                                "profile-queue",
+                            ),
+                        telemetry = Config.Telemetry("http://localhost:4317"),
                     ),
-                    OpenTelemetry.noop()
+                    OpenTelemetry.noop(),
                 )
             )
         }

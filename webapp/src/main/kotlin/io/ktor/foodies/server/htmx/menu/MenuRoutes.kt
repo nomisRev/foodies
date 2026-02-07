@@ -13,6 +13,7 @@ import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.ktor.utils.io.ExperimentalKtorApi
 import java.math.RoundingMode
+import kotlin.collections.set
 import kotlinx.html.ButtonType
 import kotlinx.html.TagConsumer
 import kotlinx.html.a
@@ -26,7 +27,6 @@ import kotlinx.html.id
 import kotlinx.html.img
 import kotlinx.html.p
 import kotlinx.html.span
-import kotlin.collections.set
 
 @OptIn(ExperimentalKtorApi::class)
 fun Application.menuRoutes(menuService: MenuService) = routing {
@@ -47,7 +47,7 @@ private fun TagConsumer<Appendable>.buildMenuFragment(
     items: List<MenuItem>,
     offset: Int,
     limit: Int,
-    isLoggedIn: Boolean
+    isLoggedIn: Boolean,
 ) {
     val hasMore = items.size == limit
     val nextOffset = offset + items.size
@@ -88,14 +88,10 @@ private fun TagConsumer<Appendable>.addToCartButton(menuItemId: Long, isLoggedIn
             attributes["hx-swap"] = "none"
             hiddenInput(name = "menuItemId") { value = menuItemId.toString() }
             hiddenInput(name = "quantity") { value = "1" }
-            button(type = ButtonType.submit, classes = "add-to-cart-btn") {
-                +"Add to Cart"
-            }
+            button(type = ButtonType.submit, classes = "add-to-cart-btn") { +"Add to Cart" }
         }
     } else {
-        a(href = "/login", classes = "add-to-cart-btn login-required") {
-            +"Login to Order"
-        }
+        a(href = "/login", classes = "add-to-cart-btn login-required") { +"Login to Order" }
     }
 }
 

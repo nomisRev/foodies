@@ -1,7 +1,6 @@
 package com.foodies.e2e
 
 import com.microsoft.playwright.Browser
-import com.microsoft.playwright.BrowserContext
 import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
@@ -15,12 +14,9 @@ import de.infix.testBalloon.framework.shared.TestElementName
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.test.RabbitContainer
 import io.ktor.foodies.server.test.rabbitContainer
-import kotlinx.serialization.json.buildJsonObject
-import org.apache.commons.compress.harmony.pack200.PackingUtils.config
+import java.nio.file.Paths
 import org.testcontainers.Testcontainers
 import org.testcontainers.utility.MountableFile
-import java.nio.file.Files
-import java.nio.file.Paths
 
 fun TestSuite.keycloak(rabbit: TestFixture<RabbitContainer>) = testFixture {
     val rabbit = rabbit()
@@ -32,7 +28,10 @@ fun TestSuite.keycloak(rabbit: TestFixture<RabbitContainer>) = testFixture {
         withEnv("RABBITMQ_USERNAME", rabbit.adminUsername)
         withEnv("RABBITMQ_PASSWORD", rabbit.adminPassword)
         val realmFile = Paths.get("../k8s/base/keycloak/realm.json").toAbsolutePath().normalize()
-        withCopyFileToContainer(MountableFile.forHostPath(realmFile), "/opt/keycloak/data/import/realm.json")
+        withCopyFileToContainer(
+            MountableFile.forHostPath(realmFile),
+            "/opt/keycloak/data/import/realm.json",
+        )
         start()
     }
 }
@@ -42,7 +41,7 @@ data class E2EContext(
     val browser: TestFixture<Browser>,
     val page: TestFixture<Page>,
     val rabbit: TestFixture<RabbitContainer>,
-    val keycloak: TestFixture<KeycloakContainer>
+    val keycloak: TestFixture<KeycloakContainer>,
 )
 
 context(ctx: E2EContext)
@@ -54,29 +53,36 @@ suspend fun keycloak() = ctx.keycloak.invoke()
 context(ctx: E2EContext)
 suspend fun rabbit() = ctx.rabbit.invoke()
 
-enum class AppBrowserType { CHROMIUM, FIREFOX, WEBKIT }
+enum class AppBrowserType {
+    CHROMIUM,
+    FIREFOX,
+    WEBKIT,
+}
 
 @TestRegistering
 fun e2eSuite(
     @TestElementName name: String = "",
     @TestDisplayName displayName: String = name,
     testConfig: TestConfig = TestConfig,
-    browserType: AppBrowserType = AppBrowserType.WEBKIT ,
+    browserType: AppBrowserType = AppBrowserType.WEBKIT,
     authenticated: Boolean = true,
-    content: context(E2EContext) TestSuite.() -> Unit
-): Lazy<TestSuite> = testSuite(name, displayName, testConfig) {
-    val rabbit = rabbitContainer()
-    val keycloak = keycloak(rabbit)
-    val playwright = testFixture { Playwright.create() }
-    val browser = testFixture {
-        when (browserType) {
-            AppBrowserType.CHROMIUM -> playwright().chromium()
-            AppBrowserType.FIREFOX -> playwright().firefox()
-            AppBrowserType.WEBKIT -> playwright().webkit()
-        }.launch(BrowserType.LaunchOptions().setHeadless(true))
+    content:
+        context(E2EContext)
+        TestSuite.() -> Unit,
+): Lazy<TestSuite> =
+    testSuite(name, displayName, testConfig) {
+        val rabbit = rabbitContainer()
+        val keycloak = keycloak(rabbit)
+        val playwright = testFixture { Playwright.create() }
+        val browser = testFixture {
+            when (browserType) {
+                AppBrowserType.CHROMIUM -> playwright().chromium()
+                AppBrowserType.FIREFOX -> playwright().firefox()
+                AppBrowserType.WEBKIT -> playwright().webkit()
+            }.launch(BrowserType.LaunchOptions().setHeadless(true))
+        }
+
+        val page = testFixture { browser().newPage() }
+
+        content(E2EContext(playwright, browser, page, rabbit, keycloak), this)
     }
-
-    val page = testFixture { browser().newPage() }
-
-    content(E2EContext(playwright, browser, page, rabbit, keycloak), this)
-}

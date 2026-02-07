@@ -6,15 +6,14 @@ import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GracePeriodExpiredEvent(
-    val orderId: Long,
-    val expiredAt: Instant
-) : HasRoutingKey<GracePeriodExpiredEvent> {
+data class GracePeriodExpiredEvent(val orderId: Long, val expiredAt: Instant) :
+    HasRoutingKey<GracePeriodExpiredEvent> {
 
     @kotlinx.serialization.Transient
     override val routingKey: RoutingKey<GracePeriodExpiredEvent> = key()
 
     companion object {
-        fun key(): RoutingKey<GracePeriodExpiredEvent> = RoutingKey("order.grace-period.expired", serializer())
+        fun key(): RoutingKey<GracePeriodExpiredEvent> =
+            RoutingKey("order.grace-period.expired", serializer())
     }
 }

@@ -12,17 +12,13 @@ import io.lettuce.core.api.coroutines
 
 data class RedisContext(
     val redisContainer: TestFixture<RedisContainer>,
-    val redisClient: TestFixture<RedisClient>
+    val redisClient: TestFixture<RedisClient>,
 )
 
 fun TestSuite.redisContext(): RedisContext {
-    val container = testFixture {
-        RedisContainer("redis:7-alpine").apply { start() }
-    }
+    val container = testFixture { RedisContainer("redis:7-alpine").apply { start() } }
 
-    val redisClient = testFixture {
-        RedisClient.create(container().redisURI)
-    }
+    val redisClient = testFixture { RedisClient.create(container().redisURI) }
     return RedisContext(container, redisClient)
 }
 
@@ -32,10 +28,13 @@ context(ctx: RedisContext)
 fun TestSuite.testRedis(
     name: String,
     ttlSeconds: Long = 3600,
-    block: suspend context(Test.ExecutionScope) (storage: RedisSessionStorage) -> Unit
-) = test(name) {
-    ctx.redisClient().connect().use { connection ->
-        block(RedisSessionStorage(connection.coroutines(), ttlSeconds))
-        connection.sync().flushall()
+    block:
+        suspend context(Test.ExecutionScope)
+        (storage: RedisSessionStorage) -> Unit,
+) =
+    test(name) {
+        ctx.redisClient().connect().use { connection ->
+            block(RedisSessionStorage(connection.coroutines(), ttlSeconds))
+            connection.sync().flushall()
+        }
     }
-}

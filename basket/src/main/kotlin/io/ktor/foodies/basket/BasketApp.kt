@@ -24,10 +24,11 @@ import kotlinx.coroutines.flow.launchIn
 fun main() {
     val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
-        security(config.auth)
-        val monitoring = openTelemetry(config.telemetry.otlpEndpoint)
-        app(module(config, monitoring))
-    }.start(wait = true)
+            security(config.auth)
+            val monitoring = openTelemetry(config.telemetry.otlpEndpoint)
+            app(module(config, monitoring))
+        }
+        .start(wait = true)
 }
 
 @OptIn(ExperimentalLettuceCoroutinesApi::class)

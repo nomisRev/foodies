@@ -1,10 +1,7 @@
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 plugins {
     kotlin("jvm")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("foodies.spotless-conventions")
 }
 
-kotlin {
-    jvmToolchain(21)
-}
+kotlin { jvmToolchain(21) }

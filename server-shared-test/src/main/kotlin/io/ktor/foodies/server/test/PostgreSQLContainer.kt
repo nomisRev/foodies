@@ -17,23 +17,28 @@ fun TestSuite.postgresContainer(): TestFixture<PostgreSQLContainer> =
     testFixture { PostgreSQLContainer().apply { start() } } closeWith { stop() }
 
 context(suite: TestSuite)
-fun PostgreSQLContainer.dataSource(): TestFixture<DataSource> = suite.testFixture {
-    val ds = hikariDataSource()()
-    val database = ds.database()
-    DataSource(ds, database())
-}
-
-context(suite: TestSuite)
-fun HikariDataSource.database(): TestFixture<Database> =
-    suite.testFixture { Database.connect(this@database) } closeWith {
-        TransactionManager.closeAndUnregister(this)
+fun PostgreSQLContainer.dataSource(): TestFixture<DataSource> =
+    suite.testFixture {
+        val ds = hikariDataSource()()
+        val database = ds.database()
+        DataSource(ds, database())
     }
 
 context(suite: TestSuite)
-fun PostgreSQLContainer.hikariDataSource() = suite.testFixture {
-    HikariDataSource(HikariConfig().apply {
-        jdbcUrl = this@hikariDataSource.jdbcUrl
-        username = this@hikariDataSource.username
-        password = this@hikariDataSource.password
-    })
-}
+fun HikariDataSource.database(): TestFixture<Database> =
+    suite.testFixture { Database.connect(this@database) } closeWith
+        {
+            TransactionManager.closeAndUnregister(this)
+        }
+
+context(suite: TestSuite)
+fun PostgreSQLContainer.hikariDataSource() =
+    suite.testFixture {
+        HikariDataSource(
+            HikariConfig().apply {
+                jdbcUrl = this@hikariDataSource.jdbcUrl
+                username = this@hikariDataSource.username
+                password = this@hikariDataSource.password
+            }
+        )
+    }
