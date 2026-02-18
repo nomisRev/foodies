@@ -1,0 +1,34 @@
+{
+  "realm": "foodies-keycloak",
+  "sslRequired": "none",
+  "clients": [
+    {
+      "clientId": "foodies",
+      "secret": "foodies_client_secret",
+      "redirectUris": ["http://foodies.local/oauth/callback"],
+      "webOrigins": ["http://foodies.local"],
+      "attributes": {
+        "post.logout.redirect.uris": "http://foodies.local/*"
+      }
+    }
+  ],
+  "users": [
+    {
+      "username": "food_lover",
+      "enabled": true,
+      "email": "food_lover@gmail.com",
+      "firstName": "Food",
+      "lastName": "Lover",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    }
+  ]
+}

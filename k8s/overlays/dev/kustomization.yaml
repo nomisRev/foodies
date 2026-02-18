@@ -5,7 +5,12 @@ resources:
   - ../../base/rabbitmq-operator
   - ../../base/cert-manager
   - ../../base
-  - keycloak-config-cli-job.yaml
+
+configMapGenerator:
+  - name: keycloak-realm
+    behavior: merge
+    files:
+      - keycloak/realm-dev.json
 
 images:
   - name: foodies-keycloak
