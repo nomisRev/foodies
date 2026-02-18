@@ -12,7 +12,7 @@ configMapGenerator:
       - HOST=0.0.0.0
       - PORT=8084
       - AUTH_ISSUER=http://keycloak:8000/auth/realms/foodies-keycloak
-      - AUTH_AUDIENCE=order-service
+      - AUTH_AUDIENCE=foodies
       - DB_URL=jdbc:postgresql://order-postgres:5432/foodies-order-database
       - BASKET_BASE_URL=http://basket:8083
       - BASKET_CLIENT_ID=order-service

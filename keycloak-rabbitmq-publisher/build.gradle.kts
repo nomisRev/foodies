@@ -18,13 +18,13 @@ dependencies {
     implementation(libs.serialization.json)
     implementation(libs.rabbitmq)
 
+    testImplementation(project(":server-shared-test"))
     testImplementation(libs.testballoon)
     testImplementation(libs.testcontainers.keycloak)
     testImplementation(libs.keycloak.core)
     testImplementation(libs.keycloak.services)
     testImplementation(libs.keycloak.server.spi)
     testImplementation(libs.keycloak.server.spi.private)
-    testImplementation(project(":server-shared-test"))
     testImplementation(libs.playwright)
 }
 
@@ -85,7 +85,11 @@ tasks {
     }
 }
 
-tasks.register<JavaExec>("installPlaywrightBrowsers") {
+    tasks.withType<JavaExec>().configureEach {
+        systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+    }
+
+    tasks.register<JavaExec>("installPlaywrightBrowsers") {
     group = "playwright"
     description = "Installs Playwright browsers"
     mainClass.set("com.microsoft.playwright.CLI")

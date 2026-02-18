@@ -9,9 +9,6 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
-/**
- * Menu item data from the Menu service.
- */
 @Serializable
 data class MenuItem(
     val id: Long,
@@ -22,16 +19,10 @@ data class MenuItem(
     val stock: Int
 )
 
-/**
- * Client interface for the Menu service.
- */
 interface MenuClient {
     suspend fun getMenuItem(id: Long): MenuItem?
 }
 
-/**
- * HTTP-based implementation of MenuClient.
- */
 class HttpMenuClient(
     private val httpClient: HttpClient,
     private val baseUrl: String
@@ -49,16 +40,3 @@ class HttpMenuClient(
     }
 }
 
-/**
- * In-memory implementation for testing purposes.
- */
-class InMemoryMenuClient(
-    private val menuItems: MutableMap<Long, MenuItem> = mutableMapOf()
-) : MenuClient {
-
-    fun addMenuItem(item: MenuItem) {
-        menuItems[item.id] = item
-    }
-
-    override suspend fun getMenuItem(id: Long): MenuItem? = menuItems[id]
-}

@@ -16,14 +16,12 @@ import io.ktor.server.routing.route
 
 fun Route.basketRoutes(basketService: BasketService) = secureUser {
     route("/basket") {
-        // GET /basket - Get current user's basket
         get {
             val buyerId = userPrincipal().userId
             val basket = basketService.getBasket(buyerId)
             call.respond(basket)
         }
 
-        // DELETE /basket - Clear entire basket
         delete {
             val buyerId = userPrincipal().userId
             basketService.clearBasket(buyerId)
@@ -31,7 +29,6 @@ fun Route.basketRoutes(basketService: BasketService) = secureUser {
         }
 
         route("/items") {
-            // POST /basket/items - Add item to basket
             post {
                 val buyerId = userPrincipal().userId
                 val request = call.receive<AddItemRequest>()
@@ -40,7 +37,6 @@ fun Route.basketRoutes(basketService: BasketService) = secureUser {
                 if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
             }
 
-            // PUT /basket/items/{itemId} - Update item quantity
             put("/{itemId}") {
                 val buyerId = userPrincipal().userId
                 val itemId: String by call.parameters
@@ -50,7 +46,6 @@ fun Route.basketRoutes(basketService: BasketService) = secureUser {
                 if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
             }
 
-            // DELETE /basket/items/{itemId} - Remove item from basket
             delete("/{itemId}") {
                 val buyerId = userPrincipal().userId
                 val itemId: String by call.parameters

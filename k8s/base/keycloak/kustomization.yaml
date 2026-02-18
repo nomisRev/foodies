@@ -5,6 +5,7 @@ resources:
   - keycloak.yaml
   - deployment.yaml
   - database.yaml
+  - keycloak-config-cli-job.yaml
 
 configMapGenerator:
   - name: keycloak-config
@@ -20,4 +21,4 @@ configMapGenerator:
       - RABBITMQ_PORT=5672
   - name: keycloak-realm
     files:
-      - realm.json=realm.json
+      - realm-common.json

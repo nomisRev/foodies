@@ -10,6 +10,7 @@ import io.ktor.foodies.server.auth.UserPrincipal
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
+import io.ktor.server.application.log
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.jwt
 import kotlinx.serialization.Serializable
@@ -17,7 +18,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Auth(
     val issuer: String,
-    val audience: String = "foodies",
+    val audience: String,
 )
 
 suspend fun Application.security(auth: Auth) {
@@ -34,34 +35,18 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
     val config = client.use { it.discover(auth.issuer) }
 
     install(Authentication) {
-        jwt("user") {
+        jwt {
             verifier(config.jwks(), config.issuer) { withAudience(auth.audience) }
             validate { credential ->
                 val payload = credential.payload
                 val email = payload.getClaim("email").asString()
                 val authHeader = request.headers["Authorization"]?.removePrefix("Bearer ") ?: ""
-                if (email != null) {
+                val principal = if (email != null) {
                     UserPrincipal(
                         userId = payload.subject,
                         email = email,
                         roles = payload.realmRoles(),
                         accessToken = authHeader
-                    )
-                } else null
-            }
-        }
-
-        jwt("service") {
-            verifier(config.jwks(), config.issuer) { withAudience(auth.audience) }
-            validate { credential ->
-                val payload = credential.payload
-                val clientId = payload.getClaim("azp").asString()
-                    ?: payload.getClaim("client_id").asString()
-                if (clientId?.endsWith("-service") == true) {
-                    ServicePrincipal(
-                        serviceAccountId = payload.subject,
-                        clientId = clientId,
-                        roles = payload.resourceRoles(auth.audience)
                     )
                 } else null
             }

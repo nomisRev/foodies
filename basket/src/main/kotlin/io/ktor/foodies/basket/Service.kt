@@ -1,5 +1,7 @@
 package io.ktor.foodies.basket
 
+import java.util.UUID.randomUUID
+
 /**
  * Service interface for basket operations.
  */
@@ -43,21 +45,17 @@ class BasketServiceImpl(
     private val menuClient: MenuClient
 ) : BasketService {
 
-    override suspend fun getBasket(buyerId: String): CustomerBasket {
-        return repository.getBasket(buyerId) ?: CustomerBasket(buyerId)
-    }
+    override suspend fun getBasket(buyerId: String): CustomerBasket =
+        repository.getBasket(buyerId) ?: CustomerBasket(buyerId)
 
     override suspend fun addItem(buyerId: String, request: ValidatedAddItem): CustomerBasket? {
-        // Fetch menu item to validate existence and get current details
         val menuItem = menuClient.getMenuItem(request.menuItemId) ?: return null
 
         val basket = repository.getBasket(buyerId) ?: CustomerBasket(buyerId)
 
-        // Check if item already exists in basket
         val existingItemIndex = basket.items.indexOfFirst { it.menuItemId == request.menuItemId }
 
         val updatedBasket = if (existingItemIndex >= 0) {
-            // Increment quantity of existing item
             val existingItem = basket.items[existingItemIndex]
             val updatedItem = existingItem.copy(quantity = existingItem.quantity + request.quantity)
             val updatedItems = basket.items.toMutableList().apply {
@@ -65,8 +63,8 @@ class BasketServiceImpl(
             }
             basket.copy(items = updatedItems)
         } else {
-            // Add new item with denormalized menu data
-            val newItem = createBasketItem(
+            val newItem = BasketItem(
+                id = randomUUID().toString(),
                 menuItemId = menuItem.id,
                 menuItemName = menuItem.name,
                 menuItemDescription = menuItem.description,
