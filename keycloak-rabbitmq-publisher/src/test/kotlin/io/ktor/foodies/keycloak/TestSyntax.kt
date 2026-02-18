@@ -1,7 +1,6 @@
 package com.foodies.e2e
 
 import com.microsoft.playwright.Browser
-import com.microsoft.playwright.BrowserContext
 import com.microsoft.playwright.BrowserType
 import com.microsoft.playwright.Page
 import com.microsoft.playwright.Playwright
@@ -15,8 +14,7 @@ import de.infix.testBalloon.framework.shared.TestElementName
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.test.RabbitContainer
 import io.ktor.foodies.server.test.rabbitContainer
-import kotlinx.serialization.json.buildJsonObject
-import org.apache.commons.compress.harmony.pack200.PackingUtils.config
+import org.keycloak.representations.idm.ClientRepresentation
 import org.testcontainers.Testcontainers
 import org.testcontainers.utility.MountableFile
 import java.nio.file.Files
@@ -31,9 +29,17 @@ fun TestSuite.keycloak(rabbit: TestFixture<RabbitContainer>) = testFixture {
         withEnv("RABBITMQ_PORT", rabbit.amqpPort.toString())
         withEnv("RABBITMQ_USERNAME", rabbit.adminUsername)
         withEnv("RABBITMQ_PASSWORD", rabbit.adminPassword)
-        val realmFile = Paths.get("../k8s/base/keycloak/realm.json").toAbsolutePath().normalize()
+
+        val realmFile = Paths.get("../k8s/base/keycloak/realm-common.json").toAbsolutePath().normalize()
         withCopyFileToContainer(MountableFile.forHostPath(realmFile), "/opt/keycloak/data/import/realm.json")
         start()
+        val clients = keycloakAdminClient.realm("foodies-keycloak").clients()
+        val existingClient = clients.findByClientId("foodies").firstOrNull()
+            ?: error("Expected Keycloak client 'foodies' from realm import.")
+        existingClient.redirectUris = listOf("http://localhost:8080/oauth/callback")
+        existingClient.webOrigins = listOf("http://localhost")
+        existingClient.attributes = mapOf("post.logout.redirect.uris" to "http://localhost/*")
+        clients[existingClient.id].update(existingClient)
     }
 }
 
@@ -61,7 +67,7 @@ fun e2eSuite(
     @TestElementName name: String = "",
     @TestDisplayName displayName: String = name,
     testConfig: TestConfig = TestConfig,
-    browserType: AppBrowserType = AppBrowserType.WEBKIT ,
+    browserType: AppBrowserType = AppBrowserType.WEBKIT,
     authenticated: Boolean = true,
     content: context(E2EContext) TestSuite.() -> Unit
 ): Lazy<TestSuite> = testSuite(name, displayName, testConfig) {
