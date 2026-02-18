@@ -1,0 +1,15 @@
+{
+  "realm": "foodies-keycloak",
+  "sslRequired": "external",
+  "clients": [
+    {
+      "clientId": "foodies",
+      "secret": "${env.AUTH_CLIENT_SECRET}",
+      "redirectUris": ["https://foodies.com/oauth/callback"],
+      "webOrigins": ["https://foodies.com"],
+      "attributes": {
+        "post.logout.redirect.uris": "https://foodies.com/*"
+      }
+    }
+  ]
+}

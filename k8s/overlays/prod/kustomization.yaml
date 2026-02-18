@@ -11,6 +11,10 @@ configMapGenerator:
     behavior: merge
     literals:
       - FOODIES_HOST=foodies.com
+  - name: keycloak-realm
+    behavior: merge
+    files:
+      - keycloak/realm-prod.json
 
 secretGenerator:
   - name: keycloak-admin
@@ -97,3 +101,15 @@ patches:
       - op: add
         path: /spec/volumeClaimTemplates/0/spec/storageClassName
         value: standard
+  - target:
+      kind: Job
+      name: keycloak-config-cli
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: AUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: webapp-auth
+              key: AUTH_CLIENT_SECRET

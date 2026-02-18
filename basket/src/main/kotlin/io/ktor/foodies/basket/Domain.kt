@@ -45,8 +45,6 @@ data class UpdateItemQuantityRequest(
     val quantity: Int
 )
 
-// Validated domain objects
-
 data class ValidatedAddItem(
     val menuItemId: Long,
     val quantity: Int
@@ -68,22 +66,3 @@ fun UpdateItemQuantityRequest.validate(): ValidatedUpdateQuantity = validate {
         quantity = quantity.validate({ it >= 1 }) { "quantity must be at least 1" }
     )
 }
-
-// Factory for creating basket items
-
-fun createBasketItem(
-    menuItemId: Long,
-    menuItemName: String,
-    menuItemDescription: String,
-    menuItemImageUrl: String,
-    unitPrice: SerializableBigDecimal,
-    quantity: Int
-): BasketItem = BasketItem(
-    id = UUID.randomUUID().toString(),
-    menuItemId = menuItemId,
-    menuItemName = menuItemName,
-    menuItemDescription = menuItemDescription,
-    menuItemImageUrl = menuItemImageUrl,
-    unitPrice = unitPrice,
-    quantity = quantity
-)

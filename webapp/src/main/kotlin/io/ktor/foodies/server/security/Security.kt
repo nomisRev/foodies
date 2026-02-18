@@ -207,9 +207,9 @@ private suspend fun UserSession.refresh(): Unit =
     if (shouldRefresh()) {
         val session = pipeline.call.application.attributes[RefresherKey].refreshSession(this)
         pipeline.call.sessions.set(session)
-        withContext(AuthContext.UserAuth(session.accessToken)) { pipeline.proceed() }
+        withContext(AuthContext(session.accessToken)) { pipeline.proceed() }
     } else {
-        withContext(AuthContext.UserAuth(accessToken)) { pipeline.proceed() }
+        withContext(AuthContext(accessToken)) { pipeline.proceed() }
     }
 
 private fun UserSession.shouldRefresh(bufferSeconds: Long = 60): Boolean =
@@ -230,7 +230,7 @@ private fun AuthenticationConfig.oauth(
             requestMethod = HttpMethod.Post,
             clientId = config.clientId,
             clientSecret = config.clientSecret,
-            defaultScopes = listOf("openid", "profile", "email", "offline_access", "aud-basket-service"),
+            defaultScopes = listOf("openid", "profile", "email", "offline_access"),
         )
     }
 }

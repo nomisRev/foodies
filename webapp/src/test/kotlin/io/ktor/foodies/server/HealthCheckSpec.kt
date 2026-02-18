@@ -21,6 +21,15 @@ val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
         assertEquals(HttpStatusCode.OK, response.status)
     }
 
+    testWebAppService("readiness probe checks redis connectivity") {
+        startApplication()
+        val response = client.get("/healthz/readiness")
+        assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
+
+        val body = response.bodyAsText()
+        assertContains(body, "redis", ignoreCase = true)
+    }
+
     testWebAppService("readiness probe returns 503 when menu service is unavailable") {
         val response = client.get("/healthz/readiness")
         assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
@@ -37,13 +46,5 @@ val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
         val body = response.bodyAsText()
         assertContains(body, "basket-service", ignoreCase = true)
         assertContains(body, "unhealthy", ignoreCase = true)
-    }
-
-    testWebAppService("readiness probe checks redis connectivity") {
-        val response = client.get("/healthz/readiness")
-        assertEquals(HttpStatusCode.ServiceUnavailable, response.status)
-
-        val body = response.bodyAsText()
-        assertContains(body, "redis", ignoreCase = true)
     }
 }
