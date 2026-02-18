@@ -17,7 +17,6 @@ dependencies {
     implementation(project(":server-shared"))
     implementation(ktorLibs.client.apache5)
     implementation(ktorLibs.client.contentNegotiation)
-    implementation(ktorLibs.client.logging)
 
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.auth)
@@ -37,7 +36,6 @@ dependencies {
 
     api(libs.cohort.ktor)
     api(libs.cohort.hikari)
-    implementation("io.ktor:ktor-client-logging:3.4.0")
 
     testImplementation(project(":server-shared-test"))
     testImplementation(libs.testcontainers.redis)

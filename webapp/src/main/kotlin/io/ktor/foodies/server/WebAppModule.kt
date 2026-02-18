@@ -50,12 +50,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
     monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
     val menuService = HttpMenuService(config.menu.baseUrl, httpClient)
-    val basketService = HttpBasketService(config.basket.baseUrl, httpClient.config {
-        install(Logging) {
-            logger = Logger.DEFAULT
-            level = LogLevel.HEADERS
-        }
-    })
+    val basketService = HttpBasketService(config.basket.baseUrl, httpClient)
 
     val auth = if (config.redis.password.isNotBlank()) ":${config.redis.password}@" else ""
     val client = RedisClient.create("redis://$auth${config.redis.host}:${config.redis.port}")

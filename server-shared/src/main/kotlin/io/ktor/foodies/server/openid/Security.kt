@@ -41,17 +41,6 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
                 val payload = credential.payload
                 val email = payload.getClaim("email").asString()
                 val authHeader = request.headers["Authorization"]?.removePrefix("Bearer ") ?: ""
-
-                application.log.error("""
-                    JWT LOG:
-                    subject: ${credential.subject}
-                    claims: ${payload.claims}
-                    email: $email
-                    roles: ${payload.realmRoles()}
-                    resourceRoles: ${payload.resourceRoles(auth.audience)}
-                    accessToken: $authHeader
-                """.trimIndent())
-
                 val principal = if (email != null) {
                     UserPrincipal(
                         userId = payload.subject,
@@ -60,8 +49,6 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
                         accessToken = authHeader
                     )
                 } else null
-                application.log.error("JWT Validation: {}", principal)
-                principal
             }
         }
     }

@@ -33,7 +33,9 @@ fun TestSuite.serviceContext(): ServiceContext {
         val keycloak = KeycloakContainer("quay.io/keycloak/keycloak:26.5.0").apply {
             val realmFile = Paths.get("../k8s/base/keycloak/realm-common.json").toAbsolutePath().normalize()
             withCopyFileToContainer(MountableFile.forHostPath(realmFile), "/opt/keycloak/data/import/realm.json")
-            start()
+        }
+        Startables.deepStart(redis, keycloak).await()
+        keycloak.apply {
             val clients = keycloakAdminClient.realm("foodies-keycloak").clients()
             val existingClient = clients.findByClientId("foodies").firstOrNull()
                 ?: error("Expected Keycloak client 'foodies' from realm import.")
@@ -42,7 +44,6 @@ fun TestSuite.serviceContext(): ServiceContext {
             existingClient.attributes = mapOf("post.logout.redirect.uris" to "http://localhost/*")
             clients[existingClient.id].update(existingClient)
         }
-        Startables.deepStart(redis, keycloak).await()
         Pair(redis, keycloak)
     }
     val redisContainer = testFixture { fixture().first }
