@@ -30,6 +30,7 @@ interface ProfileRepository {
     fun deleteBySubject(subject: String): Boolean
 }
 
+@Suppress("MagicNumber")
 object ProfileTable : LongIdTable("profiles") {
     val subject = varchar("subject", 255).uniqueIndex()
     val email = varchar("email", 255)
