@@ -85,7 +85,11 @@ tasks {
     }
 }
 
-tasks.register<JavaExec>("installPlaywrightBrowsers") {
+    tasks.withType<JavaExec>().configureEach {
+        systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
+    }
+
+    tasks.register<JavaExec>("installPlaywrightBrowsers") {
     group = "playwright"
     description = "Installs Playwright browsers"
     mainClass.set("com.microsoft.playwright.CLI")
