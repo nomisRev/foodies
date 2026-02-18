@@ -18,16 +18,10 @@ fun interface SecuredUser {
 context(secured: SecuredUser, context: RoutingContext)
 suspend fun userPrincipal(): UserPrincipal = secured.userPrincipal()
 
-
-fun interface SecuredService {
-    context(ctx: RoutingContext)
-    suspend fun servicePrincipal(): ServicePrincipal
-}
-
 fun Route.secureUser(
     vararg roles: String,
     build: context(SecuredUser) Route.() -> Unit
-): Route = authenticate("user") {
+): Route = authenticate {
     install(createRouteScopedPlugin("SecureUserContext") {
         route!!.intercept(ApplicationCallPipeline.Call) {
             val principal = requireNotNull(call.principal<UserPrincipal>()) { "UserPrincipal not found" }

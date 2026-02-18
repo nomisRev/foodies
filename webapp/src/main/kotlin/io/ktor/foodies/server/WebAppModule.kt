@@ -6,6 +6,10 @@ import com.sksamuel.cohort.lettuce.RedisHealthCheck
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.plugins.logging.DEFAULT
+import io.ktor.client.plugins.logging.LogLevel
+import io.ktor.client.plugins.logging.Logger
+import io.ktor.client.plugins.logging.Logging
 import io.ktor.client.request.get
 import io.ktor.foodies.server.auth.AuthContextPlugin
 import io.ktor.foodies.server.htmx.basket.BasketService
@@ -46,7 +50,12 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
     monitor.subscribe(ApplicationStopped) { httpClient.close() }
 
     val menuService = HttpMenuService(config.menu.baseUrl, httpClient)
-    val basketService = HttpBasketService(config.basket.baseUrl, httpClient)
+    val basketService = HttpBasketService(config.basket.baseUrl, httpClient.config {
+        install(Logging) {
+            logger = Logger.DEFAULT
+            level = LogLevel.HEADERS
+        }
+    })
 
     val auth = if (config.redis.password.isNotBlank()) ":${config.redis.password}@" else ""
     val client = RedisClient.create("redis://$auth${config.redis.host}:${config.redis.port}")

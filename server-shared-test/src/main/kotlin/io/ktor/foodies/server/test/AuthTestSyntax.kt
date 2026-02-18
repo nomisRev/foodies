@@ -17,7 +17,7 @@ import java.util.*
 
 const val TEST_JWT_SECRET = "test-jwt-secret"
 const val TEST_ISSUER = "http://test-issuer"
-const val TEST_AUDIENCE = "basket-service"
+const val TEST_AUDIENCE = "foodies"
 
 data class JwtConfig(
     val algorithm: Algorithm = Algorithm.HMAC256(TEST_JWT_SECRET),
@@ -66,7 +66,7 @@ private fun Payload.resourceRoles(audience: String): Set<String> {
 
 fun ApplicationTestBuilder.installTestAuth(config: JwtConfig = JwtConfig()) = application {
     install(Authentication) {
-        jwt("user") {
+        jwt {
             verifier(JWT.require(config.algorithm).withIssuer(config.issuer).build())
             validate { credential: JWTCredential ->
                 val claims = credential.payload.claims
@@ -78,21 +78,6 @@ fun ApplicationTestBuilder.installTestAuth(config: JwtConfig = JwtConfig()) = ap
                         email = email,
                         roles = credential.payload.realmRoles(),
                         accessToken = authHeader
-                    )
-                } else null
-            }
-        }
-
-        jwt("service") {
-            verifier(JWT.require(config.algorithm).withIssuer(config.issuer).build())
-            validate { credential: JWTCredential ->
-                val payload = credential.payload.claims
-                val clientId = payload["azp"]?.asString() ?: payload["client_id"]?.asString()
-                if (clientId?.endsWith("-service") == true) {
-                    ServicePrincipal(
-                        serviceAccountId = requireNotNull(credential.subject) { "Credential subject (serviceAccountId) missing" },
-                        clientId = clientId,
-                        roles = credential.payload.resourceRoles(config.audience)
                     )
                 } else null
             }

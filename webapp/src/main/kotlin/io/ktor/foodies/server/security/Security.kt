@@ -66,7 +66,7 @@ suspend fun Application.security(
             // In production with HTTPS, this should be true and use ForwardedHeaders plugin
             cookie.secure = false
             cookie.httpOnly = true
-            cookie.extensions["SameSite"] = "Lax"
+            cookie.extensions["SameSite"] = "Strict"
         }
     }
 
