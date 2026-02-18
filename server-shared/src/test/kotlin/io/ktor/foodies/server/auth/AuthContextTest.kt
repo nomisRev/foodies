@@ -12,45 +12,18 @@ import kotlin.test.assertNull
 
 val authContextSpec by testSuite {
     test("UserAuth coroutine context propagation") {
-        val userAuth = AuthContext.UserAuth("user-token-123")
+        val userAuth = AuthContext("user-token-123")
 
         withContext(userAuth) {
             val context = currentCoroutineContext()[AuthContext]
             assertNotNull(context)
-            assertIs<AuthContext.UserAuth>(context)
+            assertIs<AuthContext>(context)
             assertEquals("user-token-123", context.accessToken)
         }
     }
 
-    test("ServiceAuth coroutine context propagation without user token") {
-        val serviceAuth = AuthContext.ServiceAuth("service-token-456")
-
-        withContext(serviceAuth) {
-            val context = currentCoroutineContext()[AuthContext]
-            assertNotNull(context)
-            assertIs<AuthContext.ServiceAuth>(context)
-            assertEquals("service-token-456", context.serviceToken)
-            assertNull(context.userToken)
-        }
-    }
-
-    test("ServiceAuth coroutine context propagation with user token") {
-        val serviceAuth = AuthContext.ServiceAuth(
-            serviceToken = "service-token-789",
-            userToken = "user-token-original"
-        )
-
-        withContext(serviceAuth) {
-            val context = currentCoroutineContext()[AuthContext]
-            assertNotNull(context)
-            assertIs<AuthContext.ServiceAuth>(context)
-            assertEquals("service-token-789", context.serviceToken)
-            assertEquals("user-token-original", context.userToken)
-        }
-    }
-
     test("AuthContext propagates to nested coroutines") {
-        val userAuth = AuthContext.UserAuth("nested-token")
+        val userAuth = AuthContext("nested-token")
 
         withContext(userAuth) {
             val deferred = async {
@@ -59,31 +32,11 @@ val authContextSpec by testSuite {
 
             val context = deferred.await()
             assertNotNull(context)
-            assertIs<AuthContext.UserAuth>(context)
+            assertIs<AuthContext>(context)
             assertEquals("nested-token", context.accessToken)
         }
     }
 
-    test("AuthContext can be replaced in nested context") {
-        val userAuth = AuthContext.UserAuth("outer-token")
-        val serviceAuth = AuthContext.ServiceAuth("inner-token")
-
-        withContext(userAuth) {
-            val outerContext = currentCoroutineContext()[AuthContext]
-            assertIs<AuthContext.UserAuth>(outerContext)
-            assertEquals("outer-token", outerContext.accessToken)
-
-            withContext(serviceAuth) {
-                val innerContext = currentCoroutineContext()[AuthContext]
-                assertIs<AuthContext.ServiceAuth>(innerContext)
-                assertEquals("inner-token", innerContext.serviceToken)
-            }
-
-            val restoredContext = currentCoroutineContext()[AuthContext]
-            assertIs<AuthContext.UserAuth>(restoredContext)
-            assertEquals("outer-token", restoredContext.accessToken)
-        }
-    }
 
     test("AuthContext is absent when not set") {
         val context = currentCoroutineContext()[AuthContext]
@@ -91,30 +44,25 @@ val authContextSpec by testSuite {
     }
 
     test("UserAuth has correct CoroutineContext.Key") {
-        val userAuth = AuthContext.UserAuth("token")
+        val userAuth = AuthContext("token")
         assertEquals(AuthContext.Key, userAuth.key)
     }
 
-    test("ServiceAuth has correct CoroutineContext.Key") {
-        val serviceAuth = AuthContext.ServiceAuth("token")
-        assertEquals(AuthContext.Key, serviceAuth.key)
-    }
-
     test("AuthContext.Key can retrieve context element") {
-        val userAuth = AuthContext.UserAuth("test-token")
+        val userAuth = AuthContext("test-token")
 
         withContext(userAuth) {
             val context: CoroutineContext = currentCoroutineContext()
             val retrievedAuth = context[AuthContext.Key]
 
             assertNotNull(retrievedAuth)
-            assertIs<AuthContext.UserAuth>(retrievedAuth)
+            assertIs<AuthContext>(retrievedAuth)
             assertEquals("test-token", retrievedAuth.accessToken)
         }
     }
 
     test("Multiple async coroutines inherit same AuthContext") {
-        val userAuth = AuthContext.UserAuth("shared-token")
+        val userAuth = AuthContext("shared-token")
 
         withContext(userAuth) {
             val deferred1 = async {
@@ -130,17 +78,10 @@ val authContextSpec by testSuite {
 
             assertNotNull(context1)
             assertNotNull(context2)
-            assertIs<AuthContext.UserAuth>(context1)
-            assertIs<AuthContext.UserAuth>(context2)
+            assertIs<AuthContext>(context1)
+            assertIs<AuthContext>(context2)
             assertEquals("shared-token", context1.accessToken)
             assertEquals("shared-token", context2.accessToken)
         }
-    }
-
-    test("ServiceAuth with null userToken is semantically same as without it") {
-        val serviceAuth1 = AuthContext.ServiceAuth("token")
-        val serviceAuth2 = AuthContext.ServiceAuth("token", null)
-
-        assertEquals(serviceAuth1, serviceAuth2)
     }
 }
