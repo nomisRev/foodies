@@ -48,7 +48,8 @@ tasks {
         inputs.dir(rootProject.projectDir.resolve("keycloak"))
 
         workingDir(rootProject.projectDir)
-        commandLine("docker", "build", "--build-arg", "JAR_VERSION=${project.version}",
+        commandLine(
+            "docker", "build", "--build-arg", "JAR_VERSION=${project.version}",
             "-t", imageTag,
             "-f", "keycloak/Dockerfile",
             "."
@@ -77,22 +78,22 @@ tasks {
     }
 
     withType<Test>().configureEach {
-//        dependsOn(publishImageToLocalRegistry)
+        dependsOn(publishImageToLocalRegistry)
         dependsOn("installPlaywrightBrowsers")
         systemProperty("keycloak.image", imageTag)
         systemProperty("headless", project.findProperty("headless") ?: "true")
         systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
     }
-}
 
-    tasks.withType<JavaExec>().configureEach {
+    withType<JavaExec>().configureEach {
         systemProperty("java.util.logging.manager", "org.jboss.logmanager.LogManager")
     }
 
-    tasks.register<JavaExec>("installPlaywrightBrowsers") {
-    group = "playwright"
-    description = "Installs Playwright browsers"
-    mainClass.set("com.microsoft.playwright.CLI")
-    classpath = sourceSets["test"].runtimeClasspath
-    args = listOf("install", "chromium", "--with-deps")
+    register<JavaExec>("installPlaywrightBrowsers") {
+        group = "playwright"
+        description = "Installs Playwright browsers"
+        mainClass.set("com.microsoft.playwright.CLI")
+        classpath = sourceSets["test"].runtimeClasspath
+        args = listOf("install", "chromium", "--with-deps")
+    }
 }

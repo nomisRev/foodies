@@ -1,13 +1,19 @@
 package io.ktor.foodies.server
 
+import de.infix.testBalloon.framework.core.TestConfig
+import de.infix.testBalloon.framework.core.testScope
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.foodies.server.test.ctxSuite
 import io.ktor.http.HttpStatusCode
 import kotlin.test.assertEquals
 import kotlin.test.assertContains
+import kotlin.time.Duration.Companion.minutes
 
-val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
+val healthCheckSpec by ctxSuite(
+    context = { serviceContext() },
+    testConfig = TestConfig.testScope(true, timeout = 2.minutes) // cold CI start to pull & start keycloak
+) {
 
     testWebAppService("startup probe returns 200 OK") {
         startApplication()
