@@ -64,7 +64,7 @@ fun e2eSuite(
     @TestElementName name: String = "",
     @TestDisplayName displayName: String = name,
     testConfig: TestConfig = TestConfig,
-    browserType: AppBrowserType = AppBrowserType.WEBKIT,
+    browserType: AppBrowserType = AppBrowserType.CHROMIUM,
     content: context(E2EContext) TestSuite.() -> Unit
 ): Lazy<TestSuite> = testSuite(name, displayName, testConfig) {
     val rabbit = rabbitContainer()
