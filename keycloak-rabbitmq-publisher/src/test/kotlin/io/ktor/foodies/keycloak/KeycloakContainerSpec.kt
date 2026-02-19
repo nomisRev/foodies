@@ -1,9 +1,8 @@
 package io.ktor.foodies.keycloak
 
-import com.foodies.e2e.e2eSuite
-import com.foodies.e2e.keycloak
-import com.foodies.e2e.page
-import com.foodies.e2e.rabbit
+import com.microsoft.playwright.Page
+import com.microsoft.playwright.options.AriaRole
+import com.microsoft.playwright.options.LoadState
 import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.testScope
 import io.ktor.foodies.server.test.channel
@@ -15,14 +14,13 @@ import kotlin.time.Duration.Companion.seconds
 val keyCloakSpec by e2eSuite(testConfig = TestConfig.testScope(true, timeout = 3.minutes)) {
     test("should publish REGISTER event to RabbitMQ") {
         val authServerUrl = keycloak().authServerUrl
-        assertNotNull(authServerUrl)
 
-        val registrationUrl = "$authServerUrl/realms/foodies-keycloak/protocol/openid-connect/registrations?client_id=foodies&response_type=code&redirect_uri=http://localhost:8080/oauth/callback"
+        val registrationUrl =
+            "$authServerUrl/realms/foodies-keycloak/protocol/openid-connect/registrations?client_id=foodies&response_type=code&redirect_uri=http://localhost:8080/oauth/callback"
 
         page().navigate(registrationUrl)
-        page().waitForLoadState(com.microsoft.playwright.options.LoadState.NETWORKIDLE)
+        page().waitForLoadState(LoadState.NETWORKIDLE)
 
-        // Fill out registration form
         val timestamp = System.currentTimeMillis()
         val username = "test_user_$timestamp"
         val email = "test_user_$timestamp@example.com"
@@ -34,10 +32,8 @@ val keyCloakSpec by e2eSuite(testConfig = TestConfig.testScope(true, timeout = 3
         page().locator("#firstName").fill("Test")
         page().locator("#lastName").fill("User")
 
-        // Submit registration
-        page().getByRole(com.microsoft.playwright.options.AriaRole.BUTTON, com.microsoft.playwright.Page.GetByRoleOptions().setName("Register")).click()
+        page().getByRole(AriaRole.BUTTON, Page.GetByRoleOptions().setName("Register")).click()
 
-        // Check that the REGISTER event is received in RabbitMQ
         rabbit().connectionFactory().channel { channel ->
             val queueName = "profile.registration"
             channel.queueDeclare(queueName, true, false, false, null)

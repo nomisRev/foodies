@@ -1,4 +1,4 @@
-package com.foodies.e2e
+package io.ktor.foodies.keycloak
 
 import com.microsoft.playwright.Browser
 import com.microsoft.playwright.BrowserType
@@ -14,10 +14,8 @@ import de.infix.testBalloon.framework.shared.TestElementName
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.test.RabbitContainer
 import io.ktor.foodies.server.test.rabbitContainer
-import org.keycloak.representations.idm.ClientRepresentation
 import org.testcontainers.Testcontainers
 import org.testcontainers.utility.MountableFile
-import java.nio.file.Files
 import java.nio.file.Paths
 
 fun TestSuite.keycloak(rabbit: TestFixture<RabbitContainer>) = testFixture {
@@ -29,7 +27,6 @@ fun TestSuite.keycloak(rabbit: TestFixture<RabbitContainer>) = testFixture {
         withEnv("RABBITMQ_PORT", rabbit.amqpPort.toString())
         withEnv("RABBITMQ_USERNAME", rabbit.adminUsername)
         withEnv("RABBITMQ_PASSWORD", rabbit.adminPassword)
-
         val realmFile = Paths.get("../k8s/base/keycloak/realm-common.json").toAbsolutePath().normalize()
         withCopyFileToContainer(MountableFile.forHostPath(realmFile), "/opt/keycloak/data/import/realm.json")
         start()
@@ -68,7 +65,6 @@ fun e2eSuite(
     @TestDisplayName displayName: String = name,
     testConfig: TestConfig = TestConfig,
     browserType: AppBrowserType = AppBrowserType.WEBKIT,
-    authenticated: Boolean = true,
     content: context(E2EContext) TestSuite.() -> Unit
 ): Lazy<TestSuite> = testSuite(name, displayName, testConfig) {
     val rabbit = rabbitContainer()
