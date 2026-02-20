@@ -5,49 +5,55 @@ RabbitMQ for event streaming, PostgreSQL for data persistence, and Redis for cac
 
 ## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              Web Browser                                    │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         webapp (Port 8080)                                  │
-│                    HTMX UI + OAuth2 Authentication                          │
-└─────────────────────────────────────────────────────────────────────────────┘
-            │
-            ▼
-┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
-│  menu (8082)    │ │  basket (8083)  │ │  profile (8081) │ │  order (8084)   │ │  payment (8085) │
-│  REST API       │ │  REST API       │ │  Event-Driven   │ │  REST API       │ │  REST API       │
-│  PostgreSQL     │ │  Redis          │ │  PostgreSQL     │ │  PostgreSQL     │ │  PostgreSQL     │
-└─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
-         │                 │                 │                 │                 │
-         └─────────────────┼─────────────────┼─────────────────┼─────────────────┘
-                           │                 │                 │
-                           ▼                 ▼                 ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            RabbitMQ                                         │
-│                     Event Streaming & Messaging                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                     ▲
-                                     │
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         Keycloak (Port 8000)                                │
-│                    Identity & Access Management                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+```mermaid
+%%{init: {"theme":"base","themeVariables":{"background":"#F7F5FF","primaryColor":"#7F52FF","primaryTextColor":"#0B1020","primaryBorderColor":"#4E2BBE","secondaryColor":"#0095D5","tertiaryColor":"#F97B00","lineColor":"#1B3A57","edgeLabelBackground":"#F7F5FF","clusterBkg":"#FFF4E6","clusterBorder":"#F6B36A","fontFamily":"JetBrains Mono, Fira Code, Menlo, monospace","fontSize":"14px"},"flowchart":{"nodeSpacing":60,"rankSpacing":70,"curve":"basis"}}}%%
+flowchart TB
+    browser["Web Browser"]
+    webapp["webapp<br/>Port 8080<br/>HTMX UI + OAuth2"]
+    keycloak["Keycloak<br/>Port 8000<br/>Identity & Access"]
+    rabbit["RabbitMQ<br/>Event Streaming & Messaging"]
 
-## Services
+    ms_label["Microservices"]:::label
 
-| Service | Port | Description | Database | Status |
-|---------|------|-------------|----------|---------|
-| **webapp** | 8080 | Main web application with HTMX UI and OAuth2 authentication | Redis (sessions) | ✅ Active |
-| **profile** | 8081 | Event-driven user profile management consuming Keycloak events | PostgreSQL | ✅ Active |
-| **menu** | 8082 | Restaurant menu management with inventory tracking | PostgreSQL | ✅ Active |
-| **basket** | 8083 | Shopping basket service with Redis storage and JWT auth | Redis | ✅ Active |
-| **order** | 8084 | Order management with payment integration and event processing | PostgreSQL | ✅ Active |
-| **payment** | 8085 | Payment processing with simulated gateway integration | PostgreSQL | ✅ Active |
+    subgraph services[" "]
+        direction LR
+        profile["profile<br/>8081<br/>Event-Driven<br/>PostgreSQL"]
+        menu["menu<br/>8082<br/>REST API<br/>PostgreSQL"]
+        basket["basket<br/>8083<br/>REST API<br/>Redis"]
+        order["order<br/>8084<br/>REST API<br/>PostgreSQL"]
+        payment["payment<br/>8085<br/>REST API<br/>PostgreSQL"]
+    end
+
+    browser --> webapp
+    webapp --> ms_label
+    ms_label --> profile
+    ms_label --> menu
+    ms_label --> basket
+    ms_label --> order
+    ms_label --> payment
+
+    profile --> rabbit
+    menu --> rabbit
+    basket --> rabbit
+    order --> rabbit
+    payment --> rabbit
+
+    webapp -->|OAuth2| keycloak
+    keycloak -->|events| rabbit
+
+    class browser entry
+    class webapp web
+    class profile,menu,basket,order,payment service
+    class rabbit,keycloak infra
+    class ms_label label
+
+    classDef entry fill:#F7F5FF,stroke:#0095D5,stroke-width:1px,color:#0B1020,rx:6,ry:6
+    classDef web fill:#E7F4FF,stroke:#0095D5,stroke-width:2px,color:#0B1020,rx:8,ry:8
+    classDef service fill:#F1E9FF,stroke:#7F52FF,stroke-width:1.5px,color:#1B0B3A,rx:6,ry:6
+    classDef infra fill:#FFF1DD,stroke:#F97B00,stroke-width:1.5px,color:#5C2A00,rx:6,ry:6
+    classDef label fill:transparent,stroke:transparent,color:#1B3A57,font-size:13px,font-weight:700
+    style services fill:#FFF4E6,stroke:#F6B36A,stroke-width:1px,rx:8,ry:8
+```
 
 ## Modules
 
@@ -72,7 +78,6 @@ foodies/
 ├── e2e/                         # End-to-end tests
 ├── k8s/                         # Kubernetes manifests
 ├── docs/                        # Documentation
-└── specs/                       # Service specifications
 ```
 
 ## Technology Stack
@@ -97,52 +102,9 @@ foodies/
 ### Prerequisites
 
 - JDK 21
-- Docker Compose OR kubectl (1.14+ for kustomize)
+- kubectl (1.14+ for kustomize)
 
-### 1. Build the Keycloak Provider
-
-```bash
-./gradlew :keycloak-rabbitmq-publisher:build
-```
-
-### 2. Start Infrastructure
-
-#### Docker Compose
-
-```bash
-docker compose up -d
-```
-
-This starts:
-
-- PostgreSQL (profile database on 5432, menu database on 5433)
-- Redis (6379)
-- RabbitMQ (5672, management UI on 15672)
-- Keycloak (8000)
-
-#### Run Services
-
-In separate terminals:
-
-```bash
-./gradlew :profile:run    # Port 8081
-./gradlew :menu:run       # Port 8082
-./gradlew :basket:run     # Port 8083
-./gradlew :order:run      # Port 8084
-./gradlew :payment:run    # Port 8085
-./gradlew :webapp:run     # Port 8080
-```
-
-#### Access the Application
-
-- Username: `food_lover@gmail.com`
-- Password: `password`
-
-- **Web App**: http://localhost:8080
-- **Keycloak Admin**: http://localhost:8000 (admin/admin)
-- **RabbitMQ Management**: http://localhost:15672 (guest/guest)
-
-### Local Kubernetes
+### 1. Build and publish images
 
 See [k8s/README.md](k8s/README.md) for detailed deployment instructions.
 
