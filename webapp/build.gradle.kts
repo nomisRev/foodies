@@ -7,6 +7,9 @@ application { mainClass = "io.ktor.foodies.server.WebAppKt" }
 version = "0.0.3"
 
 ktor {
+    openApi {
+        enabled.set(true)
+    }
     docker {
         localImageName = "foodies-webapp"
         imageTag = project.version.toString()
@@ -23,6 +26,8 @@ dependencies {
     implementation(ktorLibs.server.auth.jwt)
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.server.routingOpenapi)
+    implementation(ktorLibs.openapiSchema)
 
     implementation(ktorLibs.server.htmlBuilder)
     implementation(ktorLibs.server.htmx)

@@ -7,6 +7,9 @@ application { mainClass = "io.ktor.foodies.basket.AppKt" }
 version = "0.0.6"
 
 ktor {
+    openApi {
+        enabled.set(true)
+    }
     docker {
         localImageName = "foodies-basket"
         imageTag = project.version.toString()
@@ -22,6 +25,8 @@ dependencies {
     implementation(ktorLibs.server.config.yaml)
     implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.contentNegotiation)
+    implementation(ktorLibs.server.routingOpenapi)
+    implementation(ktorLibs.openapiSchema)
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ktorLibs.server.auth)
     implementation(ktorLibs.server.auth.jwt)
@@ -48,4 +53,3 @@ dependencies {
     testImplementation(libs.testcontainers.redis)
     testImplementation(libs.kotlinx.coroutines.reactor)
 }
-

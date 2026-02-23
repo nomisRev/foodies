@@ -5,6 +5,8 @@ import com.sksamuel.cohort.HealthCheckRegistry
 import io.ktor.foodies.server.ValidationException
 import io.ktor.foodies.server.telemetry.monitoring
 import io.ktor.http.HttpStatusCode
+import io.ktor.openapi.OpenApiDoc
+import io.ktor.openapi.OpenApiInfo
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -14,8 +16,13 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
+import io.ktor.server.response.respond
 import io.ktor.server.response.respondText
+import io.ktor.server.routing.get
+import io.ktor.server.routing.openapi.plus
 import io.ktor.server.routing.routing
+import io.ktor.server.routing.routingRoot
+import io.ktor.utils.io.ExperimentalKtorApi
 import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
@@ -28,6 +35,7 @@ fun main() {
     }.start(wait = true)
 }
 
+@OptIn(ExperimentalKtorApi::class)
 fun Application.app(module: MenuModule) {
     install(ContentNegotiation) { json() }
 
@@ -48,5 +56,11 @@ fun Application.app(module: MenuModule) {
 
     routing {
         menuRoutes(module.menuService)
+        get("/api/openapi.json") {
+            val doc =
+                OpenApiDoc(info = OpenApiInfo("Foodies Menu API", "1.0")) +
+                    call.application.routingRoot.descendants()
+            call.respond(doc)
+        }
     }
 }

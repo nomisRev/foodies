@@ -7,6 +7,8 @@ import io.ktor.foodies.server.htmx.home
 import io.ktor.foodies.server.htmx.menu.menuRoutes
 import io.ktor.foodies.server.security.security
 import io.ktor.foodies.server.telemetry.monitoring
+import io.ktor.openapi.OpenApiDoc
+import io.ktor.openapi.OpenApiInfo
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
@@ -17,7 +19,12 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.http.content.staticResources
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.response.respond
+import io.ktor.server.routing.get
+import io.ktor.server.routing.openapi.plus
 import io.ktor.server.routing.routing
+import io.ktor.server.routing.routingRoot
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.coroutines.Dispatchers
 
 fun main() {
@@ -28,6 +35,7 @@ fun main() {
     }.start(wait = true)
 }
 
+@OptIn(ExperimentalKtorApi::class)
 suspend fun Application.app(config: Config, module: WebAppModule) {
     install(ContentNegotiation) { json() }
     install(Cohort) {
@@ -46,5 +54,11 @@ suspend fun Application.app(config: Config, module: WebAppModule) {
     routing {
         staticResources("/static", "static")
         home()
+        get("/api/openapi.json") {
+            val doc =
+                OpenApiDoc(info = OpenApiInfo("Foodies Webapp API", "1.0")) +
+                    call.application.routingRoot.descendants()
+            call.respond(doc)
+        }
     }
 }
