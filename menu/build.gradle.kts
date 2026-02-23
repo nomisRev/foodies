@@ -7,6 +7,9 @@ application { mainClass = "io.ktor.foodies.menu.AppKt" }
 version = "0.0.1"
 
 ktor {
+    openApi {
+        enabled.set(true)
+    }
     docker {
         localImageName = "foodies-menu"
         imageTag = project.version.toString()
@@ -22,6 +25,8 @@ dependencies {
     implementation(ktorLibs.server.config.yaml)
     implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.contentNegotiation)
+    implementation(ktorLibs.server.routingOpenapi)
+    implementation(ktorLibs.openapiSchema)
     implementation(ktorLibs.serialization.kotlinx.json)
 
     implementation(libs.logback)
@@ -44,4 +49,3 @@ dependencies {
     testImplementation(ktorLibs.client.contentNegotiation)
     testImplementation(ktorLibs.serialization.kotlinx.json)
 }
-

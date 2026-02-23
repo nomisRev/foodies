@@ -7,6 +7,9 @@ application { mainClass = "io.ktor.foodies.server.AppKt" }
 version = "0.0.4"
 
 ktor {
+    openApi {
+        enabled.set(true)
+    }
     docker {
         localImageName = "foodies-profile"
         imageTag = project.version.toString()
@@ -20,6 +23,10 @@ dependencies {
 
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.config.yaml)
+    implementation(ktorLibs.server.contentNegotiation)
+    implementation(ktorLibs.server.routingOpenapi)
+    implementation(ktorLibs.openapiSchema)
+    implementation(ktorLibs.serialization.kotlinx.json)
     implementation(libs.logback)
 
     implementation(libs.serialization.json)
@@ -36,4 +43,3 @@ dependencies {
     testImplementation(libs.testcontainers.rabbitmq)
     testImplementation(libs.testcontainers.postgresql)
 }
-

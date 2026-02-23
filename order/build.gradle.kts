@@ -9,6 +9,9 @@ application {
 version = "0.0.1"
 
 ktor {
+    openApi {
+        enabled.set(true)
+    }
     docker {
         localImageName = "foodies-order"
         imageTag = project.version.toString()
@@ -26,6 +29,8 @@ dependencies {
     implementation(ktorLibs.server.auth.jwt)
     implementation(ktorLibs.server.statusPages)
     implementation(ktorLibs.server.callId)
+    implementation(ktorLibs.server.routingOpenapi)
+    implementation(ktorLibs.openapiSchema)
 
     // Ktor Client (for Basket service)
     implementation(ktorLibs.client.core)
@@ -70,4 +75,3 @@ dependencies {
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.rabbitmq)
 }
-

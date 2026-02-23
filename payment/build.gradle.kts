@@ -9,6 +9,9 @@ application {
 version = "0.0.3"
 
 ktor {
+    openApi {
+        enabled.set(true)
+    }
     docker {
         localImageName = "foodies-payment"
         imageTag = project.version.toString()
@@ -21,6 +24,8 @@ dependencies {
     implementation(ktorLibs.server.contentNegotiation)
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ktorLibs.server.statusPages)
+    implementation(ktorLibs.server.routingOpenapi)
+    implementation(ktorLibs.openapiSchema)
     implementation(ktorLibs.server.config.yaml)
 
     implementation(libs.exposed.jdbc)
@@ -49,4 +54,3 @@ dependencies {
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.rabbitmq)
 }
-
