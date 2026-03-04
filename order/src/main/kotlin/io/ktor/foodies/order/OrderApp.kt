@@ -2,6 +2,9 @@ package io.ktor.foodies.order
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
+import io.ktor.foodies.order.admin.adminRoutes
+import io.ktor.foodies.order.placement.placementRoutes
+import io.ktor.foodies.order.tracking.trackingRoutes
 import io.ktor.foodies.server.ValidationException
 import io.ktor.foodies.server.openid.security
 import io.ktor.foodies.server.telemetry.openTelemetry
@@ -32,7 +35,7 @@ fun main() {
 fun Application.app(module: OrderModule) {
     install(ContentNegotiation) { json() }
 
-    module.consumers.forEach { it.launchIn(this) }
+    module.fulfillment.consumers.forEach { it.launchIn(this) }
 
     install(StatusPages) {
         exception<ValidationException> { call, cause ->
@@ -51,7 +54,8 @@ fun Application.app(module: OrderModule) {
     }
 
     routing {
-        orderRoutes(module.orderService)
-        adminRoutes(module.orderService)
+        placementRoutes(module.placement.service)
+        trackingRoutes(module.tracking.service)
+        adminRoutes(module.admin.trackingService, module.admin.fulfillmentService)
     }
 }
