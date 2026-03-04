@@ -1,39 +1,59 @@
 package io.ktor.foodies.order
 
-import io.ktor.foodies.order.client.BasketClient
-import io.ktor.foodies.order.client.CustomerBasket
-import io.ktor.foodies.order.domain.*
 import io.ktor.foodies.events.order.*
-import io.ktor.foodies.order.repository.OrderRepository
-import io.ktor.foodies.order.service.DefaultOrderService
-import io.ktor.foodies.order.service.OrderEventPublisher
+import io.ktor.foodies.order.fulfillment.DefaultFulfillmentService
+import io.ktor.foodies.order.fulfillment.FulfillmentEventPublisher
+import io.ktor.foodies.order.persistence.OrderRepository
+
+import io.ktor.foodies.order.placement.BasketClient
+import io.ktor.foodies.order.placement.CreateOrder
+import io.ktor.foodies.order.placement.CustomerBasket
+import io.ktor.foodies.order.placement.DefaultPlacementService
+import io.ktor.foodies.order.placement.GracePeriodExpiredEvent
+import io.ktor.foodies.order.placement.PlacementEventPublisher
+import io.ktor.foodies.order.placement.PlacementRepository
+import io.ktor.foodies.order.tracking.DefaultTrackingService
+import io.ktor.foodies.order.tracking.GetOrderResult
+import io.ktor.foodies.order.tracking.OrderSummary
+import io.ktor.foodies.order.tracking.PaginatedOrders
+import io.ktor.foodies.order.tracking.TrackingEventPublisher
+import io.ktor.foodies.order.tracking.TrackingRepository
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-/**
- * Holds test dependencies for the OrderService.
- */
 data class TestContext(
     val orderRepository: InMemoryOrderRepository,
     val basketClient: InMemoryBasketClient,
-    val eventPublisher: InMemoryOrderEventPublisher,
-    val service: DefaultOrderService
+    val placementEventPublisher: InMemoryPlacementEventPublisher,
+    val trackingEventPublisher: InMemoryTrackingEventPublisher,
+    val fulfillmentEventPublisher: InMemoryFulfillmentEventPublisher,
+    val placementService: DefaultPlacementService,
+    val trackingService: DefaultTrackingService,
+    val fulfillmentService: DefaultFulfillmentService,
 )
 
 fun createTestContext(): TestContext {
     val orderRepository = InMemoryOrderRepository()
     val basketClient = InMemoryBasketClient()
-    val eventPublisher = InMemoryOrderEventPublisher()
-    val service = DefaultOrderService(orderRepository, basketClient, eventPublisher, OrderConfig(30))
+    val placementEventPublisher = InMemoryPlacementEventPublisher()
+    val trackingEventPublisher = InMemoryTrackingEventPublisher()
+    val fulfillmentEventPublisher = InMemoryFulfillmentEventPublisher()
+    val placementService = DefaultPlacementService(orderRepository, basketClient, placementEventPublisher, OrderConfig(30))
+    val trackingService = DefaultTrackingService(orderRepository, orderRepository, trackingEventPublisher)
+    val fulfillmentService = DefaultFulfillmentService(orderRepository, fulfillmentEventPublisher)
     return TestContext(
         orderRepository = orderRepository,
         basketClient = basketClient,
-        eventPublisher = eventPublisher,
-        service = service
+        placementEventPublisher = placementEventPublisher,
+        trackingEventPublisher = trackingEventPublisher,
+        fulfillmentEventPublisher = fulfillmentEventPublisher,
+        placementService = placementService,
+        trackingService = trackingService,
+        fulfillmentService = fulfillmentService,
     )
 }
 
-class InMemoryOrderRepository : OrderRepository {
+class InMemoryOrderRepository : OrderRepository, PlacementRepository, TrackingRepository {
     val orders = mutableListOf<Order>()
 
     override fun findById(id: Long): Order? = orders.find { it.id == id }
@@ -85,16 +105,16 @@ class InMemoryOrderRepository : OrderRepository {
         return PaginatedOrders(summaries, filtered.size.toLong(), offset, limit)
     }
 
-    override fun create(order: CreateOrder): Order {
+    override fun create(createOrder: CreateOrder): Order {
         val newOrder = Order(
             id = (orders.size + 1).toLong(),
-            requestId = order.requestId,
-            buyerId = order.buyerId,
-            buyerEmail = order.buyerEmail,
-            buyerName = order.buyerName,
+            requestId = createOrder.requestId,
+            buyerId = createOrder.buyerId,
+            buyerEmail = createOrder.buyerEmail,
+            buyerName = createOrder.buyerName,
             status = OrderStatus.Submitted,
-            deliveryAddress = order.deliveryAddress,
-            items = order.items.mapIndexed { index, item ->
+            deliveryAddress = createOrder.deliveryAddress,
+            items = createOrder.items.mapIndexed { index, item ->
                 OrderItem(
                     id = (index + 1).toLong(),
                     menuItemId = item.menuItemId,
@@ -107,14 +127,14 @@ class InMemoryOrderRepository : OrderRepository {
             },
             paymentMethod = PaymentMethod(
                 1,
-                order.paymentDetails.cardType,
-                order.paymentDetails.cardHolderName,
-                order.paymentDetails.cardNumber.takeLast(4),
-                order.paymentDetails.expirationMonth,
-                order.paymentDetails.expirationYear
+                createOrder.paymentDetails.cardType,
+                createOrder.paymentDetails.cardHolderName,
+                createOrder.paymentDetails.cardNumber.takeLast(4),
+                createOrder.paymentDetails.expirationMonth,
+                createOrder.paymentDetails.expirationYear
             ),
-            totalPrice = order.totalPrice,
-            currency = order.currency,
+            totalPrice = createOrder.totalPrice,
+            currency = createOrder.currency,
             description = "Order submitted",
             history = listOf(
                 OrderHistoryEntry(
@@ -145,43 +165,61 @@ class InMemoryBasketClient : BasketClient {
     override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? = basket
 }
 
-class InMemoryOrderEventPublisher : OrderEventPublisher {
+class InMemoryPlacementEventPublisher : PlacementEventPublisher {
     val createdEvents = mutableListOf<OrderCreatedEvent>()
-    val cancelledEvents = mutableListOf<OrderCancelledEvent>()
-    val statusChangedEvents = mutableListOf<OrderStatusChangedEvent>()
-    val stockConfirmedEvents = mutableListOf<OrderStockConfirmedEvent>()
-    val awaitingValidationEvents = mutableListOf<OrderAwaitingValidationEvent>()
-    val stockReturnedEvents = mutableListOf<StockReturnedEvent>()
     val delayedEvents = mutableListOf<Pair<GracePeriodExpiredEvent, Int>>()
 
     override suspend fun publish(event: OrderCreatedEvent) {
         createdEvents.add(event)
     }
 
+    override suspend fun publish(event: GracePeriodExpiredEvent, delay: Duration) {
+        delayedEvents.add(event to delay.inWholeMilliseconds.toInt())
+    }
+}
+
+class InMemoryTrackingEventPublisher : TrackingEventPublisher {
+    val cancelledEvents = mutableListOf<OrderCancelledEvent>()
+    val stockReturnedEvents = mutableListOf<StockReturnedEvent>()
+    val statusChangedEvents = mutableListOf<OrderStatusChangedEvent>()
+
     override suspend fun publish(event: OrderCancelledEvent) {
         cancelledEvents.add(event)
-    }
-
-    override suspend fun publish(event: OrderStatusChangedEvent) {
-        statusChangedEvents.add(event)
-    }
-
-    override suspend fun publish(event: OrderStockConfirmedEvent) {
-        stockConfirmedEvents.add(event)
-    }
-
-    override suspend fun publish(event: OrderAwaitingValidationEvent) {
-        awaitingValidationEvents.add(event)
     }
 
     override suspend fun publish(event: StockReturnedEvent) {
         stockReturnedEvents.add(event)
     }
 
-    override suspend fun publish(
-        event: GracePeriodExpiredEvent,
-        delay: Duration
-    ) {
-        delayedEvents.add(event to delay.inWholeMilliseconds.toInt())
+    override suspend fun publish(event: OrderStatusChangedEvent) {
+        statusChangedEvents.add(event)
+    }
+}
+
+class InMemoryFulfillmentEventPublisher : FulfillmentEventPublisher {
+    val statusChangedEvents = mutableListOf<OrderStatusChangedEvent>()
+    val awaitingValidationEvents = mutableListOf<OrderAwaitingValidationEvent>()
+    val stockConfirmedEvents = mutableListOf<OrderStockConfirmedEvent>()
+    val cancelledEvents = mutableListOf<OrderCancelledEvent>()
+    val stockReturnedEvents = mutableListOf<StockReturnedEvent>()
+
+    override suspend fun publish(event: OrderStatusChangedEvent) {
+        statusChangedEvents.add(event)
+    }
+
+    override suspend fun publish(event: OrderAwaitingValidationEvent) {
+        awaitingValidationEvents.add(event)
+    }
+
+    override suspend fun publish(event: OrderStockConfirmedEvent) {
+        stockConfirmedEvents.add(event)
+    }
+
+    override suspend fun publish(event: OrderCancelledEvent) {
+        cancelledEvents.add(event)
+    }
+
+    override suspend fun publish(event: StockReturnedEvent) {
+        stockReturnedEvents.add(event)
     }
 }

@@ -3,6 +3,7 @@ package io.ktor.foodies.server
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import io.ktor.foodies.server.test.ctxSuite
+import io.ktor.foodies.server.test.eventually
 import io.ktor.http.HttpStatusCode
 import kotlin.test.assertEquals
 import kotlin.test.assertContains
@@ -16,10 +17,12 @@ val healthCheckSpec by ctxSuite(context = { serviceContext() }) {
 
     testProfileService("readiness probe checks database connectivity") {
         startApplication()
-        val response = client.get("/healthz/readiness")
-        assertEquals(HttpStatusCode.OK, response.status)
-        val body = response.bodyAsText()
-        assertContains(body, "hikari_open_connections", ignoreCase = true)
+        eventually {
+            val response = client.get("/healthz/readiness")
+            assertEquals(HttpStatusCode.OK, response.status)
+            val body = response.bodyAsText()
+            assertContains(body, "hikari_open_connections", ignoreCase = true)
+        }
     }
 
     testProfileService("readiness probe checks rabbitmq connectivity") {
