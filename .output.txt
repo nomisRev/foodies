@@ -1,3 +1,5 @@
+Command finished with exit code 0.
+Command output:
 package io.ktor.foodies.menu
 
 import de.infix.testBalloon.framework.core.TestConfig
@@ -9,7 +11,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import io.ktor.foodies.menu.persistence.MenuItemsTable
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
@@ -169,4 +170,105 @@ val menuRepositorySpec by testSuite {
             assertEquals(8, repository().findById(pizza.id)?.stock)
         }
     }
-}
+}---
+package io.ktor.foodies.menu
+
+import de.infix.testBalloon.framework.core.TestConfig
+import de.infix.testBalloon.framework.core.aroundEachTest
+import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.server.ValidationException
+import java.math.BigDecimal
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import org.jetbrains.exposed.v1.jdbc.deleteAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+
+val menuServiceSpec by testSuite {
+    val dataSource = migratedMenuDataSource()
+    val repository = testFixture { ExposedMenuRepository(dataSource().database) }
+    val service = testFixture { MenuServiceImpl(repository()) }
+
+    testSuite(
+        "tests",
+        testConfig = TestConfig.aroundEachTest { test ->
+            transaction(dataSource().database) { MenuItemsTable.deleteAll() }
+            test()
+        }) {
+        test("list applies defaults and clamps pagination") {
+            val created = (0 until 60).map {
+                service().create(
+                    CreateMenuItemRequest(
+                        name = "Item $it",
+                        description = "Description $it",
+                        imageUrl = "https://example.com/$it.jpg",
+                        price = BigDecimal("1.00"),
+                        stock = 10,
+                    )
+                )
+            }
+
+            val defaultList = service().list()
+---
+package io.ktor.foodies.menu
+
+import io.ktor.client.call.body
+import io.ktor.client.request.delete
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.put
+import io.ktor.client.request.setBody
+import io.ktor.foodies.server.test.ctxSuite
+import io.ktor.foodies.server.test.jsonClient
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import kotlinx.serialization.json.Json
+import java.math.BigDecimal
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+
+val menuSpec by ctxSuite(context = { serviceContext() }) {
+    val sushi = CreateMenuItemRequest(
+        name = "Sushi Roll",
+        description = "Fresh salmon roll",
+        imageUrl = "https://example.com/salmon-roll.jpg",
+        price = BigDecimal("9.50"),
+        stock = 10,
+    )
+    testMenuService("Create Menu Item") {
+        val response = jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(sushi)
+---
+package io.ktor.foodies.menu.events
+
+import io.ktor.foodies.events.menu.RejectedItem
+import io.ktor.foodies.events.menu.StockConfirmedEvent
+import io.ktor.foodies.events.menu.StockRejectedEvent
+import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.rabbitmq.Publisher
+import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
+import io.ktor.foodies.rabbitmq.subscribe
+import io.ktor.foodies.server.test.channel
+import io.ktor.foodies.server.test.rabbitContainer
+import kotlinx.coroutines.flow.first
+import kotlinx.serialization.json.Json
+import kotlin.test.assertEquals
+import kotlin.time.Instant
+
+val menuEventPublisherSpec by testSuite {
+    val rabbit = testFixture { rabbitContainer()().connectionFactory() }
+
+    test("publish StockConfirmedEvent - successfully publishes message to RabbitMQ") {
+        val exchangeName = "menu.test.exchange"
+        val queueName = "menu.test.queue.confirmed"
+        val event = StockConfirmedEvent(orderId = 1L, confirmedAt = Instant.parse("2026-01-17T23:54:00Z"))
+
+        rabbit().channel { channel ->
+            channel.exchangeDeclare(exchangeName, "topic", true)
+            channel.queueDeclare(queueName, true, false, false, null)
+            channel.queueBind(queueName, exchangeName, event.routingKey.key)
+        }
