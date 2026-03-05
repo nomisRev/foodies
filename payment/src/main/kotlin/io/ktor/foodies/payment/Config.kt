@@ -10,7 +10,6 @@ data class Config(
     val port: Int,
     @SerialName("data_source") val dataSource: DataSource.Config,
     val rabbit: RabbitConfig,
-    val gateway: PaymentGatewayConfig,
     val telemetry: Telemetry,
 ) {
     @Serializable
@@ -27,10 +26,4 @@ data class RabbitConfig(
     val password: String,
     @SerialName("consume_queue") val consumeQueue: String,
     @SerialName("publish_exchange") val publishExchange: String,
-)
-
-@Serializable
-data class PaymentGatewayConfig(
-    @SerialName("always_succeed") val alwaysSucceed: Boolean,
-    @SerialName("processing_delay_ms") val processingDelayMs: Long,
 )

@@ -1,6 +1,7 @@
 package io.ktor.foodies.payment
 
-import io.ktor.foodies.events.common.*
+import io.ktor.foodies.events.common.PaymentFailureCode
+import io.ktor.foodies.events.common.PaymentMethodInfo
 import io.ktor.foodies.payment.gateway.ChargeRequest
 import io.ktor.foodies.payment.gateway.GatewayResult
 import io.ktor.foodies.payment.gateway.PaymentGateway
@@ -9,26 +10,13 @@ import kotlin.time.Clock
 import kotlin.time.Instant
 
 interface PaymentService {
-    /**
-     * Process a payment for an order.
-     * This is idempotent - processing the same orderId multiple times
-     * returns the existing result without re-charging.
-     */
     suspend fun processPayment(request: ProcessPaymentRequest): PaymentResult
-
-    /**
-     * Get payment record by order ID.
-     */
     suspend fun getPaymentByOrderId(orderId: Long): PaymentRecord?
-
-    /**
-     * Get payment record by payment ID.
-     */
     suspend fun getPaymentById(paymentId: Long): PaymentRecord?
 }
 
 data class ProcessPaymentRequest(
-    val eventId: String,                           // For idempotency
+    val eventId: String,
     val orderId: Long,
     val buyerId: String,
     val amount: SerializableBigDecimal,
@@ -60,16 +48,14 @@ class PaymentServiceImpl(
 ) : PaymentService {
 
     override suspend fun processPayment(request: ProcessPaymentRequest): PaymentResult {
-        // Check for existing payment (idempotency)
         val existing = paymentRepository.findByOrderId(request.orderId)
         if (existing != null) {
             return PaymentResult.AlreadyProcessed(existing)
         }
 
-        // Create pending payment record
         val pendingPayment = paymentRepository.create(
             PaymentRecord(
-                id = 0,  // Auto-generated
+                id = 0,
                 orderId = request.orderId,
                 buyerId = request.buyerId,
                 amount = request.amount,
@@ -83,7 +69,6 @@ class PaymentServiceImpl(
             )
         )
 
-        // Process with payment gateway
         return try {
             val gatewayResult = paymentGateway.charge(
                 ChargeRequest(
@@ -135,11 +120,9 @@ class PaymentServiceImpl(
         }
     }
 
-    override suspend fun getPaymentByOrderId(orderId: Long): PaymentRecord? {
-        return paymentRepository.findByOrderId(orderId)
-    }
+    override suspend fun getPaymentByOrderId(orderId: Long): PaymentRecord? =
+        paymentRepository.findByOrderId(orderId)
 
-    override suspend fun getPaymentById(paymentId: Long): PaymentRecord? {
-        return paymentRepository.findById(paymentId)
-    }
+    override suspend fun getPaymentById(paymentId: Long): PaymentRecord? =
+        paymentRepository.findById(paymentId)
 }

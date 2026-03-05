@@ -1,169 +1,152 @@
 package io.ktor.foodies.payment.events
 
-import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.events.common.*
+import io.ktor.foodies.events.common.CardBrand
+import io.ktor.foodies.events.common.PaymentFailureCode
+import io.ktor.foodies.events.common.PaymentMethodInfo
+import io.ktor.foodies.events.common.PaymentMethodType
 import io.ktor.foodies.events.order.OrderStockConfirmedEvent
 import io.ktor.foodies.events.payment.OrderPaymentFailedEvent
 import io.ktor.foodies.events.payment.OrderPaymentSucceededEvent
-import io.ktor.foodies.payment.*
-import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway
+import io.ktor.foodies.payment.PaymentStatus
+import io.ktor.foodies.payment.serviceContext
+import io.ktor.foodies.payment.testPaymentService
+import io.ktor.foodies.rabbitmq.Publisher
+import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
+import io.ktor.foodies.rabbitmq.subscribe
+import io.ktor.foodies.server.test.channel
+import io.ktor.foodies.server.test.ctxSuite
+import jdk.internal.net.http.common.Log.channel
 import java.math.BigDecimal
-import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicLong
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.assertNotNull
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.flow.toList
+import kotlinx.serialization.json.Json
 
-private class InMemoryPaymentRepository : PaymentRepository {
-    private val payments = ConcurrentHashMap<Long, PaymentRecord>()
-    private val nextId = AtomicLong(1)
-
-    override fun create(payment: PaymentRecord): PaymentRecord {
-        val id = nextId.getAndIncrement()
-        val created = payment.copy(id = id)
-        payments[id] = created
-        return created
-    }
-
-    override fun findById(id: Long): PaymentRecord? = payments[id]
-
-    override fun findByOrderId(orderId: Long): PaymentRecord? =
-        payments.values.find { it.orderId == orderId }
-
-    override fun findByBuyerId(buyerId: String, limit: Int, offset: Int): List<PaymentRecord> =
-        payments.values.filter { it.buyerId == buyerId }
-            .drop(offset)
-            .take(limit)
-
-    override fun updateStatus(
-        paymentId: Long,
-        status: PaymentStatus,
-        transactionId: String?,
-        failureReason: String?,
-        processedAt: Instant?
-    ): Boolean {
-        val payment = payments[paymentId] ?: return false
-        payments[paymentId] = payment.copy(
-            status = status,
-            transactionId = transactionId ?: payment.transactionId,
-            failureReason = failureReason ?: payment.failureReason,
-            processedAt = processedAt ?: payment.processedAt
-        )
-        return true
-    }
-}
-
-private class InMemoryEventPublisher : EventPublisher {
-    val publishedEvents = mutableListOf<Any>()
-
-    override suspend fun publish(event: OrderPaymentSucceededEvent) {
-        publishedEvents.add(event)
-    }
-
-    override suspend fun publish(event: OrderPaymentFailedEvent) {
-        publishedEvents.add(event)
-    }
-}
-
-private data class TestContext(
-    val repository: InMemoryPaymentRepository,
-    val service: PaymentService,
-    val publisher: InMemoryEventPublisher,
+private val TEST_VISA = PaymentMethodInfo(
+    type = PaymentMethodType.CREDIT_CARD,
+    cardLastFour = "4242",
+    cardBrand = CardBrand.VISA,
+    cardHolderName = "John Doe",
+    expirationMonth = 12,
+    expirationYear = 2025,
 )
 
-private fun createTestContext(alwaysSucceed: Boolean): TestContext {
-    val repository = InMemoryPaymentRepository()
-    val gateway = SimulatedPaymentGateway(PaymentGatewayConfig(alwaysSucceed = alwaysSucceed, processingDelayMs = 0))
-    val service = PaymentServiceImpl(repository, gateway)
-    val publisher = InMemoryEventPublisher()
-    return TestContext(repository, service, publisher)
-}
-
-val orderStockConfirmedHandlerSpec by testSuite {
-    test("successful payment flow") {
-        val ctx = createTestContext(alwaysSucceed = true)
-
-        OrderStockConfirmedEvent(
-            eventId = "evt-1",
-            orderId = 1L,
-            buyerId = "user-1",
-            totalAmount = BigDecimal("100.00"),
-            currency = "USD",
-            paymentMethod = PaymentMethodInfo(
-                type = PaymentMethodType.CREDIT_CARD,
-                cardLastFour = "4242",
-                cardBrand = CardBrand.VISA,
-                cardHolderName = "John Doe",
-                expirationMonth = 12,
-                expirationYear = 2025
-            ),
-            occurredAt = Instant.parse("2024-01-01T00:00:00Z")
-        ).handle(ctx.service, ctx.publisher)
-
-        assertEquals(1, ctx.publisher.publishedEvents.size)
-        assertTrue(ctx.publisher.publishedEvents[0] is OrderPaymentSucceededEvent)
-        val successEvent = ctx.publisher.publishedEvents[0] as OrderPaymentSucceededEvent
-        assertEquals(1L, successEvent.orderId)
+val orderStockConfirmedHandlerSpec by ctxSuite(context = { serviceContext() }) {
+    testPaymentService("successful payment flow publishes OrderPaymentSucceededEvent") { (module, rabbit) ->
+        val connectionFactory = rabbit.connectionFactory()
+        val exchangeName = "test.handler.exchange.success"
+        val queueName = "test.handler.queue.success"
+        connectionFactory.channel { channel ->
+            channel.exchangeDeclare(exchangeName, "topic", true)
+            channel.queueDeclare(queueName, true, false, false, null)
+            channel.queueBind(queueName, exchangeName, OrderPaymentSucceededEvent.key().key)
+        }
+        connectionFactory.newConnection().use { connection ->
+            connection.createChannel().use { channel ->
+                val publisher = RabbitMQPaymentEventPublisher(Publisher(channel, exchangeName, Json))
+                OrderStockConfirmedEvent(
+                    eventId = "evt-1",
+                    orderId = 1L,
+                    buyerId = "user-1",
+                    totalAmount = BigDecimal("100.00"),
+                    currency = "USD",
+                    paymentMethod = TEST_VISA,
+                    occurredAt = Instant.parse("2024-01-01T00:00:00Z"),
+                ).handle(module.paymentService, publisher)
+            }
+        }
+        connectionFactory.newConnection().use { connection ->
+            val message = RabbitMQSubscriber(connection, exchangeName)
+                .subscribe(OrderPaymentSucceededEvent.key(), queueName)
+                .first()
+            assertEquals(1L, message.value.orderId)
+            message.ack()
+        }
+        val stored = module.paymentRepository.findByOrderId(1L)
+        assertNotNull(stored)
+        assertEquals(PaymentStatus.SUCCEEDED, stored.status)
     }
-
-    test("failed payment flow") {
-        val ctx = createTestContext(alwaysSucceed = false)
-
-        OrderStockConfirmedEvent(
-            eventId = "evt-2",
-            orderId = 2L,
-            buyerId = "user-1",
-            totalAmount = BigDecimal("100.00"),
-            currency = "USD",
-            paymentMethod = PaymentMethodInfo(
-                type = PaymentMethodType.CREDIT_CARD,
-                cardLastFour = "0000", // Will fail in SimulatedPaymentGateway
-                cardBrand = CardBrand.VISA,
-                cardHolderName = "John Doe",
-                expirationMonth = 12,
-                expirationYear = 2025
-            ),
-            occurredAt = Instant.parse("2024-01-01T00:00:00Z")
-        ).handle(ctx.service, ctx.publisher)
-
-        assertEquals(1, ctx.publisher.publishedEvents.size)
-        assertTrue(ctx.publisher.publishedEvents[0] is OrderPaymentFailedEvent)
-        val failedEvent = ctx.publisher.publishedEvents[0] as OrderPaymentFailedEvent
-        assertEquals(2L, failedEvent.orderId)
-        assertEquals(PaymentFailureCode.CARD_DECLINED, failedEvent.failureCode)
+    testPaymentService(
+        "declined card publishes OrderPaymentFailedEvent",
+    ) { (module, rabbit) ->
+        val connectionFactory = rabbit.connectionFactory()
+        val exchangeName = "test.handler.exchange.failed"
+        val queueName = "test.handler.queue.failed"
+        connectionFactory.channel { channel ->
+            channel.exchangeDeclare(exchangeName, "topic", true)
+            channel.queueDeclare(queueName, true, false, false, null)
+            channel.queueBind(queueName, exchangeName, OrderPaymentFailedEvent.key().key)
+        }
+        connectionFactory.newConnection().use { connection ->
+            connection.createChannel().use { channel ->
+                val publisher = RabbitMQPaymentEventPublisher(Publisher(channel, exchangeName, Json))
+                OrderStockConfirmedEvent(
+                    eventId = "evt-2",
+                    orderId = 2L,
+                    buyerId = "user-1",
+                    totalAmount = BigDecimal("100.00"),
+                    currency = "USD",
+                    paymentMethod = PaymentMethodInfo(
+                        type = PaymentMethodType.CREDIT_CARD,
+                        cardLastFour = "0000",
+                        cardBrand = CardBrand.VISA,
+                        cardHolderName = "John Doe",
+                        expirationMonth = 12,
+                        expirationYear = 2025,
+                    ),
+                    occurredAt = Instant.parse("2024-01-01T00:00:00Z"),
+                ).handle(module.paymentService, publisher)
+            }
+        }
+        connectionFactory.newConnection().use { connection ->
+            val message = RabbitMQSubscriber(connection, exchangeName)
+                .subscribe(OrderPaymentFailedEvent.key(), queueName)
+                .first()
+            assertEquals(2L, message.value.orderId)
+            assertEquals(PaymentFailureCode.CARD_DECLINED, message.value.failureCode)
+            message.ack()
+        }
+        val stored = module.paymentRepository.findByOrderId(2L)
+        assertNotNull(stored)
+        assertEquals(PaymentStatus.FAILED, stored.status)
     }
-
-    test("idempotent event handling") {
-        val ctx = createTestContext(alwaysSucceed = true)
-
+    testPaymentService("idempotent handling publishes OrderPaymentSucceededEvent for each delivery") { (module, rabbit) ->
+        val connectionFactory = rabbit.connectionFactory()
+        val exchangeName = "test.handler.exchange.idempotent"
+        val queueName = "test.handler.queue.idempotent"
+        connectionFactory.channel { channel ->
+            channel.exchangeDeclare(exchangeName, "topic", true)
+            channel.queueDeclare(queueName, true, false, false, null)
+            channel.queueBind(queueName, exchangeName, OrderPaymentSucceededEvent.key().key)
+        }
         val event = OrderStockConfirmedEvent(
             eventId = "evt-3",
             orderId = 3L,
             buyerId = "user-1",
             totalAmount = BigDecimal("100.00"),
             currency = "USD",
-            paymentMethod = PaymentMethodInfo(
-                type = PaymentMethodType.CREDIT_CARD,
-                cardLastFour = "4242",
-                cardBrand = CardBrand.VISA,
-                cardHolderName = "John Doe",
-                expirationMonth = 12,
-                expirationYear = 2025
-            ),
-            occurredAt = Instant.parse("2024-01-01T00:00:00Z")
+            paymentMethod = TEST_VISA,
+            occurredAt = Instant.parse("2024-01-01T00:00:00Z"),
         )
-
-        event.handle(ctx.service, ctx.publisher)
-        event.handle(ctx.service, ctx.publisher)
-
-        assertEquals(2, ctx.publisher.publishedEvents.size)
-        assertTrue(ctx.publisher.publishedEvents[0] is OrderPaymentSucceededEvent)
-        assertTrue(ctx.publisher.publishedEvents[1] is OrderPaymentSucceededEvent)
-
-        val firstEvent = ctx.publisher.publishedEvents[0] as OrderPaymentSucceededEvent
-        val secondEvent = ctx.publisher.publishedEvents[1] as OrderPaymentSucceededEvent
-
-        assertEquals(firstEvent.orderId, secondEvent.orderId)
-        assertEquals(firstEvent.paymentId, secondEvent.paymentId)
+        connectionFactory.channel { channel ->
+            val publisher = RabbitMQPaymentEventPublisher(Publisher(channel, exchangeName, Json))
+            event.handle(module.paymentService, publisher)
+            event.handle(module.paymentService, publisher)
+        }
+        connectionFactory.newConnection().use { connection ->
+            val (first, second) = RabbitMQSubscriber(connection, exchangeName)
+                .subscribe(OrderPaymentSucceededEvent.key(), queueName)
+                .take(2)
+                .toList()
+            assertEquals(3L, first.value.orderId)
+            val firstPaymentId = first.value.paymentId
+            first.ack()
+            assertEquals(3L, second.value.orderId)
+            assertEquals(firstPaymentId, second.value.paymentId)
+            second.ack()
+        }
     }
 }
