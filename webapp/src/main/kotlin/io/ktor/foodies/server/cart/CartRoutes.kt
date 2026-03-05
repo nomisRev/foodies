@@ -1,12 +1,9 @@
-package io.ktor.foodies.server.htmx.cart
+package io.ktor.foodies.server.cart
 
 import io.ktor.foodies.server.getValue
-import io.ktor.foodies.server.htmx.basket.BasketItem
-import io.ktor.foodies.server.htmx.basket.BasketService
-import io.ktor.foodies.server.htmx.basket.CustomerBasket
-import io.ktor.foodies.server.htmx.respondHtmxFragment
 import io.ktor.foodies.server.security.UserSession
 import io.ktor.foodies.server.security.userSession
+import io.ktor.foodies.server.shared.respondHtmxFragment
 import io.ktor.server.application.Application
 import io.ktor.server.html.respondHtml
 import io.ktor.server.htmx.hx
@@ -49,13 +46,13 @@ import kotlinx.html.span
 import kotlinx.html.title
 
 @OptIn(ExperimentalKtorApi::class)
-fun Application.cartRoutes(basketService: BasketService) {
+fun Application.cartRoutes(cartService: CartService) {
     routing {
         hx {
             get("/cart/badge") {
                 val session = call.sessions.get<UserSession>()
                 val itemCount = if (session != null) {
-                    runCatching { basketService.getBasket().items.sumOf { it.quantity } }
+                    runCatching { cartService.getBasket().items.sumOf { it.quantity } }
                         .getOrDefault(0)
                 } else {
                     0
@@ -66,7 +63,7 @@ fun Application.cartRoutes(basketService: BasketService) {
 
         userSession {
             get("/cart") {
-                val basket = basketService.getBasket()
+                val basket = cartService.getBasket()
                 call.respondHtml { cartPage(basket) }
             }
 
@@ -76,7 +73,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                     val menuItemId: Long by form
                     val quantity: Int? by form
 
-                    val basket = basketService.addItem(menuItemId, quantity ?: 1)
+                    val basket = cartService.addItem(menuItemId, quantity ?: 1)
                     val itemCount = basket.items.sumOf { it.quantity }
 
                     call.respondHtmxFragment {
@@ -89,7 +86,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                     val itemId: String by call.parameters
                     val quantity: Int by call.receiveParameters()
 
-                    val basket = basketService.updateItemQuantity(itemId, quantity)
+                    val basket = cartService.updateItemQuantity(itemId, quantity)
 
                     call.respondHtmxFragment {
                         cartItemsFragment(basket)
@@ -101,7 +98,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                 delete("/cart/items/{itemId}") {
                     val itemId: String by call.parameters
 
-                    val basket = basketService.removeItem(itemId)
+                    val basket = cartService.removeItem(itemId)
 
                     call.respondHtmxFragment {
                         cartItemsFragment(basket)
@@ -111,7 +108,7 @@ fun Application.cartRoutes(basketService: BasketService) {
                 }
 
                 delete("/cart") {
-                    basketService.clearBasket()
+                    cartService.clearBasket()
 
                     call.respondHtmxFragment {
                         cartItemsFragment(CustomerBasket(buyerId = "", items = emptyList()))
@@ -218,7 +215,6 @@ private fun HTML.cartPage(basket: CustomerBasket) {
             }
         }
 
-        // Toast container for notifications
         div(classes = "toast-container") {
             div { id = "toast" }
         }
@@ -268,7 +264,6 @@ private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
         }
 
         div(classes = "cart-item-actions") {
-            // Quantity controls
             form(classes = "quantity-form") {
                 attributes["hx-put"] = "/cart/items/${item.id}"
                 attributes["hx-target"] = "#cart-items"
@@ -290,7 +285,6 @@ private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
                 }
             }
 
-            // Item subtotal
             span(classes = "cart-item-subtotal") {
                 val subtotal = item.unitPrice.multiply(BigDecimal(item.quantity))
                     .setScale(2, RoundingMode.HALF_UP)
@@ -298,7 +292,6 @@ private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
                 +"$$subtotal"
             }
 
-            // Remove button
             button(classes = "remove-btn") {
                 attributes["hx-delete"] = "/cart/items/${item.id}"
                 attributes["hx-target"] = "#cart-items"
@@ -324,7 +317,6 @@ private fun FlowContent.cartItemCardFlow(item: BasketItem) {
         }
 
         div(classes = "cart-item-actions") {
-            // Quantity controls
             form(classes = "quantity-form") {
                 attributes["hx-put"] = "/cart/items/${item.id}"
                 attributes["hx-target"] = "#cart-items"
@@ -346,7 +338,6 @@ private fun FlowContent.cartItemCardFlow(item: BasketItem) {
                 }
             }
 
-            // Item subtotal
             span(classes = "cart-item-subtotal") {
                 val subtotal = item.unitPrice.multiply(BigDecimal(item.quantity))
                     .setScale(2, RoundingMode.HALF_UP)
@@ -354,7 +345,6 @@ private fun FlowContent.cartItemCardFlow(item: BasketItem) {
                 +"$$subtotal"
             }
 
-            // Remove button
             button(classes = "remove-btn") {
                 attributes["hx-delete"] = "/cart/items/${item.id}"
                 attributes["hx-target"] = "#cart-items"
@@ -397,6 +387,16 @@ private fun FlowContent.cartSummaryFlow(basket: CustomerBasket) {
             attributes["hx-confirm"] = "Clear your entire cart?"
             +"Clear Cart"
         }
+    }
+}
+
+fun FlowContent.cartBadgeLink() {
+    a(href = "/cart", classes = "cart-link") {
+        id = "cart-badge"
+        attributes["hx-get"] = "/cart/badge"
+        attributes["hx-trigger"] = "load, cart-updated from:body"
+        attributes["hx-swap"] = "outerHTML"
+        span(classes = "cart-icon") { +"Cart" }
     }
 }
 

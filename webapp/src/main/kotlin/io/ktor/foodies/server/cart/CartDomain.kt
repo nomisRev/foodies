@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.htmx.basket
+package io.ktor.foodies.server.cart
 
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlinx.serialization.Serializable
