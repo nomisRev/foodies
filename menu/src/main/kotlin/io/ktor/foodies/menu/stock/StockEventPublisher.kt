@@ -1,17 +1,17 @@
-package io.ktor.foodies.menu.events
+package io.ktor.foodies.menu.stock
 
 import io.ktor.foodies.events.menu.StockConfirmedEvent
 import io.ktor.foodies.events.menu.StockRejectedEvent
 import io.ktor.foodies.rabbitmq.Publisher
 
-interface MenuEventPublisher {
+interface StockEventPublisher {
     suspend fun publish(event: StockConfirmedEvent)
     suspend fun publish(event: StockRejectedEvent)
 }
 
-class RabbitMenuEventPublisher(
+class RabbitStockEventPublisher(
     private val publisher: Publisher,
-) : MenuEventPublisher {
+) : StockEventPublisher {
     override suspend fun publish(event: StockConfirmedEvent) = publisher.publish(event)
     override suspend fun publish(event: StockRejectedEvent) = publisher.publish(event)
 }

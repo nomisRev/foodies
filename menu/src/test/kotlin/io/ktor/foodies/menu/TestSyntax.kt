@@ -28,18 +28,13 @@ data class ServiceContext(
     val container: TestFixture<PostgreSQLContainer>,
     val rabbitContainer: TestFixture<RabbitContainer>,
     val dataSource: TestFixture<DataSource>,
-    val menuService: TestFixture<MenuService>
 )
 
 fun TestSuite.serviceContext(): ServiceContext {
     val container = postgresContainer()
     val ds = testFixture { container().dataSource()() }
-    val service = testFixture<MenuService> {
-        val repository = ExposedMenuRepository(ds().database)
-        MenuServiceImpl(repository)
-    }
     val rabbitContainer = rabbitContainer()
-    return ServiceContext(container, rabbitContainer, ds, service)
+    return ServiceContext(container, rabbitContainer, ds)
 }
 
 @TestRegistering

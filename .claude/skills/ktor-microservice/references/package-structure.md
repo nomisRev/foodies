@@ -15,15 +15,16 @@ domain model) for each feature together in one package.
   implementation**. Do not create a single shared `ExposedXxxRepository` that implements multiple feature interfaces.
 - **Shared repository for cross-cutting operations**: when multiple features need the same operations on a shared
   aggregate (e.g. `findById`, `update`), extract a shared repository interface and implementation into `persistence/`.
-  Feature repositories extend the shared interface and delegate via Kotlin's `by` keyword.
+  Keep feature repository interfaces separate. Compose the shared `Exposed...Repository` inside feature repository
+  implementations and forward shared operations explicitly.
   See [Shared repository pattern](#shared-repository-pattern).
 - **Exposed table objects in `persistence/`**: Exposed `object` table definitions are shared infrastructure. They live
   in `persistence/<Aggregate>Tables.kt`. Feature repositories import from `persistence/` — they do not own or duplicate
   table definitions.
 - **Per-feature event publishers**: each feature publishes only the events it owns.
-- **Per-feature dependency wiring**: each feature assembles its own dependencies in a `<Feature>Module.kt` function
-  inside the feature package. The root `<Service>Module.kt` calls each feature module function and returns the assembled
-  `<Service>Module` data class.
+- **Per-feature dependency wiring**: you can wire a feature in an optional `<Feature>Module.kt`, or wire it directly
+  in root `<Service>Module.kt` for simpler services. In both cases, root module output should be least-powerful and
+  route-facing (services/consumers/health checks), not repositories.
 - **Shared domain models at root**: domain models used across features live in `Model.kt` at the service root package.
 - **Bootstrap at root**: `<Service>App.kt` and `<Service>Module.kt` stay at the service root. `<Service>Module.kt` is a
   thin orchestrator that calls feature module functions.
@@ -44,7 +45,7 @@ from sub-packages (< 5 source files).
 ```
 io.ktor.foodies.<service>/
 ├── <Service>App.kt                        # Entrypoint — calls module(), then app()
-├── <Service>Module.kt                     # Thin orchestrator: calls featureAModule(), featureBModule()
+├── <Service>Module.kt                     # Thin orchestrator: calls featureAModule(), featureBModule(), exposes minimal route deps
 ├── Config.kt                              # App-level config (host, port, telemetry, db, rabbitmq)
 ├── Model.kt                               # Domain models shared across features
 ├── persistence/
@@ -52,7 +53,7 @@ io.ktor.foodies.<service>/
 │   ├── <Aggregate>RowMapping.kt          # Shared row-to-domain mapping functions
 │   └── <Aggregate>Repository.kt          # Shared repository interface + impl (findById, update)
 ├── <featureA>/
-│   ├── <FeatureA>Module.kt               # Wires feature slice: repo, service, publisher, routes
+│   ├── <FeatureA>Module.kt               # Optional: wires feature slice (repo, service, publisher, routes)
 │   ├── <FeatureA>Routes.kt               # HTTP endpoints for this feature
 │   ├── <FeatureA>Service.kt              # Business logic
 │   ├── <FeatureA>Repository.kt           # Interface: feature-specific data access
@@ -60,11 +61,11 @@ io.ktor.foodies.<service>/
 │   ├── <FeatureA>EventPublisher.kt       # Publishes only this feature's events
 │   └── <FeatureA>Requests.kt             # Request/response DTOs
 ├── <featureB>/
-│   ├── <FeatureB>Module.kt
+│   ├── <FeatureB>Module.kt               # Optional
 │   ├── <FeatureB>Routes.kt
 │   ├── <FeatureB>Service.kt
-│   ├── <FeatureB>Repository.kt           # Extends shared repository if it needs findById/update
-│   ├── Exposed<FeatureB>Repository.kt    # Delegates shared ops via `by`, adds feature-specific queries
+│   ├── <FeatureB>Repository.kt           # Feature-specific interface (no repository-interface inheritance)
+│   ├── Exposed<FeatureB>Repository.kt
 │   ├── <FeatureB>EventPublisher.kt
 │   ├── <FeatureB>EventConsumer.kt        # Message consumer (if applicable)
 │   └── handlers/                          # Event handlers (if many)
