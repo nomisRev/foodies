@@ -33,3 +33,23 @@ Rename the six generic flat-structure files in `basket/src/main/kotlin/io/ktor/f
 - [x] No symbols are renamed; only file names change
 - [x] `./gradlew :basket:build` exits with code 0
 - [x] `./gradlew :basket:jvmTest` exits with code 0
+
+---
+
+## Phase 2: Update stale documentation references
+
+**User stories**: As a developer reading the basket README, I want all component names to reflect the current file names so the documentation is consistent with the source tree.
+
+### What to build
+
+Update any explicit references to old (pre-rename) file names in documentation files so they match the new `Basket`-prefixed names.
+
+| File | Stale reference | Updated reference |
+|------|----------------|-------------------|
+| `basket/README.md` | `**MenuClient**` | `**BasketMenuClient**` |
+
+### Acceptance criteria
+
+- [x] `basket/README.md` refers to `**BasketMenuClient**` instead of `**MenuClient**`
+- [x] No other stale references to old file names remain in documentation
+- [x] `./gradlew build -x :e2e:test` exits with code 0
