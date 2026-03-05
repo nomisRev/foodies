@@ -1,7 +1,8 @@
-package io.ktor.foodies.server.profile
+package io.ktor.foodies.profile.persistence
 
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.server.customers.migratedPostgresDataSource
+import io.ktor.foodies.profile.Profile
+import io.ktor.foodies.profile.migratedPostgresDataSource
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull

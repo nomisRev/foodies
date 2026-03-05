@@ -1,10 +1,11 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.profile
 
 import com.rabbitmq.client.ConnectionFactory
 import de.infix.testBalloon.framework.core.Test
 import de.infix.testBalloon.framework.core.TestFixture
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
+import io.ktor.foodies.server.DataSource
 import io.ktor.foodies.server.test.PostgreSQLContainer
 import io.ktor.foodies.server.test.RabbitContainer
 import io.ktor.foodies.server.test.dataSource
@@ -13,6 +14,7 @@ import io.ktor.foodies.server.test.rabbitContainer
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.testing.ApplicationTestBuilder
 import io.opentelemetry.api.OpenTelemetry
+import org.flywaydb.core.Flyway
 
 data class ServiceContext(
     val postgreSQLContainer: TestFixture<PostgreSQLContainer>,
@@ -31,6 +33,14 @@ fun TestSuite.serviceContext(): ServiceContext {
     val connectionFactory = testFixture { rabbitContainer().connectionFactory() }
     return ServiceContext(container, dataSource, rabbitContainer, connectionFactory)
 }
+
+fun TestSuite.migratedPostgresDataSource(): TestFixture<DataSource> =
+    testFixture {
+        val container = postgresContainer()()
+        val dataSource = container.dataSource()()
+        Flyway.configure().dataSource(dataSource.hikari).load().migrate()
+        dataSource
+    }
 
 @TestRegistering
 context(ctx: ServiceContext)
