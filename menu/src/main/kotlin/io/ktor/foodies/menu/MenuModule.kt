@@ -2,15 +2,19 @@ package io.ktor.foodies.menu
 
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
-import io.ktor.foodies.menu.events.RabbitMenuEventPublisher
-import io.ktor.foodies.menu.events.orderAwaitingValidationConsumer
-import io.ktor.foodies.menu.events.stockReturnedConsumer
+import io.ktor.foodies.menu.admin.AdminService
+import io.ktor.foodies.menu.admin.AdminServiceImpl
+import io.ktor.foodies.menu.admin.ExposedAdminRepository
+import io.ktor.foodies.menu.catalog.CatalogService
+import io.ktor.foodies.menu.catalog.CatalogServiceImpl
+import io.ktor.foodies.menu.persistence.ExposedMenuRepository
+import io.ktor.foodies.menu.stock.RabbitStockEventPublisher
+import io.ktor.foodies.menu.stock.stockModule
 import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.server.dataSource
-import io.ktor.foodies.server.telemetry.Monitoring
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.opentelemetry.api.OpenTelemetry
@@ -22,9 +26,10 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
 data class MenuModule(
-    val menuService: MenuService,
     val consumers: List<Flow<Unit>>,
-    val readinessCheck: HealthCheckRegistry
+    val readinessCheck: HealthCheckRegistry,
+    val catalogService: CatalogService,
+    val adminService: AdminService,
 )
 
 fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
@@ -35,7 +40,9 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
         .migrate()
 
     val menuRepository = ExposedMenuRepository(dataSource.database)
-    val menuService = MenuServiceImpl(menuRepository)
+    val catalogService = CatalogServiceImpl(menuRepository)
+    val adminService =
+        AdminServiceImpl(ExposedAdminRepository(dataSource.database), menuRepository)
 
     val rabbitFactory =
         rabbitConnectionFactory(config.rabbit.host, config.rabbit.port, config.rabbit.username, config.rabbit.password)
@@ -43,18 +50,14 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
 
     val rabbitChannel = rabbitConnection.createChannel()
     rabbitChannel.exchangeDeclare(config.rabbit.exchange, "topic", true)
-    val eventPublisher = RabbitMenuEventPublisher(Publisher(rabbitChannel, config.rabbit.exchange, Json))
+    val eventPublisher = RabbitStockEventPublisher(Publisher(rabbitChannel, config.rabbit.exchange, Json))
     monitor.subscribe(ApplicationStopped) {
         runCatching { rabbitChannel.close() }
         runCatching { rabbitConnection.close() }
     }
 
     val subscriber = RabbitMQSubscriber(rabbitConnection, config.rabbit.exchange)
-
-    val consumers = listOf(
-        orderAwaitingValidationConsumer(subscriber, config.rabbit.queue, menuService, eventPublisher),
-        stockReturnedConsumer(subscriber, "menu.stock-returned", menuService)
-    )
+    val stock = stockModule(dataSource.database, subscriber, eventPublisher, config.rabbit.queue)
 
     val readinessCheck = HealthCheckRegistry(Dispatchers.Default) {
         register(HikariConnectionsHealthCheck(dataSource.hikari, 1), Duration.ZERO, 5.seconds)
@@ -62,8 +65,9 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
     }
 
     return MenuModule(
-        menuService = menuService,
-        consumers = consumers,
-        readinessCheck = readinessCheck
+        consumers = stock.consumers,
+        readinessCheck = readinessCheck,
+        catalogService = catalogService,
+        adminService = adminService,
     )
 }
