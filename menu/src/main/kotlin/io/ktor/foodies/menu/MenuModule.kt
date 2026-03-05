@@ -2,10 +2,12 @@ package io.ktor.foodies.menu
 
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
-import io.ktor.foodies.menu.admin.AdminRepository
+import io.ktor.foodies.menu.admin.AdminService
+import io.ktor.foodies.menu.admin.AdminServiceImpl
 import io.ktor.foodies.menu.admin.ExposedAdminRepository
+import io.ktor.foodies.menu.catalog.CatalogService
+import io.ktor.foodies.menu.catalog.CatalogServiceImpl
 import io.ktor.foodies.menu.persistence.ExposedMenuRepository
-import io.ktor.foodies.menu.persistence.MenuRepository
 import io.ktor.foodies.menu.stock.RabbitStockEventPublisher
 import io.ktor.foodies.menu.stock.stockModule
 import io.ktor.foodies.rabbitmq.Publisher
@@ -26,8 +28,8 @@ import kotlin.time.Duration.Companion.seconds
 data class MenuModule(
     val consumers: List<Flow<Unit>>,
     val readinessCheck: HealthCheckRegistry,
-    val catalogRepository: MenuRepository,
-    val adminRepository: AdminRepository,
+    val catalogService: CatalogService,
+    val adminService: AdminService,
 )
 
 fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
@@ -38,7 +40,9 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
         .migrate()
 
     val menuRepository = ExposedMenuRepository(dataSource.database)
-    val adminRepository = ExposedAdminRepository(dataSource.database)
+    val catalogService = CatalogServiceImpl(menuRepository)
+    val adminService =
+        AdminServiceImpl(ExposedAdminRepository(dataSource.database), menuRepository)
 
     val rabbitFactory =
         rabbitConnectionFactory(config.rabbit.host, config.rabbit.port, config.rabbit.username, config.rabbit.password)
@@ -63,7 +67,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
     return MenuModule(
         consumers = stock.consumers,
         readinessCheck = readinessCheck,
-        catalogRepository = menuRepository,
-        adminRepository = adminRepository,
+        catalogService = catalogService,
+        adminService = adminService,
     )
 }

@@ -2,6 +2,8 @@ package io.ktor.foodies.menu
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
+import io.ktor.foodies.menu.admin.adminRoutes
+import io.ktor.foodies.menu.catalog.catalogRoutes
 import io.ktor.foodies.server.ValidationException
 import io.ktor.foodies.server.telemetry.monitoring
 import io.ktor.http.HttpStatusCode
@@ -12,13 +14,10 @@ import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.getAs
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
-import io.ktor.foodies.menu.admin.adminModule
-import io.ktor.foodies.menu.catalog.catalogModule
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.routing
-import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 
@@ -49,7 +48,7 @@ fun Application.app(module: MenuModule) {
     }
 
     routing {
-        catalogModule(module.catalogRepository)
-        adminModule(module.adminRepository, module.catalogRepository)
+        catalogRoutes(module.catalogService)
+        adminRoutes(module.adminService)
     }
 }
