@@ -2,6 +2,7 @@ package io.ktor.foodies.menu.admin
 
 import io.ktor.foodies.menu.MenuItem
 import io.ktor.foodies.menu.persistence.ExposedMenuRepository
+import io.ktor.foodies.menu.persistence.MenuRepository
 import io.ktor.foodies.menu.persistence.MenuItemsTable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
@@ -9,7 +10,16 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.insertReturning
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 
-class ExposedAdminRepository(database: Database) : ExposedMenuRepository(database), AdminRepository {
+class ExposedAdminRepository(
+    private val database: Database,
+) : AdminRepository, MenuRepository {
+    private val menuRepository = ExposedMenuRepository(database)
+
+    override fun findById(id: Long): MenuItem? = menuRepository.findById(id)
+
+    override fun list(offset: Int, limit: Int): List<MenuItem> = menuRepository.list(offset, limit)
+
+    override fun update(id: Long, request: UpdateMenuItem): MenuItem? = menuRepository.update(id, request)
 
     override fun create(request: CreateMenuItem): MenuItem = transaction(database) {
         val returning = MenuItemsTable.insertReturning(

@@ -15,7 +15,7 @@ interface MenuRepository {
     fun update(id: Long, request: UpdateMenuItem): MenuItem?
 }
 
-open class ExposedMenuRepository(protected val database: Database) : MenuRepository {
+class ExposedMenuRepository(private val database: Database) : MenuRepository {
     override fun list(offset: Int, limit: Int): List<MenuItem> = transaction(database) {
         MenuItemsTable.selectAll()
             .orderBy(MenuItemsTable.id to SortOrder.ASC)

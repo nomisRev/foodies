@@ -1,6 +1,7 @@
 package io.ktor.foodies.menu.admin
 
 import io.ktor.foodies.menu.MenuItem
+import io.ktor.foodies.menu.persistence.MenuRepository
 
 interface AdminService {
     fun create(request: CreateMenuItemRequest): MenuItem
@@ -8,12 +9,15 @@ interface AdminService {
     fun delete(id: Long): Boolean
 }
 
-class AdminServiceImpl(private val repository: AdminRepository) : AdminService {
+class AdminServiceImpl(
+    private val adminRepository: AdminRepository,
+    private val menuRepository: MenuRepository,
+) : AdminService {
     override fun create(request: CreateMenuItemRequest): MenuItem =
-        repository.create(request.validate())
+        adminRepository.create(request.validate())
 
     override fun update(id: Long, request: UpdateMenuItemRequest): MenuItem? =
-        repository.update(id, request.validate())
+        menuRepository.update(id, request.validate())
 
-    override fun delete(id: Long): Boolean = repository.delete(id)
+    override fun delete(id: Long): Boolean = adminRepository.delete(id)
 }

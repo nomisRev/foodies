@@ -50,6 +50,6 @@ fun Application.app(module: MenuModule) {
 
     routing {
         catalogModule(module.catalogRepository)
-        adminModule(module.adminRepository)
+        adminModule(module.adminRepository, module.catalogRepository)
     }
 }

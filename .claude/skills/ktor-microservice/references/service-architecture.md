@@ -87,7 +87,10 @@ fun placementModule(
 Rules:
 - Shared infrastructure (data source, rabbit channel, HTTP client) is created **once** in the root module and passed into feature module functions.
 - Feature module functions create only their own repository, service, publisher, and consumer instances.
-- The root `<Service>Module` data class holds references to all assembled feature modules.
+- When a service needs capabilities from multiple repositories, inject those repositories separately (explicit wiring)
+  instead of repository-interface inheritance.
+- The root `<Service>Module` data class should expose only what `app(...)` needs (least powerful): either assembled
+  feature modules or narrower dependencies such as services, consumers, and health checks.
 - Close shared resources (rabbit channel, HTTP client) in the root `ApplicationStopped` handler only.
 
 **Flat services** (`Basket`, `Payment`, `Profile`) keep all wiring in the single root module — no feature sub-modules needed.

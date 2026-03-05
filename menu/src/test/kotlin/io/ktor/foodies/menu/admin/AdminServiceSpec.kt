@@ -4,6 +4,7 @@ import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.aroundEachTest
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.menu.migratedMenuDataSource
+import io.ktor.foodies.menu.persistence.ExposedMenuRepository
 import io.ktor.foodies.menu.persistence.MenuItemsTable
 import io.ktor.foodies.server.ValidationException
 import org.jetbrains.exposed.v1.jdbc.deleteAll
@@ -18,7 +19,8 @@ import kotlin.test.assertTrue
 val adminServiceSpec by testSuite {
     val dataSource = migratedMenuDataSource()
     val repository = testFixture { ExposedAdminRepository(dataSource().database) }
-    val service = testFixture { AdminServiceImpl(repository()) }
+    val menuRepository = testFixture { ExposedMenuRepository(dataSource().database) }
+    val service = testFixture { AdminServiceImpl(repository(), menuRepository()) }
 
     testSuite(
         "tests",

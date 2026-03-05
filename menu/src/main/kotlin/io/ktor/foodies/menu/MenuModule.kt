@@ -4,6 +4,7 @@ import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
 import io.ktor.foodies.menu.admin.AdminRepository
 import io.ktor.foodies.menu.admin.ExposedAdminRepository
+import io.ktor.foodies.menu.persistence.ExposedMenuRepository
 import io.ktor.foodies.menu.persistence.MenuRepository
 import io.ktor.foodies.menu.stock.RabbitStockEventPublisher
 import io.ktor.foodies.menu.stock.stockModule
@@ -36,6 +37,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
         .load()
         .migrate()
 
+    val menuRepository = ExposedMenuRepository(dataSource.database)
     val adminRepository = ExposedAdminRepository(dataSource.database)
 
     val rabbitFactory =
@@ -61,7 +63,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): MenuModule {
     return MenuModule(
         consumers = stock.consumers,
         readinessCheck = readinessCheck,
-        catalogRepository = adminRepository,
+        catalogRepository = menuRepository,
         adminRepository = adminRepository,
     )
 }
