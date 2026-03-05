@@ -12,6 +12,8 @@ import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.getAs
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import io.ktor.foodies.menu.admin.adminModule
+import io.ktor.foodies.menu.catalog.catalogModule
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.plugins.statuspages.StatusPages
 import io.ktor.server.response.respondText
@@ -47,6 +49,7 @@ fun Application.app(module: MenuModule) {
     }
 
     routing {
-        menuRoutes(module.menuService)
+        catalogModule(module.catalogRepository)
+        adminModule(module.adminRepository)
     }
 }

@@ -3,8 +3,9 @@ package io.ktor.foodies.menu.catalog
 import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.aroundEachTest
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.menu.ExposedMenuRepository
 import io.ktor.foodies.menu.admin.CreateMenuItem
+import io.ktor.foodies.menu.admin.ExposedAdminRepository
+import io.ktor.foodies.menu.persistence.ExposedMenuRepository
 import io.ktor.foodies.menu.migratedMenuDataSource
 import io.ktor.foodies.menu.persistence.MenuItemsTable
 import org.jetbrains.exposed.v1.jdbc.deleteAll
@@ -15,6 +16,7 @@ import kotlin.test.assertNull
 
 val catalogServiceSpec by testSuite {
     val dataSource = migratedMenuDataSource()
+    val adminRepository = testFixture { ExposedAdminRepository(dataSource().database) }
     val repository = testFixture { ExposedMenuRepository(dataSource().database) }
     val service = testFixture { CatalogServiceImpl(repository()) }
 
@@ -27,7 +29,7 @@ val catalogServiceSpec by testSuite {
     ) {
         test("list returns items with default pagination") {
             val created = (0 until 5).map {
-                repository().create(
+                adminRepository().create(
                     CreateMenuItem(
                         name = "Item $it",
                         description = "Description $it",
@@ -45,7 +47,7 @@ val catalogServiceSpec by testSuite {
 
         test("list clamps limit to max and coerces negative offset") {
             (0 until 60).forEach {
-                repository().create(
+                adminRepository().create(
                     CreateMenuItem(
                         name = "Item $it",
                         description = "Description $it",
@@ -64,7 +66,7 @@ val catalogServiceSpec by testSuite {
         }
 
         test("get returns item when it exists") {
-            val created = repository().create(
+            val created = adminRepository().create(
                 CreateMenuItem(
                     name = "Burger",
                     description = "Juicy",

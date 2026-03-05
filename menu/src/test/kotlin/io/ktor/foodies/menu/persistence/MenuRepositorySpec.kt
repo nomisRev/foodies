@@ -1,30 +1,31 @@
-package io.ktor.foodies.menu
+package io.ktor.foodies.menu.persistence
 
 import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.aroundEachTest
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.events.order.StockValidationItem
 import io.ktor.foodies.menu.admin.CreateMenuItem
+import io.ktor.foodies.menu.admin.ExposedAdminRepository
 import io.ktor.foodies.menu.admin.UpdateMenuItem
+import org.jetbrains.exposed.v1.jdbc.deleteAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import io.ktor.foodies.menu.persistence.MenuItemsTable
-import org.jetbrains.exposed.v1.jdbc.deleteAll
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import io.ktor.foodies.menu.migratedMenuDataSource
 
 val menuRepositorySpec by testSuite {
     val dataSource = migratedMenuDataSource()
-    val repository = testFixture { ExposedMenuRepository(dataSource().database) }
+    val repository = testFixture { ExposedAdminRepository(dataSource().database) }
 
     testSuite(
         "tests",
         testConfig = TestConfig.aroundEachTest { test ->
             transaction(dataSource().database) { MenuItemsTable.deleteAll() }
             test()
-        }) {
+        }
+    ) {
         test("create stores a menu item and findById retrieves it") {
             val created = repository().create(
                 CreateMenuItem(
@@ -130,45 +131,6 @@ val menuRepositorySpec by testSuite {
             assertTrue(deleted)
             assertNull(missing)
             assertEquals(false, secondDelete)
-        }
-
-        test("validateAndReserveStock reserves stock when available") {
-            val pizza = repository().create(
-                CreateMenuItem("Pizza", "Good", "url", BigDecimal("10.00"), 10)
-            )
-
-            val result = repository().validateAndReserveStock(
-                listOf(StockValidationItem(pizza.id, 3))
-            )
-
-            assertTrue(result is StockValidationResult.Success)
-            assertEquals(7, repository().findById(pizza.id)?.stock)
-        }
-
-        test("validateAndReserveStock fails and does not reserve when stock is insufficient") {
-            val pizza = repository().create(
-                CreateMenuItem("Pizza", "Good", "url", BigDecimal("10.00"), 2)
-            )
-
-            val result = repository().validateAndReserveStock(
-                listOf(StockValidationItem(pizza.id, 3))
-            )
-
-            assertTrue(result is StockValidationResult.Failure)
-            assertEquals(1, result.rejectedItems.size)
-            assertEquals(pizza.id, result.rejectedItems[0].menuItemId)
-            assertEquals(2, result.rejectedItems[0].availableQuantity)
-            assertEquals(2, repository().findById(pizza.id)?.stock)
-        }
-
-        test("returnStock increases stock level") {
-            val pizza = repository().create(
-                CreateMenuItem("Pizza", "Good", "url", BigDecimal("10.00"), 5)
-            )
-
-            repository().returnStock(listOf(StockValidationItem(pizza.id, 3)))
-
-            assertEquals(8, repository().findById(pizza.id)?.stock)
         }
     }
 }

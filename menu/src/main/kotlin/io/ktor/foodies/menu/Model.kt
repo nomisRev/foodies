@@ -1,10 +1,9 @@
 package io.ktor.foodies.menu
 
 import io.ktor.foodies.server.SerializableBigDecimal
-import kotlinx.serialization.Serializable
 import kotlin.time.Instant
+import kotlinx.serialization.Serializable
 
-@Serializable
 data class MenuItem(
     val id: Long,
     val name: String,
@@ -26,8 +25,7 @@ data class MenuItemResponse(
     val stock: Int,
 )
 
-
-fun MenuItem.toResponse(): MenuItemResponse = MenuItemResponse(
+fun MenuItem.toResponse() = MenuItemResponse(
     id = id,
     name = name,
     description = description,

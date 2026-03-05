@@ -100,8 +100,8 @@ Delete the now-empty flat files: `Routes.kt`, `Service.kt`, `Repository.kt`, `Do
 
 ### Acceptance criteria
 
-- [ ] All old flat files (`Routes.kt`, `Service.kt`, `Repository.kt`, `Domain.kt`, `events/`) are deleted
-- [ ] `MenuModule.kt` delegates entirely to `catalogModule()`, `adminModule()`, `stockModule()`
-- [ ] `persistence/MenuRepositorySpec.kt` exists and passes
-- [ ] No file remains under `io.ktor.foodies.menu` root except `MenuApp.kt`, `MenuModule.kt`, `Config.kt`, `Model.kt`
-- [ ] `./gradlew :menu:jvmTest` passes with no failures and no mocks introduced
+- [x] All old flat files (`Routes.kt`, `Service.kt`, `Repository.kt`, `Domain.kt`, `events/`) are deleted
+- [x] `MenuModule.kt` delegates entirely to `catalogModule()`, `adminModule()`, `stockModule()`
+- [x] `persistence/MenuRepositorySpec.kt` exists and passes
+- [x] No file remains under `io.ktor.foodies.menu` root except `MenuApp.kt`, `MenuModule.kt`, `Config.kt`, `Model.kt`
+- [x] `./gradlew :menu:jvmTest` passes with no failures and no mocks introduced
