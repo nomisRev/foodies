@@ -1,9 +1,9 @@
-package io.ktor.foodies.menu.events
+package io.ktor.foodies.menu.stock
 
+import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.events.menu.RejectedItem
 import io.ktor.foodies.events.menu.StockConfirmedEvent
 import io.ktor.foodies.events.menu.StockRejectedEvent
-import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.subscribe
@@ -14,12 +14,12 @@ import kotlinx.serialization.json.Json
 import kotlin.test.assertEquals
 import kotlin.time.Instant
 
-val menuEventPublisherSpec by testSuite {
+val stockEventPublisherSpec by testSuite {
     val rabbit = testFixture { rabbitContainer()().connectionFactory() }
 
     test("publish StockConfirmedEvent - successfully publishes message to RabbitMQ") {
-        val exchangeName = "menu.test.exchange"
-        val queueName = "menu.test.queue.confirmed"
+        val exchangeName = "stock.test.exchange"
+        val queueName = "stock.test.queue.confirmed"
         val event = StockConfirmedEvent(orderId = 1L, confirmedAt = Instant.parse("2026-01-17T23:54:00Z"))
 
         rabbit().channel { channel ->
@@ -31,8 +31,8 @@ val menuEventPublisherSpec by testSuite {
         rabbit().newConnection().use { connection ->
             connection.createChannel().use { channel ->
                 val publisher = Publisher(channel, exchangeName, Json)
-                val menuEventPublisher = RabbitMenuEventPublisher(publisher)
-                menuEventPublisher.publish(event)
+                val stockEventPublisher = RabbitStockEventPublisher(publisher)
+                stockEventPublisher.publish(event)
             }
         }
 
@@ -46,8 +46,8 @@ val menuEventPublisherSpec by testSuite {
     }
 
     test("publish StockRejectedEvent - successfully publishes message to RabbitMQ") {
-        val exchangeName = "menu.test.exchange"
-        val queueName = "menu.test.queue.rejected"
+        val exchangeName = "stock.test.exchange"
+        val queueName = "stock.test.queue.rejected"
         val event = StockRejectedEvent(
             orderId = 1L,
             rejectedItems = listOf(RejectedItem(1L, "Pizza", 5, 2)),
@@ -63,8 +63,8 @@ val menuEventPublisherSpec by testSuite {
         rabbit().newConnection().use { connection ->
             connection.createChannel().use { channel ->
                 val publisher = Publisher(channel, exchangeName, Json)
-                val menuEventPublisher = RabbitMenuEventPublisher(publisher)
-                menuEventPublisher.publish(event)
+                val stockEventPublisher = RabbitStockEventPublisher(publisher)
+                stockEventPublisher.publish(event)
             }
         }
 

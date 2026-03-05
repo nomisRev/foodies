@@ -1,10 +1,9 @@
-package io.ktor.foodies.menu.events
+package io.ktor.foodies.menu.stock
 
 import io.ktor.foodies.events.menu.StockConfirmedEvent
 import io.ktor.foodies.events.menu.StockRejectedEvent
-import io.ktor.foodies.events.order.*
-import io.ktor.foodies.menu.MenuService
-import io.ktor.foodies.menu.StockValidationResult
+import io.ktor.foodies.events.order.OrderAwaitingValidationEvent
+import io.ktor.foodies.events.order.StockReturnedEvent
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.parConsumeMessage
 import io.ktor.foodies.rabbitmq.subscribe
@@ -15,14 +14,14 @@ private val logger = LoggerFactory.getLogger(RabbitMQSubscriber::class.java)
 fun orderAwaitingValidationConsumer(
     subscriber: RabbitMQSubscriber,
     queueName: String,
-    menuService: MenuService,
-    eventPublisher: MenuEventPublisher
+    stockService: StockService,
+    eventPublisher: StockEventPublisher
 ) = subscriber.subscribe(OrderAwaitingValidationEvent.key(), queueName) { exchange ->
     queueDeclare(queueName, true, false, false, null)
     queueBind(queueName, exchange, "order.awaiting-validation")
 }.parConsumeMessage { event ->
     logger.info("Processing OrderAwaitingValidationEvent for order ${event.orderId}")
-    when (val result = menuService.validateAndReserveStock(event.orderId, event.items)) {
+    when (val result = stockService.validateAndReserveStock(event.orderId, event.items)) {
         is StockValidationResult.Success -> {
             eventPublisher.publish(StockConfirmedEvent(event.orderId, result.confirmedAt))
             logger.info("Stock confirmed for order ${event.orderId}")
@@ -44,11 +43,11 @@ fun orderAwaitingValidationConsumer(
 fun stockReturnedConsumer(
     subscriber: RabbitMQSubscriber,
     queueName: String,
-    menuService: MenuService
+    stockService: StockService
 ) = subscriber.subscribe(StockReturnedEvent.key(), queueName) { exchange ->
     queueDeclare(queueName, true, false, false, null)
     queueBind(queueName, exchange, "order.stock-returned")
 }.parConsumeMessage { event ->
     logger.info("Processing StockReturnedEvent for order ${event.orderId}")
-    menuService.returnStock(event.orderId, event.items)
+    stockService.returnStock(event.orderId, event.items)
 }

@@ -1,4 +1,4 @@
-package io.ktor.foodies.menu
+package io.ktor.foodies.menu.admin
 
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.server.ValidationException
@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-val menuValidationSpec by testSuite {
+val adminValidationSpec by testSuite {
     test("CreateMenuItemRequest.validate succeeds for valid data") {
         val request = CreateMenuItemRequest(
             name = "Pizza",
