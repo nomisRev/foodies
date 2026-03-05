@@ -41,12 +41,12 @@ Extract `list()` and `get()` into a self-contained `catalog/` package. `CatalogR
 
 ### Acceptance criteria
 
-- [ ] `catalog/CatalogRoutes.kt` handles `GET /menu` and `GET /menu/{id}`
-- [ ] `catalog/CatalogService.kt` exposes `list()` and `get()` interface + implementation
-- [ ] `catalog/CatalogModule.kt` wires service and routes
-- [ ] `catalog/CatalogContractSpec.kt` covers read-path contract tests
-- [ ] `catalog/CatalogServiceSpec.kt` covers service unit behaviour
-- [ ] `./gradlew :menu:jvmTest` passes with no failures
+- [x] `catalog/CatalogRoutes.kt` handles `GET /menu` and `GET /menu/{id}`
+- [x] `catalog/CatalogService.kt` exposes `list()` and `get()` interface + implementation
+- [x] `catalog/CatalogModule.kt` wires service and routes
+- [x] `catalog/CatalogContractSpec.kt` covers read-path contract tests
+- [x] `catalog/CatalogServiceSpec.kt` covers service unit behaviour
+- [x] `./gradlew :menu:jvmTest` passes with no failures
 
 ---
 

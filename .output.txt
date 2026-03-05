@@ -2,218 +2,6 @@ Command finished with exit code 0.
 Command output:
 package io.ktor.foodies.menu
 
-import de.infix.testBalloon.framework.core.TestConfig
-import de.infix.testBalloon.framework.core.aroundEachTest
-import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.events.order.StockValidationItem
-import java.math.BigDecimal
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import org.jetbrains.exposed.v1.jdbc.deleteAll
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-
-val menuRepositorySpec by testSuite {
-    val dataSource = migratedMenuDataSource()
-    val repository = testFixture { ExposedMenuRepository(dataSource().database) }
-
-    testSuite(
-        "tests",
-        testConfig = TestConfig.aroundEachTest { test ->
-            transaction(dataSource().database) { MenuItemsTable.deleteAll() }
-            test()
-        }) {
-        test("create stores a menu item and findById retrieves it") {
-            val created = repository().create(
-                CreateMenuItem(
-                    name = "Margherita",
-                    description = "Classic pizza",
-                    imageUrl = "https://example.com/margherita.jpg",
-                    price = BigDecimal("9.50"),
-                    stock = 10,
-                )
-            )
-
-            val found = repository().findById(created.id)
-
-            assertEquals(created, found)
-            assertEquals(10, found?.stock)
-        }
-
-        test("list returns items ordered by id with pagination") {
-            val first = repository().create(
-                CreateMenuItem(
-                    name = "First",
-                    description = "First item",
-                    imageUrl = "https://example.com/first.jpg",
-                    price = BigDecimal("5.00"),
-                    stock = 5,
-                )
-            )
-            val second = repository().create(
-                CreateMenuItem(
-                    name = "Second",
-                    description = "Second item",
-                    imageUrl = "https://example.com/second.jpg",
-                    price = BigDecimal("6.00"),
-                    stock = 5,
-                )
-            )
-            val third = repository().create(
-                CreateMenuItem(
-                    name = "Third",
-                    description = "Third item",
-                    imageUrl = "https://example.com/third.jpg",
-                    price = BigDecimal("7.00"),
-                    stock = 5,
-                )
-            )
-
-            assertEquals(listOf(first, second), repository().list(offset = 0, limit = 2))
-            assertEquals(listOf(second, third), repository().list(offset = 1, limit = 2))
-            assertTrue(repository().list(offset = 5, limit = 2).isEmpty())
-        }
-
-        test("update modifies existing menu item and returns updated version") {
-            val created = repository().create(
-                CreateMenuItem(
-                    name = "Pasta",
-                    description = "Creamy pasta",
-                    imageUrl = "https://example.com/pasta.jpg",
-                    price = BigDecimal("12.00"),
-                    stock = 20,
-                )
-            )
-
-            val updated = repository().update(
-                created.id,
-                UpdateMenuItem(
-                    name = "Updated Pasta",
-                    price = BigDecimal("13.25"),
-                    stock = 15,
-                )
-            )
-
-            assertNotNull(updated)
-            assertEquals("Updated Pasta", updated.name)
-            assertEquals(BigDecimal("13.25"), updated.price)
-            assertEquals(15, updated.stock)
-            assertEquals(updated, repository().findById(created.id))
-        }
-
-        test("update returns null when menu item does not exist") {
-            val updated = repository().update(
-                id = 9999L,
-                request = UpdateMenuItem(name = "Missing"),
-            )
-
-            assertNull(updated)
-        }
-
-        test("delete removes existing items and signals absence") {
-            val created = repository().create(
-                CreateMenuItem(
-                    name = "Burger",
-                    description = "Juicy burger",
-                    imageUrl = "https://example.com/burger.jpg",
-                    price = BigDecimal("10.00"),
-                    stock = 10,
-                )
-            )
-
-            val deleted = repository().delete(created.id)
-            val missing = repository().findById(created.id)
-            val secondDelete = repository().delete(created.id)
-
-            assertTrue(deleted)
-            assertNull(missing)
-            assertEquals(false, secondDelete)
-        }
-
-        test("validateAndReserveStock reserves stock when available") {
-            val pizza = repository().create(
-                CreateMenuItem("Pizza", "Good", "url", BigDecimal("10.00"), 10)
-            )
-
-            val result = repository().validateAndReserveStock(
-                listOf(StockValidationItem(pizza.id, 3))
-            )
-
-            assertTrue(result is StockValidationResult.Success)
-            assertEquals(7, repository().findById(pizza.id)?.stock)
-        }
-
-        test("validateAndReserveStock fails and does not reserve when stock is insufficient") {
-            val pizza = repository().create(
-                CreateMenuItem("Pizza", "Good", "url", BigDecimal("10.00"), 2)
-            )
-
-            val result = repository().validateAndReserveStock(
-                listOf(StockValidationItem(pizza.id, 3))
-            )
-
-            assertTrue(result is StockValidationResult.Failure)
-            assertEquals(1, result.rejectedItems.size)
-            assertEquals(pizza.id, result.rejectedItems[0].menuItemId)
-            assertEquals(2, result.rejectedItems[0].availableQuantity)
-            assertEquals(2, repository().findById(pizza.id)?.stock)
-        }
-
-        test("returnStock increases stock level") {
-            val pizza = repository().create(
-                CreateMenuItem("Pizza", "Good", "url", BigDecimal("10.00"), 5)
-            )
-
-            repository().returnStock(listOf(StockValidationItem(pizza.id, 3)))
-
-            assertEquals(8, repository().findById(pizza.id)?.stock)
-        }
-    }
-}---
-package io.ktor.foodies.menu
-
-import de.infix.testBalloon.framework.core.TestConfig
-import de.infix.testBalloon.framework.core.aroundEachTest
-import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.server.ValidationException
-import java.math.BigDecimal
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
-import org.jetbrains.exposed.v1.jdbc.deleteAll
-import org.jetbrains.exposed.v1.jdbc.transactions.transaction
-
-val menuServiceSpec by testSuite {
-    val dataSource = migratedMenuDataSource()
-    val repository = testFixture { ExposedMenuRepository(dataSource().database) }
-    val service = testFixture { MenuServiceImpl(repository()) }
-
-    testSuite(
-        "tests",
-        testConfig = TestConfig.aroundEachTest { test ->
-            transaction(dataSource().database) { MenuItemsTable.deleteAll() }
-            test()
-        }) {
-        test("list applies defaults and clamps pagination") {
-            val created = (0 until 60).map {
-                service().create(
-                    CreateMenuItemRequest(
-                        name = "Item $it",
-                        description = "Description $it",
-                        imageUrl = "https://example.com/$it.jpg",
-                        price = BigDecimal("1.00"),
-                        stock = 10,
-                    )
-                )
-            }
-
-            val defaultList = service().list()
----
-package io.ktor.foodies.menu
-
 import io.ktor.client.call.body
 import io.ktor.client.request.delete
 import io.ktor.client.request.get
@@ -242,33 +30,335 @@ val menuSpec by ctxSuite(context = { serviceContext() }) {
         val response = jsonClient().post("/menu") {
             contentType(ContentType.Application.Json)
             setBody(sushi)
----
-package io.ktor.foodies.menu.events
-
-import io.ktor.foodies.events.menu.RejectedItem
-import io.ktor.foodies.events.menu.StockConfirmedEvent
-import io.ktor.foodies.events.menu.StockRejectedEvent
-import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.rabbitmq.Publisher
-import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
-import io.ktor.foodies.rabbitmq.subscribe
-import io.ktor.foodies.server.test.channel
-import io.ktor.foodies.server.test.rabbitContainer
-import kotlinx.coroutines.flow.first
-import kotlinx.serialization.json.Json
-import kotlin.test.assertEquals
-import kotlin.time.Instant
-
-val menuEventPublisherSpec by testSuite {
-    val rabbit = testFixture { rabbitContainer()().connectionFactory() }
-
-    test("publish StockConfirmedEvent - successfully publishes message to RabbitMQ") {
-        val exchangeName = "menu.test.exchange"
-        val queueName = "menu.test.queue.confirmed"
-        val event = StockConfirmedEvent(orderId = 1L, confirmedAt = Instant.parse("2026-01-17T23:54:00Z"))
-
-        rabbit().channel { channel ->
-            channel.exchangeDeclare(exchangeName, "topic", true)
-            channel.queueDeclare(queueName, true, false, false, null)
-            channel.queueBind(queueName, exchangeName, event.routingKey.key)
         }
+
+        assertEquals(HttpStatusCode.Created, response.status)
+        val item = response.body<MenuItemResponse>()
+        assertEquals(item.name, sushi.name)
+        assertEquals(item.description, sushi.description)
+        assertEquals(item.imageUrl, sushi.imageUrl)
+        assertEquals(item.price, sushi.price)
+        assertEquals(item.stock, sushi.stock)
+    }
+
+    testMenuService("Get created item") {
+        val created = jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(sushi)
+        }.body<MenuItemResponse>()
+        val response = jsonClient().get("/menu/${created.id}")
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(created, response.body())
+    }
+
+    testMenuService("Get list with pagination - default parameters") {
+        // Create multiple items
+        val item1 = jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(sushi.copy(name = "Item 1"))
+        }.body<MenuItemResponse>()
+        val item2 = jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(sushi.copy(name = "Item 2"))
+        }.body<MenuItemResponse>()
+        val item3 = jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(sushi.copy(name = "Item 3"))
+        }.body<MenuItemResponse>()
+
+        val response = jsonClient().get("/menu?limit=50")
+        assertEquals(HttpStatusCode.OK, response.status)
+        val items = response.body<List<MenuItemResponse>>()
+        assertContains(items, item1)
+        assertContains(items, item2)
+        assertContains(items, item3)
+    }
+
+    testMenuService("Get list with pagination - limit parameter") {
+        jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(sushi.copy(name = "Item 1"))
+        }
+        jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(sushi.copy(name = "Item 2"))
+        }
+        jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(sushi.copy(name = "Item 3"))
+        }
+
+        val response = jsonClient().get("/menu?limit=2")
+        assertEquals(HttpStatusCode.OK, response.status)
+        val items = response.body<List<MenuItemResponse>>()
+        assertEquals(2, items.size)
+    }
+
+    listOf(null, "name").flatMap { nameOrNull ->
+        listOf(null, "description").flatMap { descriptionOrNull ->
+            listOf(null, "imageUrl").flatMap { imageUrlOrNull ->
+                listOf(null, BigDecimal("12.50")).flatMap { priceOrNull ->
+                    listOf(null, 20).map { stockOrNull ->
+                        UpdateMenuItemRequest(
+                            name = nameOrNull,
+                            description = descriptionOrNull,
+                            imageUrl = imageUrlOrNull,
+                            price = priceOrNull,
+                            stock = stockOrNull
+                        )
+                    }
+                }
+            }
+        }
+    }.forEach { updateRequest ->
+        testMenuService("Update existing menu item with ${Json.encodeToString(updateRequest)}") {
+            val created = jsonClient().post("/menu") {
+                contentType(ContentType.Application.Json)
+                setBody(sushi)
+            }.body<MenuItemResponse>()
+
+            val response = jsonClient().put("/menu/${created.id}") {
+                contentType(ContentType.Application.Json)
+                setBody(updateRequest)
+            }
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            val updated = response.body<MenuItemResponse>()
+            assertEquals(created.id, updated.id)
+            assertEquals(updateRequest.name ?: created.name, updated.name)
+            assertEquals(updateRequest.description ?: created.description, updated.description)
+            assertEquals(updateRequest.imageUrl ?: created.imageUrl, updated.imageUrl)
+            assertEquals(updateRequest.price ?: created.price, updated.price)
+            assertEquals(updateRequest.stock ?: created.stock, updated.stock)
+        }
+    }
+
+    testMenuService("Update missing item returns 404") {
+        val updateRequest = CreateMenuItemRequest(
+            name = "Non-existent Item",
+            description = "This should fail",
+            imageUrl = "https://example.com/fail.jpg",
+            price = BigDecimal("5.00")
+        )
+
+        val response = jsonClient().put("/menu/-100") {
+            contentType(ContentType.Application.Json)
+            setBody(updateRequest)
+        }
+
+        assertEquals(HttpStatusCode.NotFound, response.status)
+    }
+
+    testMenuService("Update with incorrect path param") {
+        val updateRequest = CreateMenuItemRequest(
+            name = "Invalid Update",
+            description = "This should fail",
+            imageUrl = "https://example.com/fail.jpg",
+            price = BigDecimal("5.00")
+        )
+
+        val response = jsonClient().put("/menu/not-an-id") {
+            contentType(ContentType.Application.Json)
+            setBody(updateRequest)
+        }
+
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    testMenuService("Delete created item") {
+        val created = jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(sushi)
+        }.body<MenuItemResponse>()
+        val response = jsonClient().delete("/menu/${created.id}")
+        assertEquals(HttpStatusCode.NoContent, response.status)
+    }
+
+    testMenuService("Delete missing item returns 404") {
+        val response = jsonClient().delete("/menu/-100")
+        assertEquals(HttpStatusCode.NotFound, response.status)
+    }
+
+    testMenuService("Delete incorrect path param") {
+        val response = jsonClient().delete("/menu/not-an-id")
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+}
+---
+package io.ktor.foodies.menu
+
+import de.infix.testBalloon.framework.core.TestConfig
+import de.infix.testBalloon.framework.core.aroundEachTest
+import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.server.ValidationException
+import java.math.BigDecimal
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
+import io.ktor.foodies.menu.persistence.MenuItemsTable
+import org.jetbrains.exposed.v1.jdbc.deleteAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+
+val menuServiceSpec by testSuite {
+    val dataSource = migratedMenuDataSource()
+    val repository = testFixture { ExposedMenuRepository(dataSource().database) }
+    val service = testFixture { MenuServiceImpl(repository()) }
+
+    testSuite(
+        "tests",
+        testConfig = TestConfig.aroundEachTest { test ->
+            transaction(dataSource().database) { MenuItemsTable.deleteAll() }
+            test()
+        }) {
+        test("list applies defaults and clamps pagination") {
+            val created = (0 until 60).map {
+                service().create(
+                    CreateMenuItemRequest(
+                        name = "Item $it",
+                        description = "Description $it",
+                        imageUrl = "https://example.com/$it.jpg",
+                        price = BigDecimal("1.00"),
+                        stock = 10,
+                    )
+                )
+            }
+
+            val defaultList = service().list()
+            val clampedList = service().list(limit = 100)
+            val negativeOffset = service().list(offset = -5, limit = 5)
+            val pastEnd = service().list(offset = 1000, limit = 10)
+
+            assertEquals(created.take(20).map { it.id }, defaultList.map { it.id })
+            assertEquals(50, clampedList.size)
+            assertEquals(created.take(5).map { it.id }, negativeOffset.map { it.id })
+            assertTrue(pastEnd.isEmpty())
+        }
+
+        test("create validates payload and update/delete respect existence") {
+            val validationError = assertFailsWith<ValidationException> {
+                service().create(
+                    CreateMenuItemRequest(
+                        name = " ",
+                        description = "",
+                        imageUrl = " ",
+                        price = BigDecimal.ZERO,
+                        stock = -1,
+                    )
+                )
+            }
+            // Kova collects all validation errors
+            assertTrue(validationError.reasons.size >= 5, "Expected at least 5 validation errors")
+            assertTrue(validationError.reasons.any { it.contains("blank") || it.contains("not be empty") })
+            assertTrue(validationError.reasons.any { it.contains("greater") || it.contains("must be more than") })
+            assertTrue(validationError.reasons.any { it.contains("stock") })
+
+            val created = service().create(
+                CreateMenuItemRequest(
+                    name = "Burger",
+                    description = "Juicy",
+                    imageUrl = "https://example.com/burger.jpg",
+                    price = BigDecimal("11.50"),
+                    stock = 10,
+                )
+            )
+
+            val updated = service().update(
+                created.id,
+                UpdateMenuItemRequest(
+                    name = "Updated Burger",
+                    price = BigDecimal("12.00"),
+                    stock = 5,
+                )
+            )
+
+            assertNotNull(updated)
+            assertEquals("Updated Burger", updated.name)
+            assertEquals(BigDecimal("12.00"), updated.price)
+            assertEquals(5, updated.stock)
+            assertEquals(updated, repository().findById(created.id))
+
+            assertTrue(service().delete(created.id))
+            assertNull(service().get(created.id))
+            assertNull(service().update(9999L, UpdateMenuItemRequest(name = "Missing")))
+            assertEquals(false, service().delete(9999L))
+        }
+    }
+}
+---
+package io.ktor.foodies.menu
+
+import de.infix.testBalloon.framework.core.Test
+import de.infix.testBalloon.framework.core.TestFixture
+import de.infix.testBalloon.framework.core.TestSuite
+import de.infix.testBalloon.framework.shared.TestRegistering
+import io.ktor.foodies.server.DataSource
+import io.ktor.foodies.server.telemetry.MonitoringConfig
+import io.ktor.foodies.server.test.PostgreSQLContainer
+import io.ktor.foodies.server.test.RabbitContainer
+import io.ktor.foodies.server.test.dataSource
+import io.ktor.foodies.server.test.postgresContainer
+import io.ktor.foodies.server.test.rabbitContainer
+import io.ktor.foodies.server.test.testApplication
+import io.ktor.server.testing.ApplicationTestBuilder
+import io.opentelemetry.api.OpenTelemetry
+import org.flywaydb.core.Flyway
+
+fun TestSuite.migratedMenuDataSource(): TestFixture<DataSource> =
+    testFixture {
+        val container = postgresContainer()()
+        val dataSource = container.dataSource()()
+        Flyway.configure().dataSource(dataSource.hikari).load().migrate()
+        dataSource
+    }
+
+data class ServiceContext(
+    val container: TestFixture<PostgreSQLContainer>,
+    val rabbitContainer: TestFixture<RabbitContainer>,
+    val dataSource: TestFixture<DataSource>,
+    val menuService: TestFixture<MenuService>
+)
+
+fun TestSuite.serviceContext(): ServiceContext {
+    val container = postgresContainer()
+    val ds = testFixture { container().dataSource()() }
+    val service = testFixture<MenuService> {
+        val repository = ExposedMenuRepository(ds().database)
+        MenuServiceImpl(repository)
+    }
+    val rabbitContainer = rabbitContainer()
+    return ServiceContext(container, rabbitContainer, ds, service)
+}
+
+@TestRegistering
+context(ctx: ServiceContext)
+fun TestSuite.testMenuService(
+    name: String,
+    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.() -> Unit
+) {
+    testApplication(name) {
+        application {
+            app(
+                module(
+                    Config(
+                        host = "0.0.0.0",
+                        port = 8080,
+                        ctx.container().config(),
+                        RabbitConfig(
+                            ctx.rabbitContainer().host,
+                            ctx.rabbitContainer().amqpPort,
+                            ctx.rabbitContainer().adminUsername,
+                            ctx.rabbitContainer().adminPassword,
+                        ),
+                        telemetry = MonitoringConfig(
+                            otlpEndpoint = "http://localhost:4317"
+                        )
+                    ),
+                    OpenTelemetry.noop()
+                )
+            )
+        }
+        block()
+    }
+}
