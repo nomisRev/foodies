@@ -80,13 +80,13 @@ Extract `validateAndReserveStock()` and `returnStock()` into `stock/`. `StockRep
 
 ### Acceptance criteria
 
-- [ ] `stock/StockService.kt` contains `validateAndReserveStock()`, `returnStock()`, and `StockValidationResult`
-- [ ] `stock/StockRepository.kt` interface and `stock/ExposedStockRepository.kt` implementation exist
-- [ ] `stock/StockEventPublisher.kt` contains `RabbitStockEventPublisher` (renamed)
-- [ ] `stock/StockEventConsumer.kt` consumes `StockValidationRequested` and `OrderCancelled`
-- [ ] `stock/StockModule.kt` wires service, repository, publisher, and consumer
-- [ ] `stock/StockEventPublisherSpec.kt` covers event publishing behaviour
-- [ ] `./gradlew :menu:jvmTest` passes with no failures
+- [x] `stock/StockService.kt` contains `validateAndReserveStock()`, `returnStock()`, and `StockValidationResult`
+- [x] `stock/StockRepository.kt` interface and `stock/ExposedStockRepository.kt` implementation exist
+- [x] `stock/StockEventPublisher.kt` contains `RabbitStockEventPublisher` (renamed)
+- [x] `stock/StockEventConsumer.kt` consumes `StockValidationRequested` and `OrderCancelled`
+- [x] `stock/StockModule.kt` wires service, repository, publisher, and consumer
+- [x] `stock/StockEventPublisherSpec.kt` covers event publishing behaviour
+- [x] `./gradlew :menu:jvmTest` passes with no failures
 
 ---
 
