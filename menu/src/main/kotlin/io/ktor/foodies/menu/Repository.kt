@@ -2,6 +2,7 @@ package io.ktor.foodies.menu
 
 import io.ktor.foodies.events.menu.RejectedItem
 import io.ktor.foodies.events.order.StockValidationItem
+import io.ktor.foodies.menu.admin.CreateMenuItem
 import io.ktor.foodies.menu.persistence.MenuItemsTable
 import io.ktor.foodies.menu.persistence.toMenuItem
 import org.jetbrains.exposed.v1.core.eq

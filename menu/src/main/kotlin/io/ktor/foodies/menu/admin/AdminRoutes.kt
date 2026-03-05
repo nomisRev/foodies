@@ -1,48 +1,33 @@
-package io.ktor.foodies.menu
+package io.ktor.foodies.menu.admin
 
-import io.ktor.foodies.menu.admin.CreateMenuItemRequest
-import io.ktor.foodies.menu.admin.UpdateMenuItemRequest
+import io.ktor.foodies.menu.toResponse
 import io.ktor.foodies.server.getValue
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
 
-fun Route.menuRoutes(menuService: MenuService) = route("/menu") {
-    get {
-        val offset: Int? by call.parameters
-        val limit: Int? by call.parameters
-        val menuItems = menuService.list(offset, limit).map { it.toResponse() }
-        call.respond(menuItems)
-    }
-
-    get("/{id}") {
-        val id: Long by call.parameters
-        val menuItem = menuService.get(id)
-        if (menuItem == null) call.respond(HttpStatusCode.NotFound) else call.respond(menuItem.toResponse())
-    }
-
+fun Route.adminRoutes(adminService: AdminService) = route("/menu") {
     post {
         val request = call.receive<CreateMenuItemRequest>()
-        val created = menuService.create(request)
+        val created = adminService.create(request)
         call.respond(HttpStatusCode.Created, created.toResponse())
     }
 
     put("/{id}") {
         val id: Long by call.parameters
         val request = call.receive<UpdateMenuItemRequest>()
-        val updated = menuService.update(id, request)
+        val updated = adminService.update(id, request)
         if (updated == null) call.respond(HttpStatusCode.NotFound) else call.respond(updated.toResponse())
     }
 
     delete("/{id}") {
         val id: Long by call.parameters
-        val deleted = menuService.delete(id)
+        val deleted = adminService.delete(id)
         if (deleted) call.respond(HttpStatusCode.NoContent) else call.respond(HttpStatusCode.NotFound)
     }
 }

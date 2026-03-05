@@ -60,13 +60,13 @@ Extract `create()`, `update()`, and `delete()` into `admin/`. `AdminRequests.kt`
 
 ### Acceptance criteria
 
-- [ ] `admin/AdminRequests.kt` contains all request models and `validate()` extensions
-- [ ] `admin/AdminRepository.kt` interface and `admin/ExposedAdminRepository.kt` implementation exist
-- [ ] `admin/AdminService.kt` exposes `create()`, `update()`, `delete()` interface + implementation
-- [ ] `admin/AdminRoutes.kt` handles `POST /menu`, `PUT /menu/{id}`, `DELETE /menu/{id}`
-- [ ] `admin/AdminModule.kt` wires service, repository, and routes
-- [ ] `admin/AdminContractSpec.kt`, `admin/AdminServiceSpec.kt`, `admin/AdminValidationSpec.kt` cover admin paths
-- [ ] `./gradlew :menu:jvmTest` passes with no failures
+- [x] `admin/AdminRequests.kt` contains all request models and `validate()` extensions
+- [x] `admin/AdminRepository.kt` interface and `admin/ExposedAdminRepository.kt` implementation exist
+- [x] `admin/AdminService.kt` exposes `create()`, `update()`, `delete()` interface + implementation
+- [x] `admin/AdminRoutes.kt` handles `POST /menu`, `PUT /menu/{id}`, `DELETE /menu/{id}`
+- [x] `admin/AdminModule.kt` wires service, repository, and routes
+- [x] `admin/AdminContractSpec.kt`, `admin/AdminServiceSpec.kt`, `admin/AdminValidationSpec.kt` cover admin paths
+- [x] `./gradlew :menu:jvmTest` passes with no failures
 
 ---
 

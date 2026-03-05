@@ -1,7 +1,7 @@
 package io.ktor.foodies.menu.persistence
 
 import io.ktor.foodies.menu.MenuItem
-import io.ktor.foodies.menu.UpdateMenuItem
+import io.ktor.foodies.menu.admin.UpdateMenuItem
 import org.jetbrains.exposed.v1.core.SortOrder
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database

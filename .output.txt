@@ -1,221 +1,156 @@
 Command finished with exit code 0.
 Command output:
-package io.ktor.foodies.menu
+package io.ktor.foodies.menu.catalog
 
-import io.ktor.client.call.body
-import io.ktor.client.request.delete
-import io.ktor.client.request.get
-import io.ktor.client.request.post
-import io.ktor.client.request.put
-import io.ktor.client.request.setBody
-import io.ktor.foodies.server.test.ctxSuite
-import io.ktor.foodies.server.test.jsonClient
-import io.ktor.http.ContentType
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import kotlinx.serialization.json.Json
-import java.math.BigDecimal
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
+import io.ktor.foodies.menu.MenuItem
+import io.ktor.foodies.menu.persistence.MenuRepository
 
-val menuSpec by ctxSuite(context = { serviceContext() }) {
-    val sushi = CreateMenuItemRequest(
-        name = "Sushi Roll",
-        description = "Fresh salmon roll",
-        imageUrl = "https://example.com/salmon-roll.jpg",
-        price = BigDecimal("9.50"),
-        stock = 10,
-    )
-    testMenuService("Create Menu Item") {
-        val response = jsonClient().post("/menu") {
-            contentType(ContentType.Application.Json)
-            setBody(sushi)
-        }
+interface CatalogService {
+    fun list(offset: Int? = null, limit: Int? = null): List<MenuItem>
+    fun get(id: Long): MenuItem?
+}
 
-        assertEquals(HttpStatusCode.Created, response.status)
-        val item = response.body<MenuItemResponse>()
-        assertEquals(item.name, sushi.name)
-        assertEquals(item.description, sushi.description)
-        assertEquals(item.imageUrl, sushi.imageUrl)
-        assertEquals(item.price, sushi.price)
-        assertEquals(item.stock, sushi.stock)
+class CatalogServiceImpl(private val repository: MenuRepository) : CatalogService {
+    override fun list(offset: Int?, limit: Int?): List<MenuItem> {
+        val safeOffset = (offset ?: DEFAULT_OFFSET).coerceAtLeast(0)
+        val safeLimit = (limit ?: DEFAULT_LIMIT).coerceIn(1, MAX_LIMIT)
+        return repository.list(safeOffset, safeLimit)
     }
 
-    testMenuService("Get created item") {
-        val created = jsonClient().post("/menu") {
-            contentType(ContentType.Application.Json)
-            setBody(sushi)
-        }.body<MenuItemResponse>()
-        val response = jsonClient().get("/menu/${created.id}")
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals(created, response.body())
-    }
+    override fun get(id: Long): MenuItem? = repository.findById(id)
 
-    testMenuService("Get list with pagination - default parameters") {
-        // Create multiple items
-        val item1 = jsonClient().post("/menu") {
-            contentType(ContentType.Application.Json)
-            setBody(sushi.copy(name = "Item 1"))
-        }.body<MenuItemResponse>()
-        val item2 = jsonClient().post("/menu") {
-            contentType(ContentType.Application.Json)
-            setBody(sushi.copy(name = "Item 2"))
-        }.body<MenuItemResponse>()
-        val item3 = jsonClient().post("/menu") {
-            contentType(ContentType.Application.Json)
-            setBody(sushi.copy(name = "Item 3"))
-        }.body<MenuItemResponse>()
-
-        val response = jsonClient().get("/menu?limit=50")
-        assertEquals(HttpStatusCode.OK, response.status)
-        val items = response.body<List<MenuItemResponse>>()
-        assertContains(items, item1)
-        assertContains(items, item2)
-        assertContains(items, item3)
-    }
-
-    testMenuService("Get list with pagination - limit parameter") {
-        jsonClient().post("/menu") {
-            contentType(ContentType.Application.Json)
-            setBody(sushi.copy(name = "Item 1"))
-        }
-        jsonClient().post("/menu") {
-            contentType(ContentType.Application.Json)
-            setBody(sushi.copy(name = "Item 2"))
-        }
-        jsonClient().post("/menu") {
-            contentType(ContentType.Application.Json)
-            setBody(sushi.copy(name = "Item 3"))
-        }
-
-        val response = jsonClient().get("/menu?limit=2")
-        assertEquals(HttpStatusCode.OK, response.status)
-        val items = response.body<List<MenuItemResponse>>()
-        assertEquals(2, items.size)
-    }
-
-    listOf(null, "name").flatMap { nameOrNull ->
-        listOf(null, "description").flatMap { descriptionOrNull ->
-            listOf(null, "imageUrl").flatMap { imageUrlOrNull ->
-                listOf(null, BigDecimal("12.50")).flatMap { priceOrNull ->
-                    listOf(null, 20).map { stockOrNull ->
-                        UpdateMenuItemRequest(
-                            name = nameOrNull,
-                            description = descriptionOrNull,
-                            imageUrl = imageUrlOrNull,
-                            price = priceOrNull,
-                            stock = stockOrNull
-                        )
-                    }
-                }
-            }
-        }
-    }.forEach { updateRequest ->
-        testMenuService("Update existing menu item with ${Json.encodeToString(updateRequest)}") {
-            val created = jsonClient().post("/menu") {
-                contentType(ContentType.Application.Json)
-                setBody(sushi)
-            }.body<MenuItemResponse>()
-
-            val response = jsonClient().put("/menu/${created.id}") {
-                contentType(ContentType.Application.Json)
-                setBody(updateRequest)
-            }
-
-            assertEquals(HttpStatusCode.OK, response.status)
-            val updated = response.body<MenuItemResponse>()
-            assertEquals(created.id, updated.id)
-            assertEquals(updateRequest.name ?: created.name, updated.name)
-            assertEquals(updateRequest.description ?: created.description, updated.description)
-            assertEquals(updateRequest.imageUrl ?: created.imageUrl, updated.imageUrl)
-            assertEquals(updateRequest.price ?: created.price, updated.price)
-            assertEquals(updateRequest.stock ?: created.stock, updated.stock)
-        }
-    }
-
-    testMenuService("Update missing item returns 404") {
-        val updateRequest = CreateMenuItemRequest(
-            name = "Non-existent Item",
-            description = "This should fail",
-            imageUrl = "https://example.com/fail.jpg",
-            price = BigDecimal("5.00")
-        )
-
-        val response = jsonClient().put("/menu/-100") {
-            contentType(ContentType.Application.Json)
-            setBody(updateRequest)
-        }
-
-        assertEquals(HttpStatusCode.NotFound, response.status)
-    }
-
-    testMenuService("Update with incorrect path param") {
-        val updateRequest = CreateMenuItemRequest(
-            name = "Invalid Update",
-            description = "This should fail",
-            imageUrl = "https://example.com/fail.jpg",
-            price = BigDecimal("5.00")
-        )
-
-        val response = jsonClient().put("/menu/not-an-id") {
-            contentType(ContentType.Application.Json)
-            setBody(updateRequest)
-        }
-
-        assertEquals(HttpStatusCode.BadRequest, response.status)
-    }
-
-    testMenuService("Delete created item") {
-        val created = jsonClient().post("/menu") {
-            contentType(ContentType.Application.Json)
-            setBody(sushi)
-        }.body<MenuItemResponse>()
-        val response = jsonClient().delete("/menu/${created.id}")
-        assertEquals(HttpStatusCode.NoContent, response.status)
-    }
-
-    testMenuService("Delete missing item returns 404") {
-        val response = jsonClient().delete("/menu/-100")
-        assertEquals(HttpStatusCode.NotFound, response.status)
-    }
-
-    testMenuService("Delete incorrect path param") {
-        val response = jsonClient().delete("/menu/not-an-id")
-        assertEquals(HttpStatusCode.BadRequest, response.status)
+    private companion object {
+        const val DEFAULT_OFFSET = 0
+        const val DEFAULT_LIMIT = 20
+        const val MAX_LIMIT = 50
     }
 }
----
-package io.ktor.foodies.menu
+===
+package io.ktor.foodies.menu.catalog
+
+import io.ktor.foodies.menu.toResponse
+import io.ktor.foodies.server.getValue
+import io.ktor.http.HttpStatusCode
+import io.ktor.server.response.respond
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.route
+
+fun Route.catalogRoutes(catalogService: CatalogService) = route("/menu") {
+    get {
+        val offset: Int? by call.parameters
+        val limit: Int? by call.parameters
+        call.respond(catalogService.list(offset, limit).map { it.toResponse() })
+    }
+
+    get("/{id}") {
+        val id: Long by call.parameters
+        val menuItem = catalogService.get(id)
+        if (menuItem == null) call.respond(HttpStatusCode.NotFound) else call.respond(menuItem.toResponse())
+    }
+}
+===
+package io.ktor.foodies.menu.catalog
+
+import io.ktor.foodies.menu.persistence.MenuRepository
+import io.ktor.server.routing.Routing
+
+fun Routing.catalogModule(repository: MenuRepository) {
+    val service = CatalogServiceImpl(repository)
+    catalogRoutes(service)
+}
+===
+package io.ktor.foodies.menu.persistence
+
+import io.ktor.foodies.menu.MenuItem
+import io.ktor.foodies.menu.UpdateMenuItem
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
+
+interface MenuRepository {
+    fun findById(id: Long): MenuItem?
+    fun list(offset: Int, limit: Int): List<MenuItem>
+    fun update(id: Long, request: UpdateMenuItem): MenuItem?
+}
+
+open class ExposedMenuRepository(protected val database: Database) : MenuRepository {
+    override fun list(offset: Int, limit: Int): List<MenuItem> = transaction(database) {
+        MenuItemsTable.selectAll()
+            .orderBy(MenuItemsTable.id to SortOrder.ASC)
+            .offset(offset.toLong())
+            .limit(limit)
+            .map { it.toMenuItem() }
+    }
+
+    override fun findById(id: Long): MenuItem? = transaction(database) {
+        MenuItemsTable.selectAll()
+            .where { MenuItemsTable.id eq id }
+            .map { it.toMenuItem() }
+            .singleOrNull()
+    }
+
+    override fun update(id: Long, request: UpdateMenuItem): MenuItem? = transaction(database) {
+        val existing = MenuItemsTable.selectAll()
+            .where { MenuItemsTable.id eq id }
+            .map { it.toMenuItem() }
+            .singleOrNull()
+            ?: return@transaction null
+
+        val updated = existing.copy(
+            name = request.name ?: existing.name,
+            description = request.description ?: existing.description,
+            imageUrl = request.imageUrl ?: existing.imageUrl,
+            price = request.price ?: existing.price,
+            stock = request.stock ?: existing.stock,
+        )
+
+        MenuItemsTable.update({ MenuItemsTable.id eq id }) { row ->
+            row[name] = updated.name
+            row[description] = updated.description
+            row[imageUrl] = updated.imageUrl
+            row[price] = updated.price
+            row[stock] = updated.stock
+        }
+
+        updated
+    }
+}
+===
+package io.ktor.foodies.menu.catalog
 
 import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.aroundEachTest
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.server.ValidationException
-import java.math.BigDecimal
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import io.ktor.foodies.menu.CreateMenuItem
+import io.ktor.foodies.menu.ExposedMenuRepository
+import io.ktor.foodies.menu.migratedMenuDataSource
 import io.ktor.foodies.menu.persistence.MenuItemsTable
 import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import java.math.BigDecimal
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
-val menuServiceSpec by testSuite {
+val catalogServiceSpec by testSuite {
     val dataSource = migratedMenuDataSource()
     val repository = testFixture { ExposedMenuRepository(dataSource().database) }
-    val service = testFixture { MenuServiceImpl(repository()) }
+    val service = testFixture { CatalogServiceImpl(repository()) }
 
     testSuite(
         "tests",
         testConfig = TestConfig.aroundEachTest { test ->
             transaction(dataSource().database) { MenuItemsTable.deleteAll() }
             test()
-        }) {
-        test("list applies defaults and clamps pagination") {
-            val created = (0 until 60).map {
-                service().create(
-                    CreateMenuItemRequest(
+        }
+    ) {
+        test("list returns items with default pagination") {
+            val created = (0 until 5).map {
+                repository().create(
+                    CreateMenuItem(
                         name = "Item $it",
                         description = "Description $it",
                         imageUrl = "https://example.com/$it.jpg",
@@ -225,140 +160,132 @@ val menuServiceSpec by testSuite {
                 )
             }
 
-            val defaultList = service().list()
-            val clampedList = service().list(limit = 100)
-            val negativeOffset = service().list(offset = -5, limit = 5)
-            val pastEnd = service().list(offset = 1000, limit = 10)
+            val result = service().list()
 
-            assertEquals(created.take(20).map { it.id }, defaultList.map { it.id })
-            assertEquals(50, clampedList.size)
-            assertEquals(created.take(5).map { it.id }, negativeOffset.map { it.id })
-            assertTrue(pastEnd.isEmpty())
+            assertEquals(created.map { it.id }, result.map { it.id })
         }
 
-        test("create validates payload and update/delete respect existence") {
-            val validationError = assertFailsWith<ValidationException> {
-                service().create(
-                    CreateMenuItemRequest(
-                        name = " ",
-                        description = "",
-                        imageUrl = " ",
-                        price = BigDecimal.ZERO,
-                        stock = -1,
+        test("list clamps limit to max and coerces negative offset") {
+            (0 until 60).forEach {
+                repository().create(
+                    CreateMenuItem(
+                        name = "Item $it",
+                        description = "Description $it",
+                        imageUrl = "https://example.com/$it.jpg",
+                        price = BigDecimal("1.00"),
+                        stock = 10,
                     )
                 )
             }
-            // Kova collects all validation errors
-            assertTrue(validationError.reasons.size >= 5, "Expected at least 5 validation errors")
-            assertTrue(validationError.reasons.any { it.contains("blank") || it.contains("not be empty") })
-            assertTrue(validationError.reasons.any { it.contains("greater") || it.contains("must be more than") })
-            assertTrue(validationError.reasons.any { it.contains("stock") })
 
-            val created = service().create(
-                CreateMenuItemRequest(
+            val clamped = service().list(limit = 100)
+            val negativeOffset = service().list(offset = -5, limit = 5)
+
+            assertEquals(50, clamped.size)
+            assertEquals(5, negativeOffset.size)
+        }
+
+        test("get returns item when it exists") {
+            val created = repository().create(
+                CreateMenuItem(
                     name = "Burger",
                     description = "Juicy",
                     imageUrl = "https://example.com/burger.jpg",
                     price = BigDecimal("11.50"),
-                    stock = 10,
-                )
-            )
-
-            val updated = service().update(
-                created.id,
-                UpdateMenuItemRequest(
-                    name = "Updated Burger",
-                    price = BigDecimal("12.00"),
                     stock = 5,
                 )
             )
 
-            assertNotNull(updated)
-            assertEquals("Updated Burger", updated.name)
-            assertEquals(BigDecimal("12.00"), updated.price)
-            assertEquals(5, updated.stock)
-            assertEquals(updated, repository().findById(created.id))
+            val result = service().get(created.id)
 
-            assertTrue(service().delete(created.id))
-            assertNull(service().get(created.id))
-            assertNull(service().update(9999L, UpdateMenuItemRequest(name = "Missing")))
-            assertEquals(false, service().delete(9999L))
+            assertEquals(created, result)
+        }
+
+        test("get returns null when item does not exist") {
+            assertNull(service().get(-1L))
         }
     }
 }
----
-package io.ktor.foodies.menu
+===
+package io.ktor.foodies.menu.catalog
 
-import de.infix.testBalloon.framework.core.Test
-import de.infix.testBalloon.framework.core.TestFixture
-import de.infix.testBalloon.framework.core.TestSuite
-import de.infix.testBalloon.framework.shared.TestRegistering
-import io.ktor.foodies.server.DataSource
-import io.ktor.foodies.server.telemetry.MonitoringConfig
-import io.ktor.foodies.server.test.PostgreSQLContainer
-import io.ktor.foodies.server.test.RabbitContainer
-import io.ktor.foodies.server.test.dataSource
-import io.ktor.foodies.server.test.postgresContainer
-import io.ktor.foodies.server.test.rabbitContainer
-import io.ktor.foodies.server.test.testApplication
-import io.ktor.server.testing.ApplicationTestBuilder
-import io.opentelemetry.api.OpenTelemetry
-import org.flywaydb.core.Flyway
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.foodies.menu.CreateMenuItemRequest
+import io.ktor.foodies.menu.MenuItemResponse
+import io.ktor.foodies.menu.serviceContext
+import io.ktor.foodies.menu.testMenuService
+import io.ktor.foodies.server.test.ctxSuite
+import io.ktor.foodies.server.test.jsonClient
+import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import java.math.BigDecimal
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
 
-fun TestSuite.migratedMenuDataSource(): TestFixture<DataSource> =
-    testFixture {
-        val container = postgresContainer()()
-        val dataSource = container.dataSource()()
-        Flyway.configure().dataSource(dataSource.hikari).load().migrate()
-        dataSource
-    }
+val catalogContractSpec by ctxSuite(context = { serviceContext() }) {
+    val pizza = CreateMenuItemRequest(
+        name = "Margherita",
+        description = "Classic tomato and mozzarella",
+        imageUrl = "https://example.com/margherita.jpg",
+        price = BigDecimal("8.50"),
+        stock = 15,
+    )
 
-data class ServiceContext(
-    val container: TestFixture<PostgreSQLContainer>,
-    val rabbitContainer: TestFixture<RabbitContainer>,
-    val dataSource: TestFixture<DataSource>,
-    val menuService: TestFixture<MenuService>
-)
-
-fun TestSuite.serviceContext(): ServiceContext {
-    val container = postgresContainer()
-    val ds = testFixture { container().dataSource()() }
-    val service = testFixture<MenuService> {
-        val repository = ExposedMenuRepository(ds().database)
-        MenuServiceImpl(repository)
-    }
-    val rabbitContainer = rabbitContainer()
-    return ServiceContext(container, rabbitContainer, ds, service)
-}
-
-@TestRegistering
-context(ctx: ServiceContext)
-fun TestSuite.testMenuService(
-    name: String,
-    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.() -> Unit
-) {
-    testApplication(name) {
-        application {
-            app(
-                module(
-                    Config(
-                        host = "0.0.0.0",
-                        port = 8080,
-                        ctx.container().config(),
-                        RabbitConfig(
-                            ctx.rabbitContainer().host,
-                            ctx.rabbitContainer().amqpPort,
-                            ctx.rabbitContainer().adminUsername,
-                            ctx.rabbitContainer().adminPassword,
-                        ),
-                        telemetry = MonitoringConfig(
-                            otlpEndpoint = "http://localhost:4317"
-                        )
-                    ),
-                    OpenTelemetry.noop()
-                )
-            )
+    testMenuService("GET /menu returns all items") {
+        jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(pizza)
         }
-        block()
+        jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(pizza.copy(name = "Pepperoni"))
+        }
+
+        val response = jsonClient().get("/menu?limit=50")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val items = response.body<List<MenuItemResponse>>()
+        assertContains(items.map { it.name }, "Margherita")
+        assertContains(items.map { it.name }, "Pepperoni")
+    }
+
+    testMenuService("GET /menu respects limit parameter") {
+        repeat(5) { i ->
+            jsonClient().post("/menu") {
+                contentType(ContentType.Application.Json)
+                setBody(pizza.copy(name = "Item $i"))
+            }
+        }
+
+        val response = jsonClient().get("/menu?limit=2")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(2, response.body<List<MenuItemResponse>>().size)
+    }
+
+    testMenuService("GET /menu/{id} returns item by id") {
+        val created = jsonClient().post("/menu") {
+            contentType(ContentType.Application.Json)
+            setBody(pizza)
+        }.body<MenuItemResponse>()
+
+        val response = jsonClient().get("/menu/${created.id}")
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(created, response.body())
+    }
+
+    testMenuService("GET /menu/{id} returns 404 for missing item") {
+        val response = jsonClient().get("/menu/-100")
+        assertEquals(HttpStatusCode.NotFound, response.status)
+    }
+
+    testMenuService("GET /menu/{id} returns 400 for invalid id") {
+        val response = jsonClient().get("/menu/not-an-id")
+        assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 }

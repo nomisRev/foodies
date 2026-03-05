@@ -3,8 +3,8 @@ package io.ktor.foodies.menu.catalog
 import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.aroundEachTest
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.menu.CreateMenuItem
 import io.ktor.foodies.menu.ExposedMenuRepository
+import io.ktor.foodies.menu.admin.CreateMenuItem
 import io.ktor.foodies.menu.migratedMenuDataSource
 import io.ktor.foodies.menu.persistence.MenuItemsTable
 import org.jetbrains.exposed.v1.jdbc.deleteAll

@@ -4,6 +4,8 @@ import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.aroundEachTest
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.events.order.StockValidationItem
+import io.ktor.foodies.menu.admin.CreateMenuItem
+import io.ktor.foodies.menu.admin.UpdateMenuItem
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

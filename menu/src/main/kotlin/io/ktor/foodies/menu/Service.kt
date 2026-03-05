@@ -2,6 +2,9 @@ package io.ktor.foodies.menu
 
 import io.ktor.foodies.events.menu.RejectedItem
 import io.ktor.foodies.events.order.StockValidationItem
+import io.ktor.foodies.menu.admin.CreateMenuItemRequest
+import io.ktor.foodies.menu.admin.UpdateMenuItemRequest
+import io.ktor.foodies.menu.admin.validate
 import kotlin.time.Instant
 
 interface MenuService {

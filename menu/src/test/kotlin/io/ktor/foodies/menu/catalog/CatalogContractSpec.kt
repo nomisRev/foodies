@@ -4,7 +4,7 @@ import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
-import io.ktor.foodies.menu.CreateMenuItemRequest
+import io.ktor.foodies.menu.admin.CreateMenuItemRequest
 import io.ktor.foodies.menu.MenuItemResponse
 import io.ktor.foodies.menu.serviceContext
 import io.ktor.foodies.menu.testMenuService

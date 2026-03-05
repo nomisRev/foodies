@@ -3,6 +3,10 @@ package io.ktor.foodies.menu
 import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.aroundEachTest
 import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.menu.admin.CreateMenuItem
+import io.ktor.foodies.menu.admin.UpdateMenuItem
+import io.ktor.foodies.menu.admin.CreateMenuItemRequest
+import io.ktor.foodies.menu.admin.UpdateMenuItemRequest
 import io.ktor.foodies.server.ValidationException
 import java.math.BigDecimal
 import kotlin.test.assertEquals

@@ -1,18 +1,13 @@
-package io.ktor.foodies.menu
+package io.ktor.foodies.menu.admin
 
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.foodies.menu.admin.CreateMenuItem
-import io.ktor.foodies.menu.admin.CreateMenuItemRequest
-import io.ktor.foodies.menu.admin.UpdateMenuItem
-import io.ktor.foodies.menu.admin.UpdateMenuItemRequest
-import io.ktor.foodies.menu.admin.validate
 import io.ktor.foodies.server.ValidationException
 import java.math.BigDecimal
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-val menuValidationSpec by testSuite {
+val adminValidationSpec by testSuite {
     test("CreateMenuItemRequest.validate succeeds for valid data") {
         val request = CreateMenuItemRequest(
             name = "Pizza",
