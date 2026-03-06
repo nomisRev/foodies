@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.session
+package io.ktor.foodies.server.security
 
 import de.infix.testBalloon.framework.core.TestConfig
 import de.infix.testBalloon.framework.core.testScope

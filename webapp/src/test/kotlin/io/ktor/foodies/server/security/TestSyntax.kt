@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.session
+package io.ktor.foodies.server.security
 
 import com.redis.testcontainers.RedisContainer
 import de.infix.testBalloon.framework.core.Test

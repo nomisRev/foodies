@@ -2,9 +2,9 @@ package io.ktor.foodies.server
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import io.ktor.foodies.server.htmx.cart.cartRoutes
-import io.ktor.foodies.server.htmx.home
-import io.ktor.foodies.server.htmx.menu.menuRoutes
+import io.ktor.foodies.server.basket.basketRoutes
+import io.ktor.foodies.server.home.homeRoutes
+import io.ktor.foodies.server.menu.menuRoutes
 import io.ktor.foodies.server.security.security
 import io.ktor.foodies.server.telemetry.monitoring
 import io.ktor.serialization.kotlinx.json.json
@@ -12,9 +12,7 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.getAs
-import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
-import io.ktor.server.http.content.staticResources
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.routing.routing
@@ -40,11 +38,9 @@ suspend fun Application.app(config: Config, module: WebAppModule) {
 
     security(config.security, module.httpClient, module.sessionStorage)
 
-    menuRoutes(module.menuService)
-    cartRoutes(module.basketService)
-
     routing {
-        staticResources("/static", "static")
-        home()
+        homeRoutes()
+        menuRoutes(module.menuService)
+        basketRoutes(module.basketService)
     }
 }

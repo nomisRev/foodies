@@ -1,13 +1,16 @@
-package io.ktor.foodies.server.htmx
+package io.ktor.foodies.server.home
 
+import io.ktor.foodies.server.basket.basketBadgeLink
+import io.ktor.foodies.server.menu.DefaultMenuPageSize
+import io.ktor.foodies.server.menu.MenuIntersectTrigger
 import io.ktor.foodies.server.security.UserSession
 import io.ktor.foodies.server.security.public
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtml
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import kotlinx.html.FlowContent
 import kotlinx.html.a
 import kotlinx.html.body
 import kotlinx.html.div
@@ -24,8 +27,10 @@ import kotlinx.html.section
 import kotlinx.html.span
 import kotlinx.html.title
 
-const val DefaultMenuPageSize = 12
-const val MenuIntersectTrigger = "intersect once rootMargin: 800px"
+fun Route.homeRoutes() {
+    staticResources("/static", "static")
+    home()
+}
 
 fun Route.home() = public {
     get("/") {
@@ -49,7 +54,7 @@ fun Route.home() = public {
                 header {
                     a(href = "/", classes = "logo") { +"Foodies" }
                     div(classes = "actions") {
-                        cartBadgeLink()
+                        basketBadgeLink()
                         if (isLoggedIn) {
                             a(href = "/logout", classes = "button secondary") { +"Log out" }
                         } else {
@@ -92,15 +97,5 @@ fun Route.home() = public {
                 }
             }
         }
-    }
-}
-
-fun FlowContent.cartBadgeLink() {
-    a(href = "/cart", classes = "cart-link") {
-        id = "cart-badge"
-        attributes["hx-get"] = "/cart/badge"
-        attributes["hx-trigger"] = "load, cart-updated from:body"
-        attributes["hx-swap"] = "outerHTML"
-        span(classes = "cart-icon") { +"Cart" }
     }
 }

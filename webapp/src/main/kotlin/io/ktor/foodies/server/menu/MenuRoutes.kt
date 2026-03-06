@@ -1,14 +1,12 @@
-package io.ktor.foodies.server.htmx.menu
+package io.ktor.foodies.server.menu
 
 import io.ktor.foodies.server.getValue
-import io.ktor.foodies.server.htmx.MenuIntersectTrigger
-import io.ktor.foodies.server.htmx.respondHtmxFragment
 import io.ktor.foodies.server.security.UserSession
 import io.ktor.foodies.server.security.public
-import io.ktor.server.application.Application
+import io.ktor.foodies.server.shared.respondHtmxFragment
 import io.ktor.server.htmx.hx
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import io.ktor.server.routing.routing
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.ktor.utils.io.ExperimentalKtorApi
@@ -28,8 +26,11 @@ import kotlinx.html.p
 import kotlinx.html.span
 import kotlin.collections.set
 
+const val DefaultMenuPageSize = 12
+const val MenuIntersectTrigger = "intersect once rootMargin: 800px"
+
 @OptIn(ExperimentalKtorApi::class)
-fun Application.menuRoutes(menuService: MenuService) = routing {
+fun Route.menuRoutes(menuService: MenuService) {
     public {
         hx {
             get("/menu") {
