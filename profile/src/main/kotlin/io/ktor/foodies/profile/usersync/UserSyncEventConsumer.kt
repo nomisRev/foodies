@@ -1,19 +1,18 @@
-package io.ktor.foodies.server.consumers
+package io.ktor.foodies.profile.usersync
 
+import io.ktor.foodies.events.user.UserEvent
+import io.ktor.foodies.profile.persistence.ProfileRepository
 import io.ktor.foodies.rabbitmq.Message
 import io.ktor.foodies.rabbitmq.parConsumeMessage
-import io.ktor.foodies.server.profile.ProfileRepository
-import io.ktor.foodies.events.user.UserEvent
 import kotlinx.coroutines.flow.Flow
 import org.slf4j.LoggerFactory
 
-private val logger = LoggerFactory.getLogger("NewUserConsumer")
+private val logger = LoggerFactory.getLogger("UserSyncEventConsumer")
 
-fun userEventConsumer(newUsers: Flow<Message<UserEvent>>, profileRepository: ProfileRepository) =
+fun userSyncEventConsumer(newUsers: Flow<Message<UserEvent>>, profileRepository: ProfileRepository) =
     newUsers.parConsumeMessage { event ->
         when (event) {
             is UserEvent.Registration -> {
-                // Ignores already existing users, consuming a message must be idempotent
                 profileRepository.insertOrIgnore(event.subject, event.email, event.firstName, event.lastName)
                 logger.info("Processed registration message for subject ${event.subject}")
             }

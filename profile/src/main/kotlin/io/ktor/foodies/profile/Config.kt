@@ -1,5 +1,6 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.profile
 
+import io.ktor.foodies.server.DataSource
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

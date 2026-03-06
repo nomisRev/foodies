@@ -1,4 +1,4 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.profile
 
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText

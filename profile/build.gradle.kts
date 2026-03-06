@@ -3,7 +3,7 @@ plugins {
     id("foodies.ktor-service-conventions")
 }
 
-application { mainClass = "io.ktor.foodies.server.AppKt" }
+application { mainClass = "io.ktor.foodies.profile.ProfileAppKt" }
 version = "0.0.4"
 
 ktor {

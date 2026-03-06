@@ -1,4 +1,4 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.profile
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
