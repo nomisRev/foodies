@@ -5,8 +5,8 @@ import com.sksamuel.cohort.healthcheck.http.EndpointHealthCheck
 import com.sksamuel.cohort.lettuce.RedisHealthCheck
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
-import io.ktor.foodies.server.cart.CartService
-import io.ktor.foodies.server.cart.HttpCartService
+import io.ktor.foodies.server.basket.BasketService
+import io.ktor.foodies.server.basket.HttpBasketService
 import io.ktor.foodies.server.menu.HttpMenuService
 import io.ktor.foodies.server.menu.MenuService
 import io.ktor.foodies.server.security.securityModule
@@ -18,7 +18,7 @@ import kotlinx.coroutines.Dispatchers
 
 data class WebAppModule(
     val menuService: MenuService,
-    val cartService: CartService,
+    val basketService: BasketService,
     val sessionStorage: SessionStorage,
     val httpClient: HttpClient,
     val readinessCheck: HealthCheckRegistry
@@ -28,7 +28,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
     val httpClient = httpClientModule(telemetry)
 
     val menuService = HttpMenuService(config.menu.baseUrl, httpClient)
-    val cartService = HttpCartService(config.basket.baseUrl, httpClient)
+    val basketService = HttpBasketService(config.basket.baseUrl, httpClient)
 
     val security = securityModule(config.redis)
 
@@ -40,7 +40,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
 
     return WebAppModule(
         menuService = menuService,
-        cartService = cartService,
+        basketService = basketService,
         sessionStorage = security.sessionStorage,
         httpClient = httpClient,
         readinessCheck = readinessCheck

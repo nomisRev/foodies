@@ -2,7 +2,7 @@ package io.ktor.foodies.server
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import io.ktor.foodies.server.cart.cartRoutes
+import io.ktor.foodies.server.basket.basketRoutes
 import io.ktor.foodies.server.home.homeRoutes
 import io.ktor.foodies.server.menu.menuRoutes
 import io.ktor.foodies.server.security.security
@@ -41,6 +41,6 @@ suspend fun Application.app(config: Config, module: WebAppModule) {
     routing {
         homeRoutes()
         menuRoutes(module.menuService)
-        cartRoutes(module.cartService)
+        basketRoutes(module.basketService)
     }
 }

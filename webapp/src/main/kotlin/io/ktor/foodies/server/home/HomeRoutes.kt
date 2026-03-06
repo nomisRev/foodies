@@ -1,6 +1,6 @@
 package io.ktor.foodies.server.home
 
-import io.ktor.foodies.server.cart.cartBadgeLink
+import io.ktor.foodies.server.basket.basketBadgeLink
 import io.ktor.foodies.server.menu.DefaultMenuPageSize
 import io.ktor.foodies.server.menu.MenuIntersectTrigger
 import io.ktor.foodies.server.security.UserSession
@@ -54,7 +54,7 @@ fun Route.home() = public {
                 header {
                     a(href = "/", classes = "logo") { +"Foodies" }
                     div(classes = "actions") {
-                        cartBadgeLink()
+                        basketBadgeLink()
                         if (isLoggedIn) {
                             a(href = "/logout", classes = "button secondary") { +"Log out" }
                         } else {

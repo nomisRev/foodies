@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.cart
+package io.ktor.foodies.server.basket
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -10,7 +10,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 
-class HttpCartService(baseUrl: String, private val httpClient: HttpClient) : CartService {
+class HttpBasketService(baseUrl: String, private val httpClient: HttpClient) : BasketService {
     private val basketBaseUrl = baseUrl.trimEnd('/')
 
     override suspend fun getBasket(): CustomerBasket =
