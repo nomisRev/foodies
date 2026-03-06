@@ -2,7 +2,9 @@ package io.ktor.foodies.server
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import io.ktor.foodies.server.home.homeModule
+import io.ktor.foodies.server.cart.cartRoutes
+import io.ktor.foodies.server.home.homeRoutes
+import io.ktor.foodies.server.menu.menuRoutes
 import io.ktor.foodies.server.security.security
 import io.ktor.foodies.server.telemetry.monitoring
 import io.ktor.serialization.kotlinx.json.json
@@ -10,7 +12,6 @@ import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.config.ApplicationConfig
 import io.ktor.server.config.getAs
-import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -35,7 +36,11 @@ suspend fun Application.app(config: Config, module: WebAppModule) {
         healthcheck("/healthz/readiness", module.readinessCheck)
     }
 
-    security(config.security, module.httpClient, module.sessionStorage)
+    security(config.security, module.httpClient, module.security.sessionStorage)
 
-    homeModule()
+    routing {
+        homeRoutes()
+        menuRoutes(module.menuService)
+        cartRoutes(module.cartService)
+    }
 }

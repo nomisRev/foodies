@@ -6,29 +6,29 @@ import com.sksamuel.cohort.lettuce.RedisHealthCheck
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.foodies.server.cart.CartService
-import io.ktor.foodies.server.cart.cartModule
+import io.ktor.foodies.server.cart.HttpCartService
+import io.ktor.foodies.server.menu.HttpMenuService
 import io.ktor.foodies.server.menu.MenuService
-import io.ktor.foodies.server.menu.menuModule
+import io.ktor.foodies.server.security.SecurityModule
 import io.ktor.foodies.server.security.securityModule
 import io.ktor.foodies.server.shared.httpClientModule
 import io.ktor.server.application.Application
-import io.ktor.server.sessions.SessionStorage
 import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 
 data class WebAppModule(
     val menuService: MenuService,
     val cartService: CartService,
+    val security: SecurityModule,
     val httpClient: HttpClient,
-    val readinessCheck: HealthCheckRegistry,
-    val sessionStorage: SessionStorage
+    val readinessCheck: HealthCheckRegistry
 )
 
 fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
     val httpClient = httpClientModule(telemetry)
 
-    val menu = menuModule(config.menu, httpClient)
-    val cart = cartModule(config.basket, httpClient)
+    val menuService = HttpMenuService(config.menu.baseUrl, httpClient)
+    val cartService = HttpCartService(config.basket.baseUrl, httpClient)
 
     val security = securityModule(config.redis)
 
@@ -39,10 +39,10 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
     }
 
     return WebAppModule(
-        menuService = menu.menuService,
-        cartService = cart.cartService,
+        menuService = menuService,
+        cartService = cartService,
+        security = security,
         httpClient = httpClient,
-        readinessCheck = readinessCheck,
-        sessionStorage = security.sessionStorage
+        readinessCheck = readinessCheck
     )
 }

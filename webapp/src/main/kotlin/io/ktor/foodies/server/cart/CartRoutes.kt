@@ -4,15 +4,14 @@ import io.ktor.foodies.server.getValue
 import io.ktor.foodies.server.security.UserSession
 import io.ktor.foodies.server.security.userSession
 import io.ktor.foodies.server.shared.respondHtmxFragment
-import io.ktor.server.application.Application
 import io.ktor.server.html.respondHtml
 import io.ktor.server.htmx.hx
 import io.ktor.server.request.receiveParameters
+import io.ktor.server.routing.Route
 import io.ktor.server.routing.delete
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import io.ktor.server.routing.put
-import io.ktor.server.routing.routing
 import io.ktor.server.sessions.get
 import io.ktor.server.sessions.sessions
 import io.ktor.utils.io.ExperimentalKtorApi
@@ -46,75 +45,73 @@ import kotlinx.html.span
 import kotlinx.html.title
 
 @OptIn(ExperimentalKtorApi::class)
-fun Application.cartRoutes(cartService: CartService) {
-    routing {
-        hx {
-            get("/cart/badge") {
-                val session = call.sessions.get<UserSession>()
-                val itemCount = if (session != null) {
-                    runCatching { cartService.getBasket().items.sumOf { it.quantity } }
-                        .getOrDefault(0)
-                } else {
-                    0
-                }
-                call.respondHtmxFragment { cartBadge(itemCount) }
+fun Route.cartRoutes(cartService: CartService) {
+    hx {
+        get("/cart/badge") {
+            val session = call.sessions.get<UserSession>()
+            val itemCount = if (session != null) {
+                runCatching { cartService.getBasket().items.sumOf { it.quantity } }
+                    .getOrDefault(0)
+            } else {
+                0
             }
+            call.respondHtmxFragment { cartBadge(itemCount) }
+        }
+    }
+
+    userSession {
+        get("/cart") {
+            val basket = cartService.getBasket()
+            call.respondHtml { cartPage(basket) }
         }
 
-        userSession {
-            get("/cart") {
-                val basket = cartService.getBasket()
-                call.respondHtml { cartPage(basket) }
+        hx {
+            post("/cart/items") {
+                val form = call.receiveParameters()
+                val menuItemId: Long by form
+                val quantity: Int? by form
+
+                val basket = cartService.addItem(menuItemId, quantity ?: 1)
+                val itemCount = basket.items.sumOf { it.quantity }
+
+                call.respondHtmxFragment {
+                    cartBadgeOob(itemCount)
+                    addToCartSuccess()
+                }
             }
 
-            hx {
-                post("/cart/items") {
-                    val form = call.receiveParameters()
-                    val menuItemId: Long by form
-                    val quantity: Int? by form
+            put("/cart/items/{itemId}") {
+                val itemId: String by call.parameters
+                val quantity: Int by call.receiveParameters()
 
-                    val basket = cartService.addItem(menuItemId, quantity ?: 1)
-                    val itemCount = basket.items.sumOf { it.quantity }
+                val basket = cartService.updateItemQuantity(itemId, quantity)
 
-                    call.respondHtmxFragment {
-                        cartBadgeOob(itemCount)
-                        addToCartSuccess()
-                    }
+                call.respondHtmxFragment {
+                    cartItemsFragment(basket)
+                    cartSummaryOob(basket)
+                    cartBadgeOob(basket.items.sumOf { it.quantity })
                 }
+            }
 
-                put("/cart/items/{itemId}") {
-                    val itemId: String by call.parameters
-                    val quantity: Int by call.receiveParameters()
+            delete("/cart/items/{itemId}") {
+                val itemId: String by call.parameters
 
-                    val basket = cartService.updateItemQuantity(itemId, quantity)
+                val basket = cartService.removeItem(itemId)
 
-                    call.respondHtmxFragment {
-                        cartItemsFragment(basket)
-                        cartSummaryOob(basket)
-                        cartBadgeOob(basket.items.sumOf { it.quantity })
-                    }
+                call.respondHtmxFragment {
+                    cartItemsFragment(basket)
+                    cartSummaryOob(basket)
+                    cartBadgeOob(basket.items.sumOf { it.quantity })
                 }
+            }
 
-                delete("/cart/items/{itemId}") {
-                    val itemId: String by call.parameters
+            delete("/cart") {
+                cartService.clearBasket()
 
-                    val basket = cartService.removeItem(itemId)
-
-                    call.respondHtmxFragment {
-                        cartItemsFragment(basket)
-                        cartSummaryOob(basket)
-                        cartBadgeOob(basket.items.sumOf { it.quantity })
-                    }
-                }
-
-                delete("/cart") {
-                    cartService.clearBasket()
-
-                    call.respondHtmxFragment {
-                        cartItemsFragment(CustomerBasket(buyerId = "", items = emptyList()))
-                        cartSummaryOob(CustomerBasket(buyerId = "", items = emptyList()))
-                        cartBadgeOob(0)
-                    }
+                call.respondHtmxFragment {
+                    cartItemsFragment(CustomerBasket(buyerId = "", items = emptyList()))
+                    cartSummaryOob(CustomerBasket(buyerId = "", items = emptyList()))
+                    cartBadgeOob(0)
                 }
             }
         }

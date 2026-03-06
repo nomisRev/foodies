@@ -8,6 +8,7 @@ import io.ktor.foodies.server.security.public
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtml
+import io.ktor.server.http.content.staticResources
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import kotlinx.html.a
@@ -25,6 +26,11 @@ import kotlinx.html.script
 import kotlinx.html.section
 import kotlinx.html.span
 import kotlinx.html.title
+
+fun Route.homeRoutes() {
+    staticResources("/static", "static")
+    home()
+}
 
 fun Route.home() = public {
     get("/") {
