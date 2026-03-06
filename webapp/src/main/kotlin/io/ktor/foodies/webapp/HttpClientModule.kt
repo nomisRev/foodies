@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.shared
+package io.ktor.foodies.webapp
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5

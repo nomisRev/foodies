@@ -1,9 +1,9 @@
-package io.ktor.foodies.server.security
+package io.ktor.foodies.webapp.security
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.submitForm
-import io.ktor.foodies.server.Config
+import io.ktor.foodies.server.webapp.Config
 import io.ktor.foodies.server.auth.AuthContext
 import io.ktor.foodies.server.openid.OpenIdConfiguration
 import io.ktor.foodies.server.openid.discover
@@ -23,7 +23,6 @@ import io.ktor.server.auth.OAuthAccessTokenResponse
 import io.ktor.server.auth.OAuthServerSettings
 import io.ktor.server.auth.authenticate
 import io.ktor.server.auth.authentication
-import io.ktor.server.auth.jwt.jwt
 import io.ktor.server.auth.oauth
 import io.ktor.server.auth.principal
 import io.ktor.server.plugins.origin

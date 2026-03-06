@@ -1,10 +1,11 @@
-package io.ktor.foodies.server.home
+package io.ktor.foodies.webapp.home
 
-import io.ktor.foodies.server.basket.basketBadgeLink
-import io.ktor.foodies.server.menu.DefaultMenuPageSize
-import io.ktor.foodies.server.menu.MenuIntersectTrigger
-import io.ktor.foodies.server.security.UserSession
-import io.ktor.foodies.server.security.public
+import io.ktor.foodies.webapp.basket.basketBadgeLink
+import io.ktor.foodies.webapp.home.home
+import io.ktor.foodies.webapp.menu.DefaultMenuPageSize
+import io.ktor.foodies.webapp.menu.MenuIntersectTrigger
+import io.ktor.foodies.webapp.security.UserSession
+import io.ktor.foodies.webapp.security.public
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.auth.principal
 import io.ktor.server.html.respondHtml
@@ -34,7 +35,7 @@ fun Route.homeRoutes() {
 
 fun Route.home() = public {
     get("/") {
-        val userOrNull = call.principal<UserSession>()
+        val userOrNull = call.principal<io.ktor.foodies.webapp.security.UserSession>()
         val isLoggedIn = userOrNull != null
 
         call.respondHtml(HttpStatusCode.OK) {
@@ -73,8 +74,9 @@ fun Route.home() = public {
 
                             div(classes = "sentinel") {
                                 id = "feed-sentinel"
-                                attributes["hx-get"] = "/menu?offset=0&limit=$DefaultMenuPageSize"
-                                attributes["hx-trigger"] = MenuIntersectTrigger
+                                attributes["hx-get"] = "/menu?offset=0&limit=${_root_ide_package_.io.ktor.foodies.webapp.menu.DefaultMenuPageSize}"
+                                attributes["hx-trigger"] =
+                                    _root_ide_package_.io.ktor.foodies.webapp.menu.MenuIntersectTrigger
                                 attributes["hx-swap"] = "outerHTML"
                                 attributes["hx-indicator"] = "#feed-spinner"
                                 span { +"Loading menu..." }

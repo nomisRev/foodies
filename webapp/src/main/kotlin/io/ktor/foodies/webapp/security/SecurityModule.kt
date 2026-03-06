@@ -1,6 +1,6 @@
-package io.ktor.foodies.server.security
+package io.ktor.foodies.webapp.security
 
-import io.ktor.foodies.server.Config
+import io.ktor.foodies.server.webapp.Config
 import io.ktor.server.application.Application
 import io.ktor.server.application.ApplicationStopped
 import io.ktor.server.sessions.SessionStorage

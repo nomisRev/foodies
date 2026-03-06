@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.security
+package io.ktor.foodies.webapp.security
 
 import io.ktor.server.sessions.SessionStorage
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi

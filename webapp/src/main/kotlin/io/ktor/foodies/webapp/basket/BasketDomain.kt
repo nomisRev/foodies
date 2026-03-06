@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.basket
+package io.ktor.foodies.webapp.basket
 
 import io.ktor.foodies.server.SerializableBigDecimal
 import kotlinx.serialization.Serializable
@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CustomerBasket(
     val buyerId: String,
-    val items: List<BasketItem> = emptyList()
+    val items: List<io.ktor.foodies.webapp.basket.BasketItem> = emptyList()
 )
 
 @Serializable

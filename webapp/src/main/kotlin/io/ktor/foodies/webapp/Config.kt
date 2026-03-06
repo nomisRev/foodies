@@ -1,4 +1,4 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.webapp
 
 import io.ktor.foodies.server.telemetry.MonitoringConfig
 import kotlinx.serialization.Serializable

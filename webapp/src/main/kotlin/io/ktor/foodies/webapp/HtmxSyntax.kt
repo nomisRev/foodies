@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.shared
+package io.ktor.foodies.webapp
 
 import io.ktor.http.ContentType
 import io.ktor.server.application.ApplicationCall

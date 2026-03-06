@@ -1,9 +1,11 @@
-package io.ktor.foodies.server.menu
+package io.ktor.foodies.webapp.menu
 
 import io.ktor.foodies.server.getValue
-import io.ktor.foodies.server.security.UserSession
-import io.ktor.foodies.server.security.public
-import io.ktor.foodies.server.shared.respondHtmxFragment
+import io.ktor.foodies.webapp.menu.buildMenuFragment
+import io.ktor.foodies.webapp.security.UserSession
+import io.ktor.foodies.webapp.security.public
+import io.ktor.foodies.webapp.respondHtmxFragment
+import io.ktor.foodies.webapp.security.public
 import io.ktor.server.htmx.hx
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -30,14 +32,14 @@ const val DefaultMenuPageSize = 12
 const val MenuIntersectTrigger = "intersect once rootMargin: 800px"
 
 @OptIn(ExperimentalKtorApi::class)
-fun Route.menuRoutes(menuService: MenuService) {
+fun Route.menuRoutes(menuService: io.ktor.foodies.webapp.menu.MenuService) {
     public {
         hx {
             get("/menu") {
                 val offset: Int by call.parameters
                 val limit: Int by call.parameters
                 val items = menuService.menuItems(offset, limit)
-                val isLoggedIn = call.sessions.get<UserSession>() != null
+                val isLoggedIn = call.sessions.get<io.ktor.foodies.webapp.security.UserSession>() != null
                 call.respondHtmxFragment { buildMenuFragment(items, offset, limit, isLoggedIn) }
             }
         }
@@ -45,7 +47,7 @@ fun Route.menuRoutes(menuService: MenuService) {
 }
 
 private fun TagConsumer<Appendable>.buildMenuFragment(
-    items: List<MenuItem>,
+    items: List<io.ktor.foodies.webapp.menu.MenuItem>,
     offset: Int,
     limit: Int,
     isLoggedIn: Boolean

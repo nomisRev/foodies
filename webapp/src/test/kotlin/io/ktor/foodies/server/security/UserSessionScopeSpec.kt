@@ -13,8 +13,8 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.statement.bodyAsText
 import io.ktor.foodies.server.ServiceContext
-import io.ktor.foodies.server.security.UserSession
-import io.ktor.foodies.server.security.userSession
+import io.ktor.foodies.server.webapp.security.UserSession
+import io.ktor.foodies.server.webapp.security.userSession
 import io.ktor.foodies.server.serviceContext
 import io.ktor.foodies.server.test.ctxSuite
 import io.ktor.foodies.server.testWebAppService
@@ -23,7 +23,6 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.http.parameters
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
