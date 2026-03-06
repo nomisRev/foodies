@@ -3,17 +3,18 @@ package io.ktor.foodies.payment
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.hikari.HikariConnectionsHealthCheck
 import io.ktor.foodies.events.order.OrderStockConfirmedEvent
-import io.ktor.foodies.payment.events.RabbitMQEventPublisher
+import io.ktor.foodies.payment.events.RabbitMQPaymentEventPublisher
 import io.ktor.foodies.payment.events.orderStockConfirmedEventConsumer
 import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway
+import io.ktor.foodies.payment.persistence.ExposedPaymentRepository
 import io.ktor.foodies.rabbitmq.Publisher
 import io.ktor.foodies.rabbitmq.RabbitConnectionHealthCheck
 import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
 import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
 import io.ktor.foodies.rabbitmq.subscribe
 import io.ktor.foodies.server.dataSource
-import io.ktor.foodies.server.telemetry.Monitoring
-import io.ktor.server.application.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.ApplicationStopped
 import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -24,8 +25,8 @@ import kotlin.time.Duration.Companion.seconds
 
 class PaymentModule(
     val paymentService: PaymentService,
+    val paymentRepository: PaymentRepository,
     val consumers: List<Flow<Unit>>,
-    val eventPublisher: RabbitMQEventPublisher,
     val readinessCheck: HealthCheckRegistry
 )
 
@@ -37,8 +38,8 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): PaymentModule 
         .load()
         .migrate()
 
-    val paymentRepository = PostgresPaymentRepository(dataSource.database)
-    val paymentGateway = SimulatedPaymentGateway(config.gateway)
+    val paymentRepository = ExposedPaymentRepository(dataSource.database)
+    val paymentGateway = SimulatedPaymentGateway()
     val paymentService = PaymentServiceImpl(paymentRepository, paymentGateway)
 
     val connectionFactory =
@@ -47,7 +48,7 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): PaymentModule 
 
     val rabbitChannel = connection.createChannel()
     rabbitChannel.exchangeDeclare(config.rabbit.publishExchange, "topic", true)
-    val eventPublisher = RabbitMQEventPublisher(Publisher(rabbitChannel, config.rabbit.publishExchange, Json))
+    val eventPublisher = RabbitMQPaymentEventPublisher(Publisher(rabbitChannel, config.rabbit.publishExchange, Json))
     val subscriber = RabbitMQSubscriber(connection, config.rabbit.publishExchange)
 
     val eventConsumer = orderStockConfirmedEventConsumer(
@@ -68,8 +69,8 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): PaymentModule 
 
     return PaymentModule(
         paymentService = paymentService,
+        paymentRepository = paymentRepository,
         consumers = listOf(eventConsumer),
-        eventPublisher = eventPublisher,
         readinessCheck = readinessCheck
     )
 }

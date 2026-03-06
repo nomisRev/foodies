@@ -1,7 +1,6 @@
 package io.ktor.foodies.payment.events
 
 import io.ktor.foodies.events.common.PaymentFailureCode
-import io.ktor.foodies.events.common.PaymentMethodInfo
 import io.ktor.foodies.events.order.OrderStockConfirmedEvent
 import io.ktor.foodies.events.payment.OrderPaymentFailedEvent
 import io.ktor.foodies.events.payment.OrderPaymentSucceededEvent
@@ -21,13 +20,13 @@ private val logger = LoggerFactory.getLogger("OrderStockConfirmedEventHandler")
 fun orderStockConfirmedEventConsumer(
     orderEvents: Flow<Message<OrderStockConfirmedEvent>>,
     paymentService: PaymentService,
-    eventPublisher: EventPublisher
+    eventPublisher: PaymentEventPublisher
 ) = orderEvents.parConsumeMessage { event ->
     logger.info("Processing payment for order ${event.orderId}")
     event.handle(paymentService, eventPublisher)
 }
 
-suspend fun OrderStockConfirmedEvent.handle(paymentService: PaymentService, eventPublisher: EventPublisher) {
+suspend fun OrderStockConfirmedEvent.handle(paymentService: PaymentService, eventPublisher: PaymentEventPublisher) {
     val result = paymentService.processPayment(
         ProcessPaymentRequest(
             eventId = eventId,
@@ -70,7 +69,6 @@ suspend fun OrderStockConfirmedEvent.handle(paymentService: PaymentService, even
 
         is PaymentResult.AlreadyProcessed -> {
             logger.info("Payment already processed for order ${orderId}")
-            // Re-publish the result for idempotent handling
             when (result.paymentRecord.status) {
                 PaymentStatus.SUCCEEDED -> eventPublisher.publish(
                     OrderPaymentSucceededEvent(

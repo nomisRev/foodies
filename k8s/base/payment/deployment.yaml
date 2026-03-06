@@ -103,16 +103,6 @@ spec:
                 configMapKeyRef:
                   name: payment-config
                   key: RABBITMQ_PUBLISH_EXCHANGE
-            - name: PAYMENT_ALWAYS_SUCCEED
-              valueFrom:
-                configMapKeyRef:
-                  name: payment-config
-                  key: PAYMENT_ALWAYS_SUCCEED
-            - name: PAYMENT_DELAY_MS
-              valueFrom:
-                configMapKeyRef:
-                  name: payment-config
-                  key: PAYMENT_DELAY_MS
             - name: OTEL_EXPORTER_OTLP_ENDPOINT
               valueFrom:
                 configMapKeyRef:

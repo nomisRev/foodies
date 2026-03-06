@@ -3,7 +3,7 @@ plugins {
     id("foodies.ktor-service-conventions")
 }
 
-application { mainClass = "io.ktor.foodies.basket.AppKt" }
+application { mainClass = "io.ktor.foodies.basket.BasketAppKt" }
 version = "0.0.6"
 
 ktor {
@@ -48,4 +48,3 @@ dependencies {
     testImplementation(libs.testcontainers.redis)
     testImplementation(libs.kotlinx.coroutines.reactor)
 }
-

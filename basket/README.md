@@ -87,7 +87,7 @@ The service consumes `OrderCreatedEvent` from RabbitMQ to clear baskets after su
 - **BasketModule**: Dependency injection container wiring all services
 - **BasketService**: Core business logic with Redis-backed implementation
 - **BasketRepository**: Data access layer using Redis with JSON serialization
-- **MenuClient**: HTTP client for fetching menu item details
+- **BasketMenuClient**: HTTP client for fetching menu item details
 - **Event Handler**: RabbitMQ consumer for `OrderCreatedEvent`
 - **Domain Models**: `CustomerBasket`, `BasketItem`, and DTOs
 

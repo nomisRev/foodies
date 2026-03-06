@@ -1,40 +1,26 @@
 package io.ktor.foodies.payment.gateway
 
 import io.ktor.foodies.events.common.PaymentFailureCode
-import io.ktor.foodies.payment.PaymentGatewayConfig
 import kotlinx.coroutines.delay
 import java.util.UUID
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 class SimulatedPaymentGateway(
-    private val config: PaymentGatewayConfig
+    private val processingDelay: Duration = 10.milliseconds,
+    private val alwaysSucceed: Boolean = false
 ) : PaymentGateway {
-
     override suspend fun charge(request: ChargeRequest): GatewayResult {
-        // Simulate processing delay
-        delay(config.processingDelayMs)
-
-        // Configurable success/failure for testing
-        return if (config.alwaysSucceed) {
-            GatewayResult.Success(
-                transactionId = "txn_${UUID.randomUUID()}"
-            )
-        } else {
-            // Simulate various failure scenarios based on card number patterns
-            simulateCardBehavior(request)
-        }
+        delay(processingDelay)
+        return if (alwaysSucceed) GatewayResult.Success(transactionId = "txn_${UUID.randomUUID()}")
+        else simulateCardBehavior(request.paymentMethod.cardLastFour)
     }
 
-    private fun simulateCardBehavior(request: ChargeRequest): GatewayResult {
-        // Test card numbers for different scenarios
-        return when {
-            request.paymentMethod.cardLastFour == "0000" ->
-                GatewayResult.Failed("Card declined", PaymentFailureCode.CARD_DECLINED)
-            request.paymentMethod.cardLastFour == "1111" ->
-                GatewayResult.Failed("Insufficient funds", PaymentFailureCode.INSUFFICIENT_FUNDS)
-            request.paymentMethod.cardLastFour == "2222" ->
-                GatewayResult.Failed("Card expired", PaymentFailureCode.CARD_EXPIRED)
-            else ->
-                GatewayResult.Success(transactionId = "txn_${UUID.randomUUID()}")
+    private fun simulateCardBehavior(cardLastFour: String?): GatewayResult =
+        when (cardLastFour) {
+            "0000" -> GatewayResult.Failed("Card declined", PaymentFailureCode.CARD_DECLINED)
+            "0001" -> GatewayResult.Failed("Insufficient funds", PaymentFailureCode.INSUFFICIENT_FUNDS)
+            "0002" -> GatewayResult.Failed("Card expired", PaymentFailureCode.CARD_EXPIRED)
+            else -> GatewayResult.Success(transactionId = "txn_${UUID.randomUUID()}")
         }
-    }
 }
