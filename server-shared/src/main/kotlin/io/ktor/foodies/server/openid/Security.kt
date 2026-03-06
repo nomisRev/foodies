@@ -41,7 +41,7 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
                 val payload = credential.payload
                 val email = payload.getClaim("email").asString()
                 val authHeader = request.headers["Authorization"]?.removePrefix("Bearer ") ?: ""
-                val principal = if (email != null) {
+                if (email != null) {
                     UserPrincipal(
                         userId = payload.subject,
                         email = email,

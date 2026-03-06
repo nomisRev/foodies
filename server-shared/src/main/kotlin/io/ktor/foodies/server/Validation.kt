@@ -1,7 +1,6 @@
 package io.ktor.foodies.server
 
 import io.ktor.server.plugins.BadRequestException
-import io.ktor.util.internal.initCauseBridge
 import kotlinx.coroutines.CopyableThrowable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
@@ -14,10 +13,7 @@ class ValidationException(override val message: String, val reasons: List<String
     BadRequestException(message),
     CopyableThrowable<ValidationException> {
 
-    override fun createCopy(): ValidationException =
-        ValidationException(message, reasons).also {
-            it.initCauseBridge(this)
-        }
+    override fun createCopy(): ValidationException = ValidationException(message, reasons)
 }
 
 fun <A> validate(
