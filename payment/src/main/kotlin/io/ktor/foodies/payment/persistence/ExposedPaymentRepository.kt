@@ -71,7 +71,7 @@ class ExposedPaymentRepository(private val database: Database) : PaymentReposito
         } > 0
     }
 
-    fun ResultRow.toPaymentRecord() = PaymentRecord(
+    private fun ResultRow.toPaymentRecord() = PaymentRecord(
         id = this[PaymentsTable.id].value,
         orderId = this[PaymentsTable.orderId],
         buyerId = this[PaymentsTable.buyerId],
