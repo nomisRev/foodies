@@ -1,6 +1,7 @@
 package io.ktor.foodies.profile.persistence
 
 import io.ktor.foodies.profile.Profile
+import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
@@ -48,4 +49,12 @@ class ExposedProfileRepository(private val database: Database) : ProfileReposito
     override fun deleteBySubject(subject: String): Boolean = transaction(database) {
         ProfileTable.deleteWhere { ProfileTable.subject eq subject } == 1
     }
+
+    private fun ResultRow.toProfile() = Profile(
+        id = this[ProfileTable.id].value,
+        subject = this[ProfileTable.subject],
+        email = this[ProfileTable.email],
+        firstName = this[ProfileTable.firstName],
+        lastName = this[ProfileTable.lastName],
+    )
 }

@@ -1,5 +1,6 @@
 package io.ktor.foodies.profile
 
+import io.ktor.foodies.server.DataSource
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -7,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class Config(
     val host: String,
     val port: Int,
-    @SerialName("data_source") val dataSource: io.ktor.foodies.server.DataSource.Config,
+    @SerialName("data_source") val dataSource: DataSource.Config,
     val rabbit: Rabbit,
     val telemetry: Telemetry,
 ) {
