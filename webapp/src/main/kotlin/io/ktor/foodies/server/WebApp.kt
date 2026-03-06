@@ -36,7 +36,7 @@ suspend fun Application.app(config: Config, module: WebAppModule) {
         healthcheck("/healthz/readiness", module.readinessCheck)
     }
 
-    security(config.security, module.httpClient, module.security.sessionStorage)
+    security(config.security, module.httpClient, module.sessionStorage)
 
     routing {
         homeRoutes()
