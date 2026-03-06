@@ -1,5 +1,6 @@
 plugins {
     id("foodies.kotlin-conventions")
+    id("foodies.kover-conventions")
 }
 
 dependencies {
@@ -11,4 +12,3 @@ dependencies {
 
     testImplementation(project(":server-shared-test"))
 }
-

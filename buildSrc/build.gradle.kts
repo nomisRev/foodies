@@ -23,6 +23,9 @@ dependencies {
     val shadowVersion = libs.findVersion("shadow").get().requiredVersion
     implementation("com.gradleup.shadow:shadow-gradle-plugin:$shadowVersion")
 
+    val koverVersion = libs.findVersion("kover").get().requiredVersion
+    implementation("org.jetbrains.kotlinx:kover-gradle-plugin:$koverVersion")
+
     val ktorVersion = ktorLibs.findVersion("ktor").get().requiredVersion
     implementation("io.ktor.plugin:io.ktor.plugin.gradle.plugin:$ktorVersion")
 }

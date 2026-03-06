@@ -19,6 +19,7 @@ kotlinx-coroutines = "1.10.2"
 playwright = "1.58.0"
 keycloak-testcontainers = "4.1.1"
 opentelemetry = "1.59.0"
+kover = "0.9.7"
 
 [libraries]
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }

@@ -3,6 +3,7 @@ import org.gradle.api.tasks.testing.Test
 
 plugins {
     id("foodies.kotlin-conventions")
+    id("foodies.kover-conventions")
     id("com.gradleup.shadow")
 }
 
