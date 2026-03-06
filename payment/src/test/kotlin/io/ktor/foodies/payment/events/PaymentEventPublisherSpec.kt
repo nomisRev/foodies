@@ -38,7 +38,7 @@ val paymentEventPublisherSpec by testSuite {
         rabbit().newConnection().use { connection ->
             connection.createChannel().use { channel ->
                 val publisher = Publisher(channel, exchangeName, Json)
-                val eventPublisher = RabbitMQEventPublisher(publisher)
+                val eventPublisher = RabbitMQPaymentEventPublisher(publisher)
                 eventPublisher.publish(event)
             }
         }

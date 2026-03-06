@@ -16,5 +16,3 @@ configMapGenerator:
       - RABBITMQ_PORT=5672
       - RABBITMQ_CONSUME_QUEUE=payment.stock-confirmed
       - RABBITMQ_PUBLISH_EXCHANGE=foodies
-      - PAYMENT_ALWAYS_SUCCEED="true"
-      - PAYMENT_DELAY_MS="100"

@@ -4,14 +4,14 @@ import io.ktor.foodies.events.payment.OrderPaymentFailedEvent
 import io.ktor.foodies.events.payment.OrderPaymentSucceededEvent
 import io.ktor.foodies.rabbitmq.Publisher
 
-interface EventPublisher {
+interface PaymentEventPublisher {
     suspend fun publish(event: OrderPaymentSucceededEvent)
     suspend fun publish(event: OrderPaymentFailedEvent)
 }
 
-class RabbitMQEventPublisher(
+class RabbitMQPaymentEventPublisher(
     private val publisher: Publisher,
-) : EventPublisher {
+) : PaymentEventPublisher {
     override suspend fun publish(event: OrderPaymentSucceededEvent) = publisher.publish(event)
     override suspend fun publish(event: OrderPaymentFailedEvent) = publisher.publish(event)
 }

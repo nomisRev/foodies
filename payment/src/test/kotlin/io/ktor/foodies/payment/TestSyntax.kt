@@ -3,124 +3,93 @@ package io.ktor.foodies.payment
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import de.infix.testBalloon.framework.core.Test
+import de.infix.testBalloon.framework.core.TestFixture
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
-import com.sksamuel.cohort.HealthCheckRegistry
-import de.infix.testBalloon.framework.core.TestFixture
-import io.ktor.foodies.events.order.OrderStockConfirmedEvent
-import io.ktor.foodies.payment.events.RabbitMQEventPublisher
-import io.ktor.foodies.payment.events.orderStockConfirmedEventConsumer
-import io.ktor.foodies.payment.gateway.SimulatedPaymentGateway
-import io.ktor.foodies.rabbitmq.Publisher
-import io.ktor.foodies.rabbitmq.RabbitMQSubscriber
-import io.ktor.foodies.rabbitmq.rabbitConnectionFactory
-import io.ktor.foodies.rabbitmq.subscribe
+import io.ktor.foodies.payment.persistence.ExposedPaymentRepository
+import io.ktor.foodies.server.DataSource
 import io.ktor.foodies.server.test.PostgreSQLContainer
 import io.ktor.foodies.server.test.RabbitContainer
+import io.ktor.foodies.server.test.postgresContainer
 import io.ktor.foodies.server.test.rabbitContainer
 import io.ktor.foodies.server.test.testApplication
 import io.ktor.server.testing.ApplicationTestBuilder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.serialization.json.Json
+import io.opentelemetry.api.OpenTelemetry
 import org.flywaydb.core.Flyway
 import org.jetbrains.exposed.v1.jdbc.Database
 
 data class ServiceContext(
-    val postgresContainer: TestFixture<PostgreSQLContainer>,
-    val database: TestFixture<Database>,
-    val rabbitContainer: TestFixture<RabbitContainer>
+    val postgres: TestFixture<PostgreSQLContainer>,
+    val rabbit: TestFixture<RabbitContainer>,
 )
 
 fun TestSuite.serviceContext(): ServiceContext {
-    val container = testFixture {
-        PostgreSQLContainer().apply { start() }
-    }
-
-    val database = testFixture {
-        val ds = HikariDataSource(HikariConfig().apply {
-            jdbcUrl = container().jdbcUrl
-            username = container().username
-            password = container().password
-        })
-
-        Flyway.configure()
-            .dataSource(ds)
-            .locations("classpath:db/migration")
-            .load()
-            .migrate()
-
-        Database.connect(ds)
-    }
-
+    val postgres = postgresContainer()
     val rabbit = rabbitContainer()
-
-    return ServiceContext(container, database, rabbit)
+    return ServiceContext(postgres, rabbit)
 }
+
+fun testConfig(
+    postgres: PostgreSQLContainer,
+    rabbit: RabbitContainer,
+) = Config(
+    host = "localhost",
+    port = 8085,
+    dataSource = DataSource.Config(
+        url = postgres.jdbcUrl,
+        username = postgres.username,
+        password = postgres.password,
+    ),
+    rabbit = RabbitConfig(
+        host = rabbit.host,
+        port = rabbit.amqpPort,
+        username = rabbit.adminUsername,
+        password = rabbit.adminPassword,
+        consumeQueue = "test.payment.consume",
+        publishExchange = "test.payment.events",
+    ),
+    telemetry = Config.Telemetry(otlpEndpoint = "http://localhost:4317"),
+)
 
 @TestRegistering
 context(ctx: ServiceContext)
 fun TestSuite.testPostgres(
     name: String,
-    block: suspend context(Test.ExecutionScope) (repository: PostgresPaymentRepository) -> Unit
-) = test(name) {
-    block(PostgresPaymentRepository(ctx.database()))
+    block: suspend context(Test.ExecutionScope) (ExposedPaymentRepository) -> Unit,
+) {
+    test(name) {
+        val hikari = HikariDataSource(HikariConfig().apply {
+            jdbcUrl = ctx.postgres().jdbcUrl
+            username = ctx.postgres().username
+            password = ctx.postgres().password
+        })
+        Flyway.configure().dataSource(hikari).load().migrate()
+        val database = Database.connect(hikari)
+        val repository = ExposedPaymentRepository(database)
+        block(repository)
+        hikari.close()
+    }
 }
 
 data class PaymentTestModule(
-    val paymentService: PaymentService,
-    val paymentRepository: PaymentRepository,
-    val eventPublisher: RabbitMQEventPublisher
+    val module: PaymentModule,
+    val rabbit: RabbitContainer,
 )
 
 @TestRegistering
 context(ctx: ServiceContext)
 fun TestSuite.testPaymentService(
     name: String,
-    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.(module: PaymentTestModule) -> Unit
+    block: suspend context(Test.ExecutionScope) ApplicationTestBuilder.(PaymentTestModule) -> Unit,
 ) {
     testApplication(name) {
-        val paymentRepository = PostgresPaymentRepository(ctx.database())
-        val gatewayConfig = PaymentGatewayConfig(alwaysSucceed = true, processingDelayMs = 0)
-        val paymentGateway = SimulatedPaymentGateway(gatewayConfig)
-        val paymentService = PaymentServiceImpl(paymentRepository, paymentGateway)
-
-        val rabbitConfig = RabbitConfig(
-            host = ctx.rabbitContainer().host,
-            port = ctx.rabbitContainer().amqpPort,
-            username = ctx.rabbitContainer().adminUsername,
-            password = ctx.rabbitContainer().adminPassword,
-            consumeQueue = "test.order.stock.confirmed",
-            publishExchange = "test.payment.events"
-        )
-
-        val connectionFactory = rabbitConnectionFactory(
-            rabbitConfig.host,
-            rabbitConfig.port,
-            rabbitConfig.username,
-            rabbitConfig.password
-        )
-        val connection = connectionFactory.newConnection()
-        val channel = connection.createChannel()
-        channel.exchangeDeclare(rabbitConfig.publishExchange, "topic", true)
-        val eventPublisher = RabbitMQEventPublisher(Publisher(channel, rabbitConfig.publishExchange, Json))
-        val subscriber = RabbitMQSubscriber(connection, rabbitConfig.publishExchange)
-        val consumer = orderStockConfirmedEventConsumer(
-            subscriber.subscribe(OrderStockConfirmedEvent.key(), rabbitConfig.consumeQueue),
-            paymentService,
-            eventPublisher
-        )
-
-        val module = PaymentModule(
-            paymentService = paymentService,
-            consumers = listOf(consumer),
-            eventPublisher = eventPublisher,
-            readinessCheck = HealthCheckRegistry(Dispatchers.IO)
-        )
-
+        var paymentModule: PaymentModule? = null
         application {
-            app(module)
+            val config = testConfig(ctx.postgres(), ctx.rabbit())
+            paymentModule = module(config, OpenTelemetry.noop())
+            app(paymentModule)
         }
-
-        block(PaymentTestModule(paymentService, paymentRepository, eventPublisher))
+        startApplication()
+        block(PaymentTestModule(paymentModule!!, ctx.rabbit()))
     }
 }

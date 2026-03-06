@@ -49,7 +49,7 @@ private val DECLINED_CARD = PaymentMethodInfo(
  * to actual PostgreSQL storage and event publishing, ensuring all components work together correctly.
  */
 val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
-    testPaymentService("process payment successfully and verify storage") { module ->
+    testPaymentService("process payment successfully and verify storage") { (module) ->
         val request = ProcessPaymentRequest(
             eventId = "evt-001",
             orderId = 100L,
@@ -80,7 +80,7 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
         assertNotNull(stored.processedAt)
     }
 
-    testPaymentService("idempotency: processing same order twice returns existing payment") { module ->
+    testPaymentService("idempotency: processing same order twice returns existing payment") { (module) ->
         val request = ProcessPaymentRequest(
             eventId = "evt-002",
             orderId = 200L,
@@ -103,7 +103,7 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
         assertEquals(PaymentStatus.SUCCEEDED, secondResult.paymentRecord.status)
     }
 
-    testPaymentService("retrieve payment by order ID via HTTP endpoint") { module ->
+    testPaymentService("retrieve payment by order ID via HTTP endpoint") { (module) ->
         val request = ProcessPaymentRequest(
             eventId = "evt-003",
             orderId = 300L,
@@ -128,17 +128,17 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
         assertEquals(PaymentStatus.SUCCEEDED, payment.status)
     }
 
-    testPaymentService("HTTP endpoint returns 404 for non-existent payment") { module ->
+    testPaymentService("HTTP endpoint returns 404 for non-existent payment") { (module) ->
         val response = jsonClient().get("/payments/999999")
         assertEquals(HttpStatusCode.NotFound, response.status)
     }
 
-    testPaymentService("HTTP endpoint returns 400 for invalid order ID") { module ->
+    testPaymentService("HTTP endpoint returns 400 for invalid order ID") { (module) ->
         val response = jsonClient().get("/payments/invalid")
         assertEquals(HttpStatusCode.BadRequest, response.status)
     }
 
-    testPaymentService("multiple payments for different orders") { module ->
+    testPaymentService("multiple payments for different orders") { (module) ->
         val payments = listOf(
             ProcessPaymentRequest(
                 eventId = "evt-multi-1",
@@ -183,7 +183,7 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
         }
     }
 
-    testPaymentService("payment with different currencies") { module ->
+    testPaymentService("payment with different currencies") { (module) ->
         val currencies = listOf("USD", "EUR", "GBP", "JPY")
 
         currencies.forEachIndexed { index, currency ->
@@ -205,7 +205,7 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
         }
     }
 
-    testPaymentService("payment with different payment methods") { module ->
+    testPaymentService("payment with different payment methods") { (module) ->
         val paymentMethods = listOf(
             PaymentMethodInfo(
                 type = PaymentMethodType.CREDIT_CARD,
@@ -254,7 +254,7 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
         }
     }
 
-    testPaymentService("retrieve payment by payment ID") { module ->
+    testPaymentService("retrieve payment by payment ID") { (module) ->
         val request = ProcessPaymentRequest(
             eventId = "evt-by-id",
             orderId = 4000L,
@@ -275,7 +275,7 @@ val paymentContractSpec by ctxSuite(context = { serviceContext() }) {
         assertEquals(request.buyerId, retrieved.buyerId)
     }
 
-    testPaymentService("payment amounts are stored with correct precision") { module ->
+    testPaymentService("payment amounts are stored with correct precision") { (module) ->
         val amounts = listOf(
             BigDecimal("0.01"),
             BigDecimal("1.99"),

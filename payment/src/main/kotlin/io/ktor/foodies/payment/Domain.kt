@@ -22,9 +22,9 @@ data class PaymentRecord(
 
 @Serializable
 enum class PaymentStatus {
-    PENDING,      // Payment initiated, not yet processed
-    PROCESSING,   // Payment being processed by gateway
-    SUCCEEDED,    // Payment completed successfully
-    FAILED,       // Payment failed
-    REFUNDED      // Payment was refunded (future use)
+    PENDING,
+    PROCESSING,
+    SUCCEEDED,
+    FAILED,
+    REFUNDED,
 }

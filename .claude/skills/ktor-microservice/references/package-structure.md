@@ -50,7 +50,6 @@ io.ktor.foodies.<service>/
 ├── Model.kt                               # Domain models shared across features
 ├── persistence/
 │   ├── <Aggregate>Tables.kt              # Exposed table objects (shared infrastructure)
-│   ├── <Aggregate>RowMapping.kt          # Shared row-to-domain mapping functions
 │   └── <Aggregate>Repository.kt          # Shared repository interface + impl (findById, update)
 ├── <featureA>/
 │   ├── <FeatureA>Module.kt               # Optional: wires feature slice (repo, service, publisher, routes)
