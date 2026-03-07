@@ -1,12 +1,18 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.webapp
 
 import com.sksamuel.cohort.Cohort
 import com.sksamuel.cohort.HealthCheckRegistry
-import io.ktor.foodies.server.basket.basketRoutes
-import io.ktor.foodies.server.home.homeRoutes
-import io.ktor.foodies.server.menu.menuRoutes
-import io.ktor.foodies.server.security.security
+import io.ktor.foodies.webapp.basket.basketRoutes
+import io.ktor.foodies.webapp.home.homeRoutes
+import io.ktor.foodies.webapp.menu.menuRoutes
+import io.ktor.foodies.webapp.security.security
 import io.ktor.foodies.server.telemetry.monitoring
+import io.ktor.foodies.webapp.app
+import io.ktor.foodies.webapp.basket.basketRoutes
+import io.ktor.foodies.webapp.home.homeRoutes
+import io.ktor.foodies.webapp.menu.menuRoutes
+import io.ktor.foodies.webapp.module
+import io.ktor.foodies.webapp.security.security
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install

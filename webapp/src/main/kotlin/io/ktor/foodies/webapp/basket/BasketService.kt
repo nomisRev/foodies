@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.basket
+package io.ktor.foodies.webapp.basket
 
 interface BasketService {
     suspend fun getBasket(): CustomerBasket

@@ -35,11 +35,11 @@ dependencies {
     // Database
     implementation(libs.exposed.jdbc)
     implementation(libs.exposed.datetime)
-    implementation("org.jetbrains.exposed:exposed-json:${libs.versions.exposed.get()}")
-    implementation("org.jetbrains.exposed:exposed-dao:${libs.versions.exposed.get()}")
+    implementation(libs.exposed.json)
+    implementation(libs.exposed.dao)
     implementation(libs.postgresql)
     implementation(libs.hikari)
-    implementation("org.flywaydb:flyway-core:${libs.versions.flyway.get()}")
+    implementation(libs.flyway.core)
     implementation(libs.flyway.postgresql)
 
     // RabbitMQ
@@ -66,8 +66,7 @@ dependencies {
     testImplementation(ktorLibs.server.testHost)
     testImplementation(ktorLibs.client.contentNegotiation)
     testImplementation(ktorLibs.serialization.kotlinx.json)
-    testImplementation("org.testcontainers:testcontainers:${libs.versions.testcontainers.get()}")
+    testImplementation(libs.testcontainers.core)
     testImplementation(libs.testcontainers.postgresql)
     testImplementation(libs.testcontainers.rabbitmq)
 }
-

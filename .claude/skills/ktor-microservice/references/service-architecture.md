@@ -4,19 +4,25 @@ Use the existing Foodies Ktor layout and manual dependency wiring.
 
 ## Module structure
 
-Typical service package (`src/main/kotlin/io/ktor/foodies/<service>/`):
+Typical service package (`src/main/kotlin/io/ktor/foodies/<service>/`) contains a mix of these elements, depending on the module type:
 
 - `<Service>App.kt`: entrypoint and Ktor plugin setup
 - `Config.kt`: `@Serializable` config types loaded from `application.yaml`
 - `<Service>Module.kt`: dependency graph assembly
 - `Routes.kt`: HTTP route definitions
 - `Service.kt`: business logic layer
-- `Repository.kt`: data access layer (often Exposed-based)
+- `Repository.kt`: data access layer (for services that own persistence)
+- `<Dependency>Service.kt`: downstream service communication boundary
+- `<vendor-or-capability>/`: named package for shared third-party wrappers (for example `featureflags/` for `LaunchDarkly`)
 - `events/`: RabbitMQ publishers/consumers and handlers
 
 Keep the boundary explicit:
 
-`Routes -> Service -> Repository`
+```
+Routes -> Service -> Repository -> Exposed
+                  -> Client -> Ktor
+                  -> Integration -> VendorSdk
+```
 
 ## App bootstrap pattern
 
@@ -86,7 +92,7 @@ fun placementModule(
 
 Rules:
 - Shared infrastructure (data source, rabbit channel, HTTP client) is created **once** in the root module and passed into feature module functions.
-- Feature module functions create only their own repository, service, publisher, and consumer instances.
+- Feature module functions create only their own repository/client/wrapper, service, publisher, and consumer instances.
 - When a service needs capabilities from multiple repositories, inject those repositories separately (explicit wiring)
   instead of repository-interface inheritance.
 - The root `<Service>Module` data class should expose only what `app(...)` needs (least powerful): either assembled
@@ -94,7 +100,7 @@ Rules:
 - Route wiring in `<Service>App.kt` should depend on services, not repositories.
 - Close shared resources (rabbit channel, HTTP client) in the root `ApplicationStopped` handler only.
 
-**Flat services** (`Basket`, `Payment`, `Profile`) keep all wiring in the single root module — no feature sub-modules needed.
+Small modules can keep all wiring in a single root module when splitting into feature sub-modules does not add clarity.
 
 ## Configuration pattern
 

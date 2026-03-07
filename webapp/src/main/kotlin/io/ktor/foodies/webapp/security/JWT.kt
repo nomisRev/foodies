@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.security
+package io.ktor.foodies.webapp.security
 
 import com.auth0.jwk.JwkProvider
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized

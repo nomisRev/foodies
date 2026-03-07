@@ -1,16 +1,16 @@
-package io.ktor.foodies.server
+package io.ktor.foodies.webapp
 
 import com.sksamuel.cohort.HealthCheckRegistry
 import com.sksamuel.cohort.healthcheck.http.EndpointHealthCheck
 import com.sksamuel.cohort.lettuce.RedisHealthCheck
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
-import io.ktor.foodies.server.basket.BasketService
-import io.ktor.foodies.server.basket.HttpBasketService
-import io.ktor.foodies.server.menu.HttpMenuService
-import io.ktor.foodies.server.menu.MenuService
-import io.ktor.foodies.server.security.securityModule
-import io.ktor.foodies.server.shared.httpClientModule
+import io.ktor.foodies.webapp.basket.BasketService
+import io.ktor.foodies.webapp.basket.HttpBasketService
+import io.ktor.foodies.webapp.httpClientModule
+import io.ktor.foodies.webapp.menu.HttpMenuService
+import io.ktor.foodies.webapp.menu.MenuService
+import io.ktor.foodies.webapp.security.securityModule
 import io.ktor.server.application.Application
 import io.ktor.server.sessions.SessionStorage
 import io.opentelemetry.api.OpenTelemetry
@@ -28,7 +28,8 @@ fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
     val httpClient = httpClientModule(telemetry)
 
     val menuService = HttpMenuService(config.menu.baseUrl, httpClient)
-    val basketService = HttpBasketService(config.basket.baseUrl, httpClient)
+    val basketService =
+        HttpBasketService(config.basket.baseUrl, httpClient)
 
     val security = securityModule(config.redis)
 

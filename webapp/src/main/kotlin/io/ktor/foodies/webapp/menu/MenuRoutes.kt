@@ -1,9 +1,11 @@
-package io.ktor.foodies.server.menu
+package io.ktor.foodies.webapp.menu
 
 import io.ktor.foodies.server.getValue
-import io.ktor.foodies.server.security.UserSession
-import io.ktor.foodies.server.security.public
-import io.ktor.foodies.server.shared.respondHtmxFragment
+import io.ktor.foodies.webapp.menu.buildMenuFragment
+import io.ktor.foodies.webapp.security.UserSession
+import io.ktor.foodies.webapp.security.public
+import io.ktor.foodies.webapp.respondHtmxFragment
+import io.ktor.foodies.webapp.security.public
 import io.ktor.server.htmx.hx
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get

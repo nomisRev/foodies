@@ -1,4 +1,4 @@
-package io.ktor.foodies.server.menu
+package io.ktor.foodies.webapp.menu
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
@@ -27,10 +27,11 @@ private data class MenuItemResponse(
     val stock: Int
 )
 
-private fun MenuItemResponse.toDomain(): MenuItem = MenuItem(
-    id = id,
-    name = name,
-    description = description,
-    imageUrl = imageUrl,
-    price = price
-)
+private fun MenuItemResponse.toDomain(): MenuItem =
+    MenuItem(
+        id = id,
+        name = name,
+        description = description,
+        imageUrl = imageUrl,
+        price = price
+    )

@@ -1,9 +1,22 @@
-package io.ktor.foodies.server.basket
+package io.ktor.foodies.webapp.basket
 
 import io.ktor.foodies.server.getValue
-import io.ktor.foodies.server.security.UserSession
-import io.ktor.foodies.server.security.userSession
-import io.ktor.foodies.server.shared.respondHtmxFragment
+import io.ktor.foodies.webapp.basket.addToCartSuccess
+import io.ktor.foodies.webapp.basket.cartBadge
+import io.ktor.foodies.webapp.basket.cartBadgeFlow
+import io.ktor.foodies.webapp.basket.cartBadgeOob
+import io.ktor.foodies.webapp.basket.cartEmpty
+import io.ktor.foodies.webapp.basket.cartEmptyFlow
+import io.ktor.foodies.webapp.basket.cartItemCard
+import io.ktor.foodies.webapp.basket.cartItemCardFlow
+import io.ktor.foodies.webapp.basket.cartItemsFragment
+import io.ktor.foodies.webapp.basket.cartPage
+import io.ktor.foodies.webapp.basket.cartSummaryFlow
+import io.ktor.foodies.webapp.basket.cartSummaryOob
+import io.ktor.foodies.webapp.security.UserSession
+import io.ktor.foodies.webapp.security.userSession
+import io.ktor.foodies.webapp.respondHtmxFragment
+import io.ktor.foodies.webapp.security.userSession
 import io.ktor.server.html.respondHtml
 import io.ktor.server.htmx.hx
 import io.ktor.server.request.receiveParameters
@@ -109,8 +122,18 @@ fun Route.basketRoutes(basketService: BasketService) {
                 basketService.clearBasket()
 
                 call.respondHtmxFragment {
-                    cartItemsFragment(CustomerBasket(buyerId = "", items = emptyList()))
-                    cartSummaryOob(CustomerBasket(buyerId = "", items = emptyList()))
+                    cartItemsFragment(
+                        CustomerBasket(
+                            buyerId = "",
+                            items = emptyList()
+                        )
+                    )
+                    cartSummaryOob(
+                        CustomerBasket(
+                            buyerId = "",
+                            items = emptyList()
+                        )
+                    )
                     cartBadgeOob(0)
                 }
             }

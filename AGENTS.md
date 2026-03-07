@@ -3,9 +3,9 @@
 # Build with Gradle
 
 - Build any module `./gradlew :<module>:build`
-- Run all checks for a module `./gradlew :<module>:jvmTest`
+- Run all checks for a module `./gradlew :<module>:test`
     - Test selection accepts the pipe | character to separate test elements:
-      `./gradlew cleanJvmTest jvmTest --tests "com.example.TestSuite|inner suite|*" --no-build-cache`
+      `./gradlew clean test --tests "com.example.TestSuite|inner suite|*" --no-build-cache`
 - Run `./gradlew publishImageToLocalRegistry` to publish images for local deployment
 - Always use Gradle's Version Catalog, never hardcode dependencies in build.gradle.kts
 - 
@@ -14,7 +14,7 @@
 - No comments unless code is complex and requires context for future developers.
 - Testing: Never use mocks. Use TestContainers and prefer testing actual integrations.
 - Logging: Use structured logging (tracing). Never log secrets directly. Rely on nocode/javaagent where applicable
-- Avoid exceptions for control flow, and use proper types and domain modeling
+- Avoid exceptions for control-flow and use proper types and domain modeling
 
 # Kubernetes Debugging
 
