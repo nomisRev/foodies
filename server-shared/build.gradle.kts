@@ -1,5 +1,6 @@
 plugins {
     id("foodies.kotlin-conventions")
+    id("foodies.kover-conventions")
 }
 
 dependencies {
@@ -38,4 +39,3 @@ dependencies {
     testImplementation(ktorLibs.client.mock)
     testImplementation(libs.testballoon)
 }
-

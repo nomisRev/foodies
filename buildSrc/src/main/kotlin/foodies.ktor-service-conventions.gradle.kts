@@ -6,6 +6,7 @@ import org.gradle.kotlin.dsl.registering
 
 plugins {
     id("io.ktor.plugin")
+    id("foodies.kover-conventions")
 }
 
 tasks {

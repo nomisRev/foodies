@@ -3,6 +3,7 @@ import org.gradle.api.tasks.testing.Test
 
 plugins {
     id("foodies.kotlin-conventions")
+    id("foodies.kover-conventions")
     id("com.gradleup.shadow")
 }
 
@@ -95,5 +96,17 @@ tasks {
         mainClass.set("com.microsoft.playwright.CLI")
         classpath = sourceSets["test"].runtimeClasspath
         args = listOf("install", "chromium", "--with-deps")
+    }
+}
+
+kover {
+    reports {
+        total {
+            verify {
+                rule {
+                    minBound(55)
+                }
+            }
+        }
     }
 }

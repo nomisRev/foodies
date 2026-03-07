@@ -41,3 +41,15 @@ dependencies {
     testImplementation(libs.testcontainers.redis)
     testImplementation(libs.testcontainers.keycloak)
 }
+
+kover {
+    reports {
+        total {
+            verify {
+                rule {
+                    minBound(1)
+                }
+            }
+        }
+    }
+}
