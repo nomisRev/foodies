@@ -5,12 +5,10 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.apache5.Apache5
 import io.ktor.client.plugins.HttpRequestRetry
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.foodies.server.auth.ServicePrincipal
 import io.ktor.foodies.server.auth.UserPrincipal
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
-import io.ktor.server.application.log
 import io.ktor.server.auth.Authentication
 import io.ktor.server.auth.jwt.jwt
 import kotlinx.serialization.Serializable
@@ -41,7 +39,7 @@ suspend fun Application.security(auth: Auth, client: HttpClient) {
                 val payload = credential.payload
                 val email = payload.getClaim("email").asString()
                 val authHeader = request.headers["Authorization"]?.removePrefix("Bearer ") ?: ""
-                val principal = if (email != null) {
+                if (email != null) {
                     UserPrincipal(
                         userId = payload.subject,
                         email = email,
