@@ -98,3 +98,15 @@ tasks {
         args = listOf("install", "chromium", "--with-deps")
     }
 }
+
+kover {
+    reports {
+        total {
+            verify {
+                rule {
+                    minBound(55)
+                }
+            }
+        }
+    }
+}
