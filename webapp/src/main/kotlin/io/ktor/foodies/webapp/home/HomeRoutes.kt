@@ -35,7 +35,7 @@ fun Route.homeRoutes() {
 
 fun Route.home() = public {
     get("/") {
-        val userOrNull = call.principal<io.ktor.foodies.webapp.security.UserSession>()
+        val userOrNull = call.principal<UserSession>()
         val isLoggedIn = userOrNull != null
 
         call.respondHtml(HttpStatusCode.OK) {
@@ -74,9 +74,9 @@ fun Route.home() = public {
 
                             div(classes = "sentinel") {
                                 id = "feed-sentinel"
-                                attributes["hx-get"] = "/menu?offset=0&limit=${_root_ide_package_.io.ktor.foodies.webapp.menu.DefaultMenuPageSize}"
+                                attributes["hx-get"] = "/menu?offset=0&limit=${DefaultMenuPageSize}"
                                 attributes["hx-trigger"] =
-                                    _root_ide_package_.io.ktor.foodies.webapp.menu.MenuIntersectTrigger
+                                    MenuIntersectTrigger
                                 attributes["hx-swap"] = "outerHTML"
                                 attributes["hx-indicator"] = "#feed-spinner"
                                 span { +"Loading menu..." }

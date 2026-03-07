@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CustomerBasket(
     val buyerId: String,
-    val items: List<io.ktor.foodies.webapp.basket.BasketItem> = emptyList()
+    val items: List<BasketItem> = emptyList()
 )
 
 @Serializable

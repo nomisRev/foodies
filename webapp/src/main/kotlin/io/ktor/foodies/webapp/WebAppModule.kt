@@ -17,19 +17,19 @@ import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.Dispatchers
 
 data class WebAppModule(
-    val menuService: io.ktor.foodies.webapp.menu.MenuService,
-    val basketService: io.ktor.foodies.webapp.basket.BasketService,
+    val menuService: MenuService,
+    val basketService: BasketService,
     val sessionStorage: SessionStorage,
     val httpClient: HttpClient,
     val readinessCheck: HealthCheckRegistry
 )
 
-fun Application.module(config: io.ktor.foodies.webapp.Config, telemetry: OpenTelemetry): io.ktor.foodies.webapp.WebAppModule {
+fun Application.module(config: Config, telemetry: OpenTelemetry): WebAppModule {
     val httpClient = httpClientModule(telemetry)
 
-    val menuService = _root_ide_package_.io.ktor.foodies.webapp.menu.HttpMenuService(config.menu.baseUrl, httpClient)
+    val menuService = HttpMenuService(config.menu.baseUrl, httpClient)
     val basketService =
-        _root_ide_package_.io.ktor.foodies.webapp.basket.HttpBasketService(config.basket.baseUrl, httpClient)
+        HttpBasketService(config.basket.baseUrl, httpClient)
 
     val security = securityModule(config.redis)
 
@@ -39,7 +39,7 @@ fun Application.module(config: io.ktor.foodies.webapp.Config, telemetry: OpenTel
         register("redis", RedisHealthCheck(security.redisConnection))
     }
 
-    return _root_ide_package_.io.ktor.foodies.webapp.WebAppModule(
+    return WebAppModule(
         menuService = menuService,
         basketService = basketService,
         sessionStorage = security.sessionStorage,

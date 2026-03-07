@@ -13,11 +13,11 @@ import io.ktor.client.request.setBody
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.statement.bodyAsText
 import io.ktor.foodies.server.ServiceContext
-import io.ktor.foodies.server.webapp.security.UserSession
-import io.ktor.foodies.server.webapp.security.userSession
 import io.ktor.foodies.server.serviceContext
 import io.ktor.foodies.server.test.ctxSuite
 import io.ktor.foodies.server.testWebAppService
+import io.ktor.foodies.webapp.security.UserSession
+import io.ktor.foodies.webapp.security.userSession
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType

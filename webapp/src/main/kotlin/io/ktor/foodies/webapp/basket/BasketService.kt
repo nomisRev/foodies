@@ -1,9 +1,9 @@
 package io.ktor.foodies.webapp.basket
 
 interface BasketService {
-    suspend fun getBasket(): io.ktor.foodies.webapp.basket.CustomerBasket
-    suspend fun addItem(menuItemId: Long, quantity: Int): io.ktor.foodies.webapp.basket.CustomerBasket
-    suspend fun updateItemQuantity(itemId: String, quantity: Int): io.ktor.foodies.webapp.basket.CustomerBasket
-    suspend fun removeItem(itemId: String): io.ktor.foodies.webapp.basket.CustomerBasket
+    suspend fun getBasket(): CustomerBasket
+    suspend fun addItem(menuItemId: Long, quantity: Int): CustomerBasket
+    suspend fun updateItemQuantity(itemId: String, quantity: Int): CustomerBasket
+    suspend fun removeItem(itemId: String): CustomerBasket
     suspend fun clearBasket()
 }

@@ -11,25 +11,25 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 
 class HttpBasketService(baseUrl: String, private val httpClient: HttpClient) :
-    io.ktor.foodies.webapp.basket.BasketService {
+    BasketService {
     private val basketBaseUrl = baseUrl.trimEnd('/')
 
-    override suspend fun getBasket(): io.ktor.foodies.webapp.basket.CustomerBasket =
+    override suspend fun getBasket(): CustomerBasket =
         httpClient.get("$basketBaseUrl/basket").body()
 
-    override suspend fun addItem(menuItemId: Long, quantity: Int): io.ktor.foodies.webapp.basket.CustomerBasket =
+    override suspend fun addItem(menuItemId: Long, quantity: Int): CustomerBasket =
         httpClient.post("$basketBaseUrl/basket/items") {
             contentType(ContentType.Application.Json)
-            setBody(_root_ide_package_.io.ktor.foodies.webapp.basket.AddItemRequest(menuItemId, quantity))
+            setBody(AddItemRequest(menuItemId, quantity))
         }.body()
 
-    override suspend fun updateItemQuantity(itemId: String, quantity: Int): io.ktor.foodies.webapp.basket.CustomerBasket =
+    override suspend fun updateItemQuantity(itemId: String, quantity: Int): CustomerBasket =
         httpClient.put("$basketBaseUrl/basket/items/$itemId") {
             contentType(ContentType.Application.Json)
-            setBody(_root_ide_package_.io.ktor.foodies.webapp.basket.UpdateQuantityRequest(quantity))
+            setBody(UpdateQuantityRequest(quantity))
         }.body()
 
-    override suspend fun removeItem(itemId: String): io.ktor.foodies.webapp.basket.CustomerBasket =
+    override suspend fun removeItem(itemId: String): CustomerBasket =
         httpClient.delete("$basketBaseUrl/basket/items/$itemId").body()
 
     override suspend fun clearBasket() {

@@ -58,10 +58,10 @@ import kotlinx.html.span
 import kotlinx.html.title
 
 @OptIn(ExperimentalKtorApi::class)
-fun Route.basketRoutes(basketService: io.ktor.foodies.webapp.basket.BasketService) {
+fun Route.basketRoutes(basketService: BasketService) {
     hx {
         get("/cart/badge") {
-            val session = call.sessions.get<io.ktor.foodies.webapp.security.UserSession>()
+            val session = call.sessions.get<UserSession>()
             val itemCount = if (session != null) {
                 runCatching { basketService.getBasket().items.sumOf { it.quantity } }
                     .getOrDefault(0)
@@ -123,13 +123,13 @@ fun Route.basketRoutes(basketService: io.ktor.foodies.webapp.basket.BasketServic
 
                 call.respondHtmxFragment {
                     cartItemsFragment(
-                        _root_ide_package_.io.ktor.foodies.webapp.basket.CustomerBasket(
+                        CustomerBasket(
                             buyerId = "",
                             items = emptyList()
                         )
                     )
                     cartSummaryOob(
-                        _root_ide_package_.io.ktor.foodies.webapp.basket.CustomerBasket(
+                        CustomerBasket(
                             buyerId = "",
                             items = emptyList()
                         )
@@ -194,7 +194,7 @@ private fun TagConsumer<*>.addToCartSuccess() {
     }
 }
 
-private fun HTML.cartPage(basket: io.ktor.foodies.webapp.basket.CustomerBasket) {
+private fun HTML.cartPage(basket: CustomerBasket) {
     lang = "en"
     head {
         meta { charset = "utf-8" }
@@ -241,7 +241,7 @@ private fun HTML.cartPage(basket: io.ktor.foodies.webapp.basket.CustomerBasket) 
     }
 }
 
-private fun TagConsumer<*>.cartItemsFragment(basket: io.ktor.foodies.webapp.basket.CustomerBasket) {
+private fun TagConsumer<*>.cartItemsFragment(basket: CustomerBasket) {
     div(classes = "cart-items") {
         id = "cart-items"
         if (basket.items.isEmpty()) {
@@ -270,7 +270,7 @@ private fun FlowContent.cartEmptyFlow() {
     }
 }
 
-private fun TagConsumer<*>.cartItemCard(item: io.ktor.foodies.webapp.basket.BasketItem) {
+private fun TagConsumer<*>.cartItemCard(item: BasketItem) {
     div(classes = "cart-item") {
         id = "cart-item-${item.id}"
         img(src = item.menuItemImageUrl, alt = item.menuItemName, classes = "cart-item-image")
@@ -323,7 +323,7 @@ private fun TagConsumer<*>.cartItemCard(item: io.ktor.foodies.webapp.basket.Bask
     }
 }
 
-private fun FlowContent.cartItemCardFlow(item: io.ktor.foodies.webapp.basket.BasketItem) {
+private fun FlowContent.cartItemCardFlow(item: BasketItem) {
     div(classes = "cart-item") {
         id = "cart-item-${item.id}"
         img(src = item.menuItemImageUrl, alt = item.menuItemName, classes = "cart-item-image")
@@ -376,7 +376,7 @@ private fun FlowContent.cartItemCardFlow(item: io.ktor.foodies.webapp.basket.Bas
     }
 }
 
-private fun FlowContent.cartSummaryFlow(basket: io.ktor.foodies.webapp.basket.CustomerBasket) {
+private fun FlowContent.cartSummaryFlow(basket: CustomerBasket) {
     div(classes = "cart-summary") {
         id = "cart-summary"
         h2 { +"Order Summary" }
@@ -420,7 +420,7 @@ fun FlowContent.basketBadgeLink() {
     }
 }
 
-private fun TagConsumer<*>.cartSummaryOob(basket: io.ktor.foodies.webapp.basket.CustomerBasket) {
+private fun TagConsumer<*>.cartSummaryOob(basket: CustomerBasket) {
     div(classes = "cart-summary") {
         id = "cart-summary"
         attributes["hx-swap-oob"] = "true"

@@ -32,7 +32,7 @@ fun main() {
     }.start(wait = true)
 }
 
-suspend fun Application.app(config: io.ktor.foodies.webapp.Config, module: io.ktor.foodies.webapp.WebAppModule) {
+suspend fun Application.app(config: Config, module: WebAppModule) {
     install(ContentNegotiation) { json() }
     install(Cohort) {
         verboseHealthCheckResponse = true

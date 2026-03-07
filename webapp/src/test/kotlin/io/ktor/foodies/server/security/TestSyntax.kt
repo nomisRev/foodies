@@ -5,7 +5,7 @@ import de.infix.testBalloon.framework.core.Test
 import de.infix.testBalloon.framework.core.TestFixture
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
-import io.ktor.foodies.server.webapp.security.RedisSessionStorage
+import io.ktor.foodies.webapp.security.RedisSessionStorage
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.coroutines

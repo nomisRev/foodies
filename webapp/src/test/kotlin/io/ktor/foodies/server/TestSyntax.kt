@@ -8,9 +8,9 @@ import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
 import io.ktor.foodies.server.telemetry.MonitoringConfig
 import io.ktor.foodies.server.test.testApplication
-import io.ktor.foodies.server.webapp.Config
-import io.ktor.foodies.server.webapp.app
-import io.ktor.foodies.server.webapp.module
+import io.ktor.foodies.webapp.Config
+import io.ktor.foodies.webapp.app
+import io.ktor.foodies.webapp.module
 import io.ktor.server.response.respondText
 import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
