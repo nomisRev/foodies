@@ -3,10 +3,10 @@ package io.ktor.foodies.webapp.security
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.submitForm
-import io.ktor.foodies.server.webapp.Config
 import io.ktor.foodies.server.auth.AuthContext
 import io.ktor.foodies.server.openid.OpenIdConfiguration
 import io.ktor.foodies.server.openid.discover
+import io.ktor.foodies.webapp.Config
 import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode.Companion.Unauthorized
 import io.ktor.http.URLBuilder

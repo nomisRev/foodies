@@ -25,7 +25,7 @@ import io.ktor.server.routing.routing
 import kotlinx.coroutines.Dispatchers
 
 fun main() {
-    val config = ApplicationConfig("application.yaml").property("config").getAs<io.ktor.foodies.webapp.Config>()
+    val config = ApplicationConfig("application.yaml").property("config").getAs<Config>()
     embeddedServer(Netty, host = config.host, port = config.port) {
         val (_, openTelemetry) = monitoring(config.telemetry)
         app(config, module(config, openTelemetry))
