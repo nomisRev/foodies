@@ -128,97 +128,42 @@ class DefaultFulfillmentService(
 
             val oldStatus = order.status
             val now = Instant.fromEpochMilliseconds(System.currentTimeMillis())
-
-            val updatedItems = order.items.mapNotNull { item ->
-                val rejection = rejectedItems.find { it.menuItemId == item.menuItemId }
-                if (rejection != null) {
-                    if (rejection.availableQuantity > 0) {
-                        item.copy(quantity = rejection.availableQuantity)
-                    } else {
-                        null
-                    }
-                } else {
-                    item
+            val reason = if (rejectedItems.isEmpty()) {
+                "Stock rejected by menu service"
+            } else {
+                "Stock rejected for items: " + rejectedItems.joinToString(", ") {
+                    "${it.menuItemName} (Requested: ${it.requestedQuantity}, Available: ${it.availableQuantity})"
                 }
             }
 
-            if (updatedItems.isEmpty()) {
-                val reason = "Stock rejected for items: " + rejectedItems.joinToString(", ") {
-                    "${it.menuItemName} (Requested: ${it.requestedQuantity}, Available: ${it.availableQuantity})"
-                }
-                fulfillmentRepository.update(
-                    order.copy(
-                        status = OrderStatus.Cancelled,
-                        description = reason,
-                        updatedAt = now
-                    )
-                ).also { updatedOrder ->
-                    eventPublisher.publish(
-                        OrderCancelledEvent(
-                            orderId = updatedOrder.id,
-                            buyerId = updatedOrder.buyerId,
-                            reason = reason,
-                            cancelledAt = now
-                        )
-                    )
-
-                    eventPublisher.publish(
-                        OrderStatusChangedEvent(
-                            orderId = updatedOrder.id,
-                            buyerId = updatedOrder.buyerId,
-                            oldStatus = oldStatus,
-                            newStatus = OrderStatus.Cancelled,
-                            totalPrice = updatedOrder.totalPrice,
-                            currency = updatedOrder.currency,
-                            description = reason,
-                            changedAt = now
-                        )
-                    )
-                }
-            } else {
-                val newTotalPrice = updatedItems.sumOf { it.unitPrice * it.quantity.toBigDecimal() }
-                val description = if (updatedItems.size < order.items.size || updatedItems.any {
-                        it.quantity < (order.items.find { old -> old.menuItemId == it.menuItemId }?.quantity ?: it.quantity)
-                    }) {
-                    "Order partially fulfilled due to stock availability"
-                } else {
-                    "Stock confirmed"
-                }
-
-                fulfillmentRepository.update(
-                    order.copy(
-                        status = OrderStatus.StockConfirmed,
-                        items = updatedItems,
-                        totalPrice = newTotalPrice,
-                        description = description,
-                        updatedAt = now
-                    )
-                ).also { updatedOrder ->
-                    eventPublisher.publish(
-                        OrderStatusChangedEvent(
-                            orderId = updatedOrder.id,
-                            buyerId = updatedOrder.buyerId,
-                            oldStatus = oldStatus,
-                            newStatus = OrderStatus.StockConfirmed,
-                            totalPrice = updatedOrder.totalPrice,
-                            currency = updatedOrder.currency,
-                            description = description,
-                            changedAt = now
-                        )
-                    )
-
-                    val stockConfirmedEvent = OrderStockConfirmedEvent(
-                        eventId = UUID.randomUUID().toString(),
+            fulfillmentRepository.update(
+                order.copy(
+                    status = OrderStatus.Cancelled,
+                    description = reason,
+                    updatedAt = now
+                )
+            ).also { updatedOrder ->
+                eventPublisher.publish(
+                    OrderCancelledEvent(
                         orderId = updatedOrder.id,
                         buyerId = updatedOrder.buyerId,
-                        totalAmount = updatedOrder.totalPrice,
-                        currency = updatedOrder.currency,
-                        paymentMethod = updatedOrder.paymentMethod?.toPaymentMethodInfo()
-                            ?: throw IllegalStateException("Payment method missing for order ${updatedOrder.id}"),
-                        occurredAt = now
+                        reason = reason,
+                        cancelledAt = now
                     )
-                    eventPublisher.publish(stockConfirmedEvent)
-                }
+                )
+
+                eventPublisher.publish(
+                    OrderStatusChangedEvent(
+                        orderId = updatedOrder.id,
+                        buyerId = updatedOrder.buyerId,
+                        oldStatus = oldStatus,
+                        newStatus = OrderStatus.Cancelled,
+                        totalPrice = updatedOrder.totalPrice,
+                        currency = updatedOrder.currency,
+                        description = reason,
+                        changedAt = now
+                    )
+                )
             }
         }
 
