@@ -49,8 +49,7 @@ fun Route.trackingRoutes(trackingService: TrackingService) = secureUser {
             val buyerId = userPrincipal().userId
             val id: Long by call.parameters
 
-            val body = runCatching { call.receive<CancelOrderRequest>() }.getOrNull()
-            val reason = body?.reason ?: "Cancelled by user"
+            val reason = call.receive<CancelOrderRequest>().reason
 
             val order = trackingService.cancelOrder(requestId, id, buyerId, reason)
             call.respond(order)
