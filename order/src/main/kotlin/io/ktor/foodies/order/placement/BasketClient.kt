@@ -5,6 +5,7 @@ import io.ktor.client.call.body
 import io.ktor.client.plugins.ClientRequestException
 import io.ktor.client.request.get
 import io.ktor.foodies.server.SerializableBigDecimal
+import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 
@@ -33,10 +34,21 @@ class HttpBasketClient(
 ) : BasketClient {
     private val basketBaseUrl = baseUrl.trimEnd('/')
 
-    override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? =
-        try {
-            httpClient.get("$basketBaseUrl/basket").body<CustomerBasket>()
-        } catch (e: ClientRequestException) {
-            if (e.response.status == HttpStatusCode.NotFound) null else throw e
+    override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? {
+        val response = httpClient.get("$basketBaseUrl/basket") {
+            headers[HttpHeaders.Authorization] = "Bearer $token"
         }
+        if (response.status == HttpStatusCode.NotFound) return null
+        if (response.status.value >= 400) {
+            throw ClientRequestException(response, "Failed to fetch basket")
+        }
+
+        val basket = response.body<CustomerBasket>()
+        if (basket.buyerId != buyerId) {
+            throw IllegalStateException(
+                "Fetched basket for unexpected buyer. expected=$buyerId actual=${basket.buyerId}"
+            )
+        }
+        return basket
+    }
 }
