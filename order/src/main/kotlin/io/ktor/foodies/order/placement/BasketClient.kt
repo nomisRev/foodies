@@ -25,7 +25,7 @@ data class CustomerBasket(
 )
 
 interface BasketClient {
-    suspend fun getBasket(buyerId: String, token: String): CustomerBasket?
+    suspend fun getBasket(buyerId: String): CustomerBasket?
 }
 
 class HttpBasketClient(
@@ -34,10 +34,8 @@ class HttpBasketClient(
 ) : BasketClient {
     private val basketBaseUrl = baseUrl.trimEnd('/')
 
-    override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? {
-        val response = httpClient.get("$basketBaseUrl/basket") {
-            headers[HttpHeaders.Authorization] = "Bearer $token"
-        }
+    override suspend fun getBasket(buyerId: String): CustomerBasket? {
+        val response = httpClient.get("$basketBaseUrl/basket")
         if (response.status == HttpStatusCode.NotFound) return null
         if (response.status.value >= 400) {
             throw ClientRequestException(response, "Failed to fetch basket")

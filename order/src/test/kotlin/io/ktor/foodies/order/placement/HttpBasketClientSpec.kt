@@ -54,8 +54,7 @@ val httpBasketClientSpec by testSuite {
         val basketClient = HttpBasketClient(httpClient, "")
 
         val basket = basketClient.getBasket(
-            buyerId = "buyer-from-call",
-            token = "token-from-call"
+            buyerId = "buyer-from-call"
         )
 
         assertEquals("Bearer token-from-call", authorizationHeader)
@@ -82,8 +81,7 @@ val httpBasketClientSpec by testSuite {
 
         assertFailsWith<IllegalStateException> {
             basketClient.getBasket(
-                buyerId = "buyer-from-call",
-                token = "token-from-call"
+                buyerId = "buyer-from-call"
             )
         }
     }
@@ -103,8 +101,7 @@ val httpBasketClientSpec by testSuite {
         val basketClient = HttpBasketClient(httpClient, "")
 
         val basket = basketClient.getBasket(
-            buyerId = "buyer-from-call",
-            token = "token-from-call"
+            buyerId = "buyer-from-call"
         )
 
         assertNull(basket)
