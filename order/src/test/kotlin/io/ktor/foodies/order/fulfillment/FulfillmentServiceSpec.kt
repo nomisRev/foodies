@@ -3,6 +3,7 @@ package io.ktor.foodies.order.fulfillment
 import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.events.common.PaymentFailureCode
+import io.ktor.foodies.events.menu.RejectedItem
 import io.ktor.foodies.events.order.OrderStatus
 import io.ktor.foodies.order.*
 import io.ktor.foodies.order.placement.BasketItem
@@ -112,6 +113,32 @@ val fulfillmentServiceSpec by testSuite {
         assertFailsWith<IllegalArgumentException> {
             ctx.fulfillmentService.shipOrder(UUID.randomUUID(), order.id)
         }
+    }
+
+    test("should cancel order when stock rejection includes partial availability") {
+        val ctx = createTestContext()
+        ctx.basketClient.basket = CustomerBasket(
+            buyerId = "buyer-1",
+            items = listOf(BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2))
+        )
+
+        val request = CreateOrderRequest(
+            street = "Street", city = "City", state = "State", country = "Country", zipCode = "12345",
+            paymentDetails = PaymentDetails(CardBrand.VISA, "1234567812345678", "John Doe", "123", 12, 2030)
+        )
+
+        val order = ctx.placementService.createOrder(UUID.randomUUID(), "buyer-1", "buyer@test.com", "John", request, "token")
+        ctx.fulfillmentService.transitionToAwaitingValidation(order.id)
+        val updatedOrder = ctx.fulfillmentService.processStockRejection(
+            order.id,
+            listOf(RejectedItem(1, "Burger", 2, 1))
+        )
+
+        assertNotNull(updatedOrder)
+        assertEquals(OrderStatus.Cancelled, updatedOrder.status)
+        assert(updatedOrder.description?.contains("Stock rejected") == true)
+        assertEquals(1, ctx.fulfillmentEventPublisher.cancelledEvents.size)
+        assertEquals(0, ctx.fulfillmentEventPublisher.stockConfirmedEvents.size)
     }
 
     test("should cancel order due to payment failure and publish events") {

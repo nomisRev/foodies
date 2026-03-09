@@ -49,7 +49,7 @@ val stockEventHandlerSpec by testSuite {
         assertEquals(order.id, cancelEvent.orderId)
     }
 
-    test("StockRejectedHandler should partially fulfill order when some items available") {
+    test("StockRejectedHandler should cancel order when any item is rejected") {
         val ctx = createTestContext()
         val order = createHandlerTestOrder(OrderStatus.AwaitingValidation)
         ctx.orderRepository.orders.add(order)
@@ -64,14 +64,13 @@ val stockEventHandlerSpec by testSuite {
         )
 
         val updatedOrder = ctx.orderRepository.findById(order.id)
-        assertEquals(OrderStatus.StockConfirmed, updatedOrder?.status)
-        assertEquals(1, updatedOrder?.items?.size)
-        assertEquals(1, updatedOrder?.items?.first()?.quantity)
-        assertEquals(BigDecimal.TEN.setScale(2), updatedOrder?.totalPrice?.setScale(2))
-        assertEquals("Order partially fulfilled due to stock availability", updatedOrder?.description)
+        assertEquals(OrderStatus.Cancelled, updatedOrder?.status)
+        assert(updatedOrder?.description?.contains("Stock rejected") == true)
 
+        assertEquals(1, ctx.fulfillmentEventPublisher.cancelledEvents.size)
+        assertEquals(0, ctx.fulfillmentEventPublisher.stockConfirmedEvents.size)
         val statusEvent = ctx.fulfillmentEventPublisher.statusChangedEvents.last()
-        assertEquals(OrderStatus.StockConfirmed, statusEvent.newStatus)
+        assertEquals(OrderStatus.Cancelled, statusEvent.newStatus)
     }
 }
 
