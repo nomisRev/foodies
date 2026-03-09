@@ -1,6 +1,8 @@
 package io.ktor.foodies.basket
 
 import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.basket.routes.AddItemRequest
+import io.ktor.foodies.basket.routes.UpdateItemQuantityRequest
 import io.ktor.server.plugins.BadRequestException
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

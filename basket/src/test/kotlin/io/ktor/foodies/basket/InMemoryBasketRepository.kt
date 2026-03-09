@@ -1,5 +1,7 @@
 package io.ktor.foodies.basket
 
+import io.ktor.foodies.basket.routes.CustomerBasket
+
 /**
  * In-memory implementation for testing purposes.
  */

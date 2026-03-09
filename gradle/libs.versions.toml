@@ -20,6 +20,7 @@ playwright = "1.58.0"
 keycloak-testcontainers = "4.1.1"
 opentelemetry = "1.59.0"
 kover = "0.9.7"
+spine = "0.10.0"
 
 [libraries]
 logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
@@ -61,6 +62,10 @@ otel-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp", 
 otel-ktor = { module = "io.opentelemetry.instrumentation:opentelemetry-ktor-3.0", version = "2.25.0-alpha" }
 otel-hikari = { module = "io.opentelemetry.instrumentation:opentelemetry-hikaricp-3.0", version = "2.25.0-alpha" }
 otel-jdbc = { module = "io.opentelemetry.instrumentation:opentelemetry-jdbc", version = "2.25.0-alpha" }
+
+spine-api    = { module = "dev.opensavvy.spine:api",    version.ref = "spine" }
+spine-server = { module = "dev.opensavvy.spine:server", version.ref = "spine" }
+spine-client = { module = "dev.opensavvy.spine:client", version.ref = "spine" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

@@ -3,6 +3,8 @@ package io.ktor.foodies.basket
 import de.infix.testBalloon.framework.core.Test
 import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
+import io.ktor.foodies.basket.routes.BasketItem
+import io.ktor.foodies.basket.routes.CustomerBasket
 import io.ktor.foodies.server.test.ctxSuite
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.api.coroutines

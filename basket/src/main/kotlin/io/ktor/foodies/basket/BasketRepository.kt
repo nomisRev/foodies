@@ -1,5 +1,6 @@
 package io.ktor.foodies.basket
 
+import io.ktor.foodies.basket.routes.CustomerBasket
 import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
 import io.lettuce.core.api.StatefulRedisConnection

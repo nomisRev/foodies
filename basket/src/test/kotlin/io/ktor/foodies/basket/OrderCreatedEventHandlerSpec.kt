@@ -1,6 +1,8 @@
 package io.ktor.foodies.basket
 
 import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.basket.routes.BasketItem
+import io.ktor.foodies.basket.routes.CustomerBasket
 import io.ktor.foodies.events.order.OrderCreatedEvent
 import io.ktor.foodies.events.order.OrderItemSnapshot
 import kotlin.time.Instant

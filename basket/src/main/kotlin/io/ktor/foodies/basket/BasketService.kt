@@ -1,5 +1,7 @@
 package io.ktor.foodies.basket
 
+import io.ktor.foodies.basket.routes.BasketItem
+import io.ktor.foodies.basket.routes.CustomerBasket
 import java.util.UUID.randomUUID
 
 /**

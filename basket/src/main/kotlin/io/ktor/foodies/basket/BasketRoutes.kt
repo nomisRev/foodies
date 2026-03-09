@@ -1,5 +1,7 @@
 package io.ktor.foodies.basket
 
+import io.ktor.foodies.basket.routes.AddItemRequest
+import io.ktor.foodies.basket.routes.UpdateItemQuantityRequest
 import io.ktor.foodies.server.auth.secureUser
 import io.ktor.foodies.server.auth.userPrincipal
 import io.ktor.foodies.server.getValue

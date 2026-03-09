@@ -15,8 +15,11 @@ ktor {
 
 dependencies {
     implementation(project(":server-shared"))
+    implementation(project(":basket-routes"))
     implementation(project(":rabbitmq-ext"))
     implementation(project(":events-order"))
+
+    implementation(libs.spine.server)
 
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.config.yaml)
@@ -35,8 +38,6 @@ dependencies {
 
     implementation(libs.logback)
 
-    implementation(libs.serialization.json)
-
     api(libs.cohort.ktor)
     api(libs.cohort.lettuce)
 
@@ -47,4 +48,16 @@ dependencies {
     testImplementation(libs.testcontainers.core)
     testImplementation(libs.testcontainers.redis)
     testImplementation(libs.kotlinx.coroutines.reactor)
+}
+
+kover {
+    reports {
+        total {
+            verify {
+                rule {
+                    minBound(55)
+                }
+            }
+        }
+    }
 }
