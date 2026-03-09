@@ -24,7 +24,7 @@ jobs:
           java-version: '24'
 
       - uses: gradle/actions/setup-gradle@v5
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4
 
       - run: ./gradlew build -x :e2e:test
 
