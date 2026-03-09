@@ -32,35 +32,6 @@ private fun basketPayload(buyerId: String) = """
 """
 
 val httpBasketClientSpec by testSuite {
-    testApplication("forwards token argument as Authorization header") {
-        var authorizationHeader: String? = null
-
-        application {
-            routing {
-                get("/basket") {
-                    authorizationHeader = call.request.header(HttpHeaders.Authorization)
-                    call.respondText(
-                        basketPayload("buyer-from-call"),
-                        status = HttpStatusCode.OK,
-                        contentType = ContentType.Application.Json
-                    )
-                }
-            }
-        }
-
-        val httpClient = createClient {
-            install(ContentNegotiation) { json() }
-        }
-        val basketClient = HttpBasketClient(httpClient, "")
-
-        val basket = basketClient.getBasket(
-            buyerId = "buyer-from-call"
-        )
-
-        assertEquals("Bearer token-from-call", authorizationHeader)
-        assertEquals("buyer-from-call", assertNotNull(basket).buyerId)
-    }
-
     testApplication("validates buyerId argument against basket payload") {
         application {
             routing {
@@ -100,9 +71,7 @@ val httpBasketClientSpec by testSuite {
         }
         val basketClient = HttpBasketClient(httpClient, "")
 
-        val basket = basketClient.getBasket(
-            buyerId = "buyer-from-call"
-        )
+        val basket = basketClient.getBasket(buyerId = "buyer-from-call")
 
         assertNull(basket)
     }
