@@ -1,5 +1,8 @@
 package io.ktor.foodies.webapp.basket
 
+import io.ktor.foodies.basket.routes.BasketClient
+import io.ktor.foodies.basket.routes.BasketItem
+import io.ktor.foodies.basket.routes.CustomerBasket
 import io.ktor.foodies.server.getValue
 import io.ktor.foodies.webapp.basket.addToCartSuccess
 import io.ktor.foodies.webapp.basket.cartBadge
@@ -58,12 +61,12 @@ import kotlinx.html.span
 import kotlinx.html.title
 
 @OptIn(ExperimentalKtorApi::class)
-fun Route.basketRoutes(basketService: BasketService) {
+fun Route.basketRoutes(basketService: BasketClient) {
     hx {
         get("/cart/badge") {
             val session = call.sessions.get<UserSession>()
             val itemCount = if (session != null) {
-                runCatching { basketService.getBasket().items.sumOf { it.quantity } }
+                runCatching { basketService.getBasket()?.items?.sumOf { it.quantity } ?: 0 }
                     .getOrDefault(0)
             } else {
                 0
@@ -74,7 +77,7 @@ fun Route.basketRoutes(basketService: BasketService) {
 
     userSession {
         get("/cart") {
-            val basket = basketService.getBasket()
+            val basket = basketService.getBasket() ?: CustomerBasket(buyerId = "", items = emptyList())
             call.respondHtml { cartPage(basket) }
         }
 

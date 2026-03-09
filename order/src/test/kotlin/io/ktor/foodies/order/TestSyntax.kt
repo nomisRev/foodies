@@ -5,9 +5,9 @@ import io.ktor.foodies.order.fulfillment.DefaultFulfillmentService
 import io.ktor.foodies.order.fulfillment.FulfillmentEventPublisher
 import io.ktor.foodies.order.persistence.OrderRepository
 
-import io.ktor.foodies.order.placement.BasketClient
+import io.ktor.foodies.basket.routes.CustomerBasket
+import io.ktor.foodies.basket.routes.BasketClient
 import io.ktor.foodies.order.placement.CreateOrder
-import io.ktor.foodies.order.placement.CustomerBasket
 import io.ktor.foodies.order.placement.DefaultPlacementService
 import io.ktor.foodies.order.placement.GracePeriodExpiredEvent
 import io.ktor.foodies.order.placement.PlacementEventPublisher
@@ -162,7 +162,11 @@ class InMemoryOrderRepository : OrderRepository, PlacementRepository, TrackingRe
 class InMemoryBasketClient : BasketClient {
     var basket: CustomerBasket? = null
 
-    override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? = basket
+    override suspend fun getBasket(): CustomerBasket? = basket
+    override suspend fun addItem(menuItemId: Long, quantity: Int): CustomerBasket = error("not implemented")
+    override suspend fun updateItemQuantity(itemId: String, quantity: Int): CustomerBasket = error("not implemented")
+    override suspend fun removeItem(itemId: String): CustomerBasket = error("not implemented")
+    override suspend fun clearBasket() = error("not implemented")
 }
 
 class InMemoryPlacementEventPublisher : PlacementEventPublisher {

@@ -2,6 +2,7 @@ package io.ktor.foodies.order.placement
 
 import io.ktor.foodies.events.order.OrderCreatedEvent
 import io.ktor.foodies.events.order.OrderItemSnapshot
+import io.ktor.foodies.basket.routes.BasketClient
 import io.ktor.foodies.order.Order
 import io.ktor.foodies.order.OrderConfig
 import io.ktor.foodies.server.validate
@@ -38,7 +39,7 @@ class DefaultPlacementService(
         placementRepository.findByRequestId(requestId.toString())?.let { return it }
 
         val address = request.validate()
-        val basket = basketClient.getBasket(buyerId, token) ?: throw IllegalArgumentException("Basket not found")
+        val basket = basketClient.getBasket() ?: throw IllegalArgumentException("Basket not found")
         if (basket.items.isEmpty()) throw IllegalArgumentException("Basket is empty")
 
         val createOrder = CreateOrder(
