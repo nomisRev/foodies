@@ -13,7 +13,6 @@ import io.ktor.foodies.order.placement.GracePeriodExpiredEvent
 import io.ktor.foodies.order.placement.PlacementEventPublisher
 import io.ktor.foodies.order.placement.PlacementRepository
 import io.ktor.foodies.order.tracking.DefaultTrackingService
-import io.ktor.foodies.order.tracking.GetOrderResult
 import io.ktor.foodies.order.tracking.OrderSummary
 import io.ktor.foodies.order.tracking.PaginatedOrders
 import io.ktor.foodies.order.tracking.TrackingEventPublisher
@@ -162,7 +161,7 @@ class InMemoryOrderRepository : OrderRepository, PlacementRepository, TrackingRe
 class InMemoryBasketClient : BasketClient {
     var basket: CustomerBasket? = null
 
-    override suspend fun getBasket(buyerId: String, token: String): CustomerBasket? = basket
+    override suspend fun getBasket(buyerId: String): CustomerBasket? = basket
 }
 
 class InMemoryPlacementEventPublisher : PlacementEventPublisher {

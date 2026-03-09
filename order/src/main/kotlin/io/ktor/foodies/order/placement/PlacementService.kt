@@ -38,7 +38,7 @@ class DefaultPlacementService(
         placementRepository.findByRequestId(requestId.toString())?.let { return it }
 
         val address = request.validate()
-        val basket = basketClient.getBasket(buyerId, token) ?: throw IllegalArgumentException("Basket not found")
+        val basket = basketClient.getBasket(buyerId) ?: throw IllegalArgumentException("Basket not found")
         if (basket.items.isEmpty()) throw IllegalArgumentException("Basket is empty")
 
         val createOrder = CreateOrder(
