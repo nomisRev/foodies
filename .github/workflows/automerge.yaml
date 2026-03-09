@@ -1,19 +1,29 @@
 name: automerge
 
 on:
-  pull_request:
+  check_suite:
+    types: [completed]
 
 jobs:
   automerge:
     name: Auto-merge Dependabot PR
     runs-on: ubuntu-latest
-    if: github.actor == 'dependabot[bot]'
+    if: >
+      github.event.check_suite.conclusion == 'success' &&
+      github.event.check_suite.app.slug == 'github-actions'
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - name: Enable auto-merge for Dependabot PRs
-        run: gh pr merge --auto --squash "$PR_URL"
+      - name: Merge Dependabot PRs after checks pass
+        run: |
+          echo '${{ toJson(github.event.check_suite.pull_requests) }}' \
+            | jq -r '.[].number' \
+            | while read -r pr_number; do
+                actor=$(gh pr view "$pr_number" --repo "$GITHUB_REPOSITORY" --json author --jq '.author.login')
+                if [ "$actor" = "dependabot[bot]" ]; then
+                  gh pr merge "$pr_number" --repo "$GITHUB_REPOSITORY" --squash --merge
+                fi
+              done
         env:
-          PR_URL: ${{github.event.pull_request.html_url}}
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
