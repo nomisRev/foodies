@@ -15,6 +15,8 @@ ktor {
 
 dependencies {
     implementation(project(":server-shared"))
+    implementation(project(":basket-routes"))
+    implementation(libs.spine.client)
     implementation(ktorLibs.client.apache5)
     implementation(ktorLibs.client.contentNegotiation)
 

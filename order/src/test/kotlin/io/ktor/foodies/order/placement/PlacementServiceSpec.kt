@@ -1,6 +1,8 @@
 package io.ktor.foodies.order.placement
 
 import de.infix.testBalloon.framework.core.testSuite
+import io.ktor.foodies.basket.routes.BasketItem
+import io.ktor.foodies.basket.routes.CustomerBasket
 import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.order.createTestContext
 import java.math.BigDecimal
@@ -13,7 +15,7 @@ val placementServiceSpec by testSuite {
         ctx.basketClient.basket = CustomerBasket(
             buyerId = "buyer-1",
             items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+                BasketItem("item-1", 1, "Burger", "", "url", BigDecimal("10.00"), 2)
             )
         )
 
@@ -47,7 +49,7 @@ val placementServiceSpec by testSuite {
         ctx.basketClient.basket = CustomerBasket(
             buyerId = "buyer-1",
             items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+                BasketItem(id = "item-1", menuItemId = 1, menuItemName = "Burger", menuItemDescription = "", menuItemImageUrl = "url", unitPrice = BigDecimal("10.00"), quantity = 2)
             )
         )
 

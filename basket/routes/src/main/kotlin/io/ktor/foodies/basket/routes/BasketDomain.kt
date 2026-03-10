@@ -1,7 +1,19 @@
 package io.ktor.foodies.basket.routes
 
-import io.ktor.foodies.server.SerializableBigDecimal
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+
+@Serializable
+sealed interface BasketError {
+
+    @Serializable
+    @SerialName("NotFound")
+    data class NotFound(val message: String) : BasketError
+
+    @Serializable
+    @SerialName("InvalidRequest")
+    data class InvalidRequest(val reasons: List<String>) : BasketError
+}
 
 @Serializable
 data class CustomerBasket(
@@ -29,6 +41,4 @@ data class AddItemRequest(
 )
 
 @Serializable
-data class UpdateItemQuantityRequest(
-    val quantity: Int
-)
+data class UpdateItemQuantityRequest(val quantity: Int)

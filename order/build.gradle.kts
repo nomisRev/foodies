@@ -31,6 +31,8 @@ dependencies {
     implementation(ktorLibs.client.core)
     implementation(ktorLibs.client.cio)
     implementation(ktorLibs.client.contentNegotiation)
+    implementation(project(":basket-routes"))
+    implementation(libs.spine.client)
 
     // Database
     implementation(libs.exposed.jdbc)

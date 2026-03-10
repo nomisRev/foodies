@@ -4,9 +4,9 @@ import de.infix.testBalloon.framework.core.testSuite
 import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.events.order.OrderStatus
 import io.ktor.foodies.order.*
-import io.ktor.foodies.order.placement.BasketItem
+import io.ktor.foodies.basket.routes.BasketItem
+import io.ktor.foodies.basket.routes.CustomerBasket
 import io.ktor.foodies.order.placement.CreateOrderRequest
-import io.ktor.foodies.order.placement.CustomerBasket
 import io.ktor.foodies.order.placement.PaymentDetails
 import java.math.BigDecimal
 import java.util.UUID
@@ -18,7 +18,7 @@ val trackingServiceSpec by testSuite {
         ctx.basketClient.basket = CustomerBasket(
             buyerId = "buyer-1",
             items = listOf(
-                BasketItem(1, "Burger", "url", BigDecimal("10.00"), 2)
+                BasketItem("item-1", 1, "Burger", "", "url", BigDecimal("10.00"), 2)
             )
         )
 

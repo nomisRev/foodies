@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":server-shared"))
     implementation(libs.spine.api)
+    implementation(libs.spine.client)
     implementation(libs.serialization.json)
 }

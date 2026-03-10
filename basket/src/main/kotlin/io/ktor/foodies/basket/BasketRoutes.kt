@@ -1,59 +1,63 @@
 package io.ktor.foodies.basket
 
-import io.ktor.foodies.basket.routes.AddItemRequest
-import io.ktor.foodies.basket.routes.UpdateItemQuantityRequest
+import io.ktor.foodies.basket.routes.BasketApi
+import io.ktor.foodies.basket.routes.BasketError
+import io.ktor.foodies.server.ValidationException
+import io.ktor.foodies.server.auth.UserPrincipal
 import io.ktor.foodies.server.auth.secureUser
-import io.ktor.foodies.server.auth.userPrincipal
-import io.ktor.foodies.server.getValue
 import io.ktor.foodies.server.validate
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.request.receive
+import io.ktor.server.auth.principal
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.put
-import io.ktor.server.routing.route
+import opensavvy.spine.server.fail
+import opensavvy.spine.server.respond
+import opensavvy.spine.server.route
 
 fun Route.basketRoutes(basketService: BasketService) = secureUser {
-    route("/basket") {
-        get {
-            val buyerId = userPrincipal().userId
-            val basket = basketService.getBasket(buyerId)
-            call.respond(basket)
+    route(BasketApi.get) {
+        val buyerId = requireNotNull(call.principal<UserPrincipal>()).userId
+        respond(basketService.getBasket(buyerId))
+    }
+
+    route(BasketApi.clear) {
+        val buyerId = requireNotNull(call.principal<UserPrincipal>()).userId
+        basketService.clearBasket(buyerId)
+        respond()
+    }
+
+    route(BasketApi.Items.add) {
+        val buyerId = requireNotNull(call.principal<UserPrincipal>()).userId
+        val validatedRequest = try {
+            validate { body.validate() }
+        } catch (e: ValidationException) {
+            call.respond(HttpStatusCode.BadRequest, BasketError.InvalidRequest(e.reasons))
+            return@route
         }
+        val basket = basketService.addItem(buyerId, validatedRequest)
+        if (basket == null) fail(BasketError.NotFound("Menu item not found"))
+        else respond(basket)
+    }
 
-        delete {
-            val buyerId = userPrincipal().userId
-            basketService.clearBasket(buyerId)
-            call.respond(HttpStatusCode.NoContent)
+    route(BasketApi.Items.Item.update) {
+        val buyerId = requireNotNull(call.principal<UserPrincipal>()).userId
+        val itemId = idOf(BasketApi.Items.Item)
+        val validatedRequest = try {
+            validate { body.validate() }
+        } catch (e: ValidationException) {
+            call.respond(HttpStatusCode.BadRequest, BasketError.InvalidRequest(e.reasons))
+            return@route
         }
+        val basket = basketService.updateItemQuantity(buyerId, itemId, validatedRequest)
+        if (basket == null) fail(BasketError.NotFound("Item not found in basket"))
+        else respond(basket)
+    }
 
-        route("/items") {
-            post {
-                val buyerId = userPrincipal().userId
-                val request = call.receive<AddItemRequest>()
-                val validatedRequest = validate { request.validate() }
-                val basket = basketService.addItem(buyerId, validatedRequest)
-                if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
-            }
-
-            put("/{itemId}") {
-                val buyerId = userPrincipal().userId
-                val itemId: String by call.parameters
-                val request = call.receive<UpdateItemQuantityRequest>()
-                val validatedRequest = request.validate()
-                val basket = basketService.updateItemQuantity(buyerId, itemId, validatedRequest)
-                if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
-            }
-
-            delete("/{itemId}") {
-                val buyerId = userPrincipal().userId
-                val itemId: String by call.parameters
-                val basket = basketService.removeItem(buyerId, itemId)
-                if (basket == null) call.respond(HttpStatusCode.NotFound) else call.respond(basket)
-            }
-        }
+    route(BasketApi.Items.Item.remove) {
+        val buyerId = requireNotNull(call.principal<UserPrincipal>()).userId
+        val itemId = idOf(BasketApi.Items.Item)
+        val basket = basketService.removeItem(buyerId, itemId)
+        if (basket == null) fail(BasketError.NotFound("Item not found in basket"))
+        else respond(basket)
     }
 }
