@@ -1,78 +1,48 @@
 package io.ktor.foodies.webapp.basket
 
-import io.ktor.foodies.server.getValue
-import io.ktor.foodies.webapp.basket.addToCartSuccess
-import io.ktor.foodies.webapp.basket.cartBadge
-import io.ktor.foodies.webapp.basket.cartBadgeFlow
-import io.ktor.foodies.webapp.basket.cartBadgeOob
-import io.ktor.foodies.webapp.basket.cartEmpty
-import io.ktor.foodies.webapp.basket.cartEmptyFlow
-import io.ktor.foodies.webapp.basket.cartItemCard
-import io.ktor.foodies.webapp.basket.cartItemCardFlow
-import io.ktor.foodies.webapp.basket.cartItemsFragment
-import io.ktor.foodies.webapp.basket.cartPage
-import io.ktor.foodies.webapp.basket.cartSummaryFlow
-import io.ktor.foodies.webapp.basket.cartSummaryOob
-import io.ktor.foodies.webapp.security.UserSession
-import io.ktor.foodies.webapp.security.userSession
-import io.ktor.foodies.webapp.respondHtmxFragment
-import io.ktor.foodies.webapp.security.userSession
-import io.ktor.server.html.respondHtml
-import io.ktor.server.htmx.hx
-import io.ktor.server.request.receiveParameters
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.delete
-import io.ktor.server.routing.get
-import io.ktor.server.routing.post
-import io.ktor.server.routing.put
-import io.ktor.server.sessions.get
-import io.ktor.server.sessions.sessions
-import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.foodies.server.*
+import io.ktor.foodies.server.auth.*
+import io.ktor.foodies.webapp.*
+import io.ktor.foodies.webapp.security.*
+import io.ktor.server.auth.oidc.*
+import io.ktor.server.auth.typesafe.*
+import io.ktor.server.html.*
+import io.ktor.server.htmx.*
+import io.ktor.server.request.*
+import io.ktor.server.routing.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.withContext
+import kotlinx.html.*
 import java.math.BigDecimal
 import java.math.RoundingMode
-import kotlinx.html.ButtonType
-import kotlinx.html.FlowContent
-import kotlinx.html.HTML
-import kotlinx.html.TagConsumer
-import kotlinx.html.a
-import kotlinx.html.body
-import kotlinx.html.button
-import kotlinx.html.div
-import kotlinx.html.form
-import kotlinx.html.h1
-import kotlinx.html.h2
-import kotlinx.html.h3
-import kotlinx.html.head
-import kotlinx.html.header
-import kotlinx.html.id
-import kotlinx.html.img
-import kotlinx.html.lang
-import kotlinx.html.link
-import kotlinx.html.main
-import kotlinx.html.meta
-import kotlinx.html.numberInput
-import kotlinx.html.p
-import kotlinx.html.script
-import kotlinx.html.section
-import kotlinx.html.span
-import kotlinx.html.title
 
 @OptIn(ExperimentalKtorApi::class)
-fun Route.basketRoutes(basketService: BasketService) {
-    hx {
-        get("/cart/badge") {
-            val session = call.sessions.get<UserSession>()
-            val itemCount = if (session != null) {
-                runCatching { basketService.getBasket().items.sumOf { it.quantity } }
-                    .getOrDefault(0)
-            } else {
-                0
+fun Route.basketRoutes(
+    basketService: BasketService,
+    provider: OidcProvider<OidcToken.Id>
+) {
+    authenticateWith(provider.sessions.optional()) {
+        val ctx = authenticatedContext()
+
+        hx {
+            get("/cart/badge") {
+                val session = with(ctx) { principal }
+                val itemCount = if (session?.accessToken != null) {
+                    val accessToken = requireNotNull(session.accessToken)
+                    runCatching {
+                        withContext(AuthContext(accessToken)) {
+                            basketService.getBasket().items.sumOf { it.quantity }
+                        }
+                    }.getOrDefault(0)
+                } else {
+                    0
+                }
+                call.respondHtmxFragment { cartBadge(itemCount) }
             }
-            call.respondHtmxFragment { cartBadge(itemCount) }
         }
     }
 
-    userSession {
+    authenticatedSession(provider) {
         get("/cart") {
             val basket = basketService.getBasket()
             call.respondHtml { cartPage(basket) }
@@ -210,7 +180,9 @@ private fun HTML.cartPage(basket: CustomerBasket) {
             a(href = "/", classes = "logo") { +"Foodies" }
             div(classes = "actions") {
                 cartBadgeFlow(basket.items.sumOf { it.quantity })
-                a(href = "/logout", classes = "button secondary") { +"Log out" }
+                form(action = "/logout", method = FormMethod.post, classes = "logout-form") {
+                    button(type = ButtonType.submit, classes = "button secondary") { +"Log out" }
+                }
             }
         }
 

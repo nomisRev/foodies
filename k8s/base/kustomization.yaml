@@ -22,7 +22,7 @@ resources:
 configMapGenerator:
   - name: foodies-config
     literals:
-      - FOODIES_HOST=foodies.local
+      - FOODIES_HOST=foodies.localhost
       - PROFILE_DB_NAME=foodies-profile-database
       - RABBITMQ_QUEUE=profile.registration
       - BASKET_RABBITMQ_QUEUE=basket.order-created
@@ -43,3 +43,4 @@ secretGenerator:
   - name: webapp-auth
     literals:
       - AUTH_CLIENT_SECRET=foodies_client_secret
+      - AUTH_STATE_ENCRYPTION_KEY=ez/dI0bsc12uahorHrhKsFxd6wYadVIuoLcNNbtQOA0=

@@ -3,7 +3,8 @@ package io.ktor.foodies.order.admin
 import io.ktor.foodies.events.order.OrderStatus
 import io.ktor.foodies.order.fulfillment.FulfillmentService
 import io.ktor.foodies.order.tracking.TrackingService
-import io.ktor.foodies.server.auth.secureUser
+import io.ktor.foodies.server.auth.secure
+import io.ktor.foodies.server.openid.UserRole
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.header
 import io.ktor.server.response.respond
@@ -11,8 +12,10 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import io.ktor.utils.io.ExperimentalKtorApi
 
-fun Route.adminRoutes(trackingService: TrackingService, fulfillmentService: FulfillmentService) = secureUser("admin") {
+@OptIn(ExperimentalKtorApi::class)
+fun Route.adminRoutes(trackingService: TrackingService, fulfillmentService: FulfillmentService) = secure(UserRole.ADMIN) {
     route("/admin/orders") {
         get {
             val offset = call.parameters["offset"]?.toLongOrNull() ?: 0L

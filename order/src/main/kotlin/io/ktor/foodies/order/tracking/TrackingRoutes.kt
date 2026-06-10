@@ -2,10 +2,10 @@ package io.ktor.foodies.order.tracking
 
 import io.ktor.foodies.events.common.CardBrand
 import io.ktor.foodies.events.order.OrderStatus
-import io.ktor.foodies.server.auth.secureUser
-import io.ktor.foodies.server.auth.userPrincipal
+import io.ktor.foodies.server.auth.secure
 import io.ktor.foodies.server.getValue
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.auth.typesafe.principal
 import io.ktor.server.request.header
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -13,11 +13,13 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.put
 import io.ktor.server.routing.route
+import io.ktor.utils.io.ExperimentalKtorApi
 
-fun Route.trackingRoutes(trackingService: TrackingService) = secureUser {
+@OptIn(ExperimentalKtorApi::class)
+fun Route.trackingRoutes(trackingService: TrackingService) = secure {
     route("/orders") {
         get {
-            val buyerId = userPrincipal().userId
+            val buyerId = principal.userId
             val offset = call.request.queryParameters["offset"]?.toLongOrNull() ?: 0L
             val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 10
             val status = call.request.queryParameters["status"]?.let { OrderStatus.valueOf(it) }
@@ -32,7 +34,7 @@ fun Route.trackingRoutes(trackingService: TrackingService) = secureUser {
         }
 
         get("/{id}") {
-            val buyerId = userPrincipal().userId
+            val buyerId = principal.userId
             val id: Long by call.parameters
 
             when (val result = trackingService.getOrder(id, buyerId)) {
@@ -46,7 +48,7 @@ fun Route.trackingRoutes(trackingService: TrackingService) = secureUser {
             val requestIdString = call.request.header("X-Request-Id")
                 ?: throw IllegalArgumentException("X-Request-Id header is required")
             val requestId = java.util.UUID.fromString(requestIdString)
-            val buyerId = userPrincipal().userId
+            val buyerId = principal.userId
             val id: Long by call.parameters
 
             val reason = call.receive<CancelOrderRequest>().reason

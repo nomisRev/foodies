@@ -1,41 +1,27 @@
 package io.ktor.foodies.webapp.home
 
-import io.ktor.foodies.webapp.basket.basketBadgeLink
-import io.ktor.foodies.webapp.home.home
-import io.ktor.foodies.webapp.menu.DefaultMenuPageSize
-import io.ktor.foodies.webapp.menu.MenuIntersectTrigger
-import io.ktor.foodies.webapp.security.UserSession
-import io.ktor.foodies.webapp.security.public
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.auth.principal
-import io.ktor.server.html.respondHtml
-import io.ktor.server.http.content.staticResources
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
-import kotlinx.html.a
-import kotlinx.html.body
-import kotlinx.html.div
-import kotlinx.html.h1
-import kotlinx.html.head
-import kotlinx.html.header
-import kotlinx.html.id
-import kotlinx.html.lang
-import kotlinx.html.link
-import kotlinx.html.main
-import kotlinx.html.meta
-import kotlinx.html.script
-import kotlinx.html.section
-import kotlinx.html.span
-import kotlinx.html.title
+import io.ktor.foodies.webapp.basket.*
+import io.ktor.foodies.webapp.menu.*
+import io.ktor.http.*
+import io.ktor.server.auth.oidc.*
+import io.ktor.server.auth.typesafe.*
+import io.ktor.server.html.*
+import io.ktor.server.http.content.*
+import io.ktor.server.routing.*
+import io.ktor.utils.io.ExperimentalKtorApi
+import kotlinx.html.*
 
-fun Route.homeRoutes() {
+fun Route.homeRoutes(provider: OidcProvider<OidcToken.Id>) {
     staticResources("/static", "static")
-    home()
+    home(provider)
 }
 
-fun Route.home() = public {
+@OptIn(ExperimentalKtorApi::class)
+fun Route.home(provider: OidcProvider<OidcToken.Id>) = authenticateWith(provider.sessions.optional()) {
+    val ctx = authenticatedContext()
+
     get("/") {
-        val userOrNull = call.principal<UserSession>()
+        val userOrNull = with(ctx) { principal }
         val isLoggedIn = userOrNull != null
 
         call.respondHtml(HttpStatusCode.OK) {
@@ -47,17 +33,17 @@ fun Route.home() = public {
                 title { +"Foodies - Discover the menu" }
                 link(rel = "stylesheet", href = "/static/home.css")
                 script(src = "https://unpkg.com/htmx.org@1.9.12") {}
-                script(src = "https://unpkg.com/htmx-ext-intersect@2.0.0/intersect.js") {}
             }
 
             body {
-                attributes["hx-ext"] = "intersect"
                 header {
                     a(href = "/", classes = "logo") { +"Foodies" }
                     div(classes = "actions") {
                         basketBadgeLink()
                         if (isLoggedIn) {
-                            a(href = "/logout", classes = "button secondary") { +"Log out" }
+                            form(action = "/logout", method = FormMethod.post, classes = "logout-form") {
+                                button(type = ButtonType.submit, classes = "button secondary") { +"Log out" }
+                            }
                         } else {
                             a(href = "/login", classes = "button primary") { +"Log in" }
                         }

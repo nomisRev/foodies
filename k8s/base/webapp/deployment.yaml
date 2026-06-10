@@ -63,6 +63,11 @@ spec:
                 configMapKeyRef:
                   name: webapp-config
                   key: AUTH_ISSUER
+            - name: AUTH_AUDIENCE
+              valueFrom:
+                configMapKeyRef:
+                  name: webapp-config
+                  key: AUTH_AUDIENCE
             - name: AUTH_CLIENT_ID
               valueFrom:
                 configMapKeyRef:
@@ -73,6 +78,11 @@ spec:
                 secretKeyRef:
                   name: webapp-auth
                   key: AUTH_CLIENT_SECRET
+            - name: AUTH_STATE_ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: webapp-auth
+                  key: AUTH_STATE_ENCRYPTION_KEY
             - name: MENU_BASE_URL
               valueFrom:
                 configMapKeyRef:

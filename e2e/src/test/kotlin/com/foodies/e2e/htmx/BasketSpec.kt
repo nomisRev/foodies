@@ -1,18 +1,17 @@
 package com.foodies.e2e.htmx
 
 import com.foodies.e2e.e2eSuite
+import com.foodies.e2e.navigateApp
 import com.foodies.e2e.page
 import com.foodies.e2e.waitForHtmxIdle
 import com.microsoft.playwright.Locator
-import com.microsoft.playwright.Page
-import kotlin.getValue
 import kotlin.test.assertTrue
 
 val addToBasketSpec by e2eSuite {
     test("Add to Basket - should add item and update badge") {
         val p = page()
 
-        p.navigate("/", Page.NavigateOptions().setTimeout(5000.0))
+        p.navigateApp("/")
 
         val addButtons = p.locator(".add-to-cart-btn")
 
@@ -30,7 +29,7 @@ val addToBasketSpec by e2eSuite {
     test("Update Basket - should change item quantity") {
         val p = page()
 
-        p.navigate("/cart", Page.NavigateOptions().setTimeout(5000.0))
+        p.navigateApp("/cart")
 
         val qtyInput = p.locator(".quantity-input").first()
         val initialQtyValue = qtyInput.getAttribute("value")
@@ -50,7 +49,7 @@ val addToBasketSpec by e2eSuite {
     test("Remove from Basket - should remove item from list") {
         val p = page()
 
-        p.navigate("/cart", Page.NavigateOptions().setTimeout(5000.0))
+        p.navigateApp("/cart")
 
         val cartItems = p.locator(".cart-item")
         val itemsBefore = cartItems.count()

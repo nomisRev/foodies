@@ -29,6 +29,7 @@ secretGenerator:
     behavior: merge
     literals:
       - AUTH_CLIENT_SECRET=change-me-at-runtime
+      - AUTH_STATE_ENCRYPTION_KEY=ez/dI0bsc12uahorHrhKsFxd6wYadVIuoLcNNbtQOA0=
 
 patches:
   - target:

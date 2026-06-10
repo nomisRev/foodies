@@ -9,6 +9,7 @@ build/
 .idea/jarRepositories.xml
 .idea/compiler.xml
 .idea/libraries/
+.idea/inspectionProfiles/
 *.iws
 *.iml
 *.ipr
@@ -53,3 +54,5 @@ buildSrc/build/
 custom-ralph.main.kts
 .worktrees
 .worktree
+
+.agents/

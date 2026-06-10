@@ -5,10 +5,10 @@
     {
       "clientId": "foodies",
       "secret": "foodies_client_secret",
-      "redirectUris": ["http://foodies.local/oauth/callback"],
-      "webOrigins": ["http://foodies.local"],
+      "redirectUris": ["http://foodies.localhost/oauth/callback"],
+      "webOrigins": ["http://foodies.localhost"],
       "attributes": {
-        "post.logout.redirect.uris": "http://foodies.local/*"
+        "post.logout.redirect.uris": "http://foodies.localhost/*"
       }
     }
   ],

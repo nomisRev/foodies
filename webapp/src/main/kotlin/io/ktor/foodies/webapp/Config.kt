@@ -14,7 +14,13 @@ data class Config(
     val telemetry: MonitoringConfig,
 ) {
     @Serializable
-    data class Security(val issuer: String, val clientId: String, val clientSecret: String)
+    data class Security(
+        val issuer: String,
+        val audience: String,
+        val clientId: String,
+        val clientSecret: String,
+        val stateEncryptionKey: String? = null,
+    )
 
     @Serializable
     data class Menu(val baseUrl: String)

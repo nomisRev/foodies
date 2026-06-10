@@ -11,9 +11,9 @@ import java.nio.file.Paths
  */
 data class E2EConfig(
     val storageStatePath: Path = Paths.get("build/playwright/.auth/user.json"),
-    val webappBaseUrl: String = "http://foodies.local",
+    val webappBaseUrl: String = "http://foodies.localhost",
     val apiBaseUrl: String = webappBaseUrl,
-    val testUsername: String = "food_lover@gmail.com",
+    val testUsername: String = "p",
     val testPassword: String = "password",
     val headless: Boolean = false,
     val slowMo: Int = 0,
@@ -22,7 +22,7 @@ data class E2EConfig(
 ) {
     companion object {
         fun fromEnvironment(): E2EConfig {
-            val webappBaseUrl = System.getenv("WEBAPP_BASE_URL") ?: "http://foodies.local"
+            val webappBaseUrl = System.getenv("WEBAPP_BASE_URL") ?: "http://foodies.localhost"
             return E2EConfig(
                 webappBaseUrl = webappBaseUrl,
                 apiBaseUrl = System.getenv("API_BASE_URL") ?: webappBaseUrl,

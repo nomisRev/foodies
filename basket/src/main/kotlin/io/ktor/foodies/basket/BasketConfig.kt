@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 data class Config(
     val host: String,
     val port: Int,
-    val auth: Auth,
+    val keycloak: Auth,
     val redis: RedisConfig,
     val menu: MenuConfig,
     val rabbit: RabbitConfig,

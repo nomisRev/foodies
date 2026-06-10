@@ -1,88 +1,72 @@
 package io.ktor.foodies.server.test
 
-import com.auth0.jwt.JWT
-import com.auth0.jwt.algorithms.Algorithm
-import com.auth0.jwt.interfaces.Payload
-import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.core.Test
+import de.infix.testBalloon.framework.core.TestSuite
 import de.infix.testBalloon.framework.shared.TestRegistering
-import io.ktor.foodies.server.auth.ServicePrincipal
 import io.ktor.foodies.server.auth.UserPrincipal
-import io.ktor.server.application.install
-import io.ktor.server.auth.Authentication
-import io.ktor.server.auth.jwt.JWTCredential
-import io.ktor.server.auth.jwt.jwt
+import io.ktor.foodies.server.openid.AuthSchemeKey
+import io.ktor.foodies.server.openid.UserRole
+import io.ktor.server.auth.oidc.OidcToken
+import io.ktor.server.auth.oidc.OpenIdProviderMetadata
+import io.ktor.server.auth.oidc.OpenIdTestKeys
+import io.ktor.server.auth.oidc.openIdConnect
+import io.ktor.server.auth.typesafe.withRoles
 import io.ktor.server.testing.ApplicationTestBuilder
-import java.util.*
+import io.ktor.utils.io.ExperimentalKtorApi
 
-const val TEST_JWT_SECRET = "test-jwt-secret"
 const val TEST_ISSUER = "http://test-issuer"
 const val TEST_AUDIENCE = "foodies"
 
+private val DefaultOpenIdTestKeys = OpenIdTestKeys.rsa()
+
 data class JwtConfig(
-    val algorithm: Algorithm = Algorithm.HMAC256(TEST_JWT_SECRET),
     val issuer: String = TEST_ISSUER,
-    val audience: String = TEST_AUDIENCE
+    val audience: String = TEST_AUDIENCE,
+    val keys: OpenIdTestKeys = DefaultOpenIdTestKeys,
 )
 
 fun createUserToken(
     config: JwtConfig = JwtConfig(),
     userId: String = "user-123",
     email: String = "test@example.com",
+    name: String = "Test User",
     roles: List<String> = listOf("user")
-): String = JWT.create()
-    .withSubject(userId)
-    .withClaim("email", email)
-    .withClaim("realm_access", mapOf("roles" to roles))
-    .withAudience(config.audience)
-    .withIssuer(config.issuer)
-    .withExpiresAt(Date(System.currentTimeMillis() + 3600000))
-    .sign(config.algorithm)
-
-fun createServiceToken(
-    config: JwtConfig = JwtConfig(),
-    serviceAccountId: String = "service-account-test-service",
-    clientId: String = "test-service",
-    roles: List<String> = listOf("service:read")
-): String = JWT.create()
-    .withSubject(serviceAccountId)
-    .withClaim("azp", clientId)
-    .withClaim("resource_access", mapOf(config.audience to mapOf("roles" to roles)))
-    .withAudience(config.audience)
-    .withIssuer(config.issuer)
-    .withExpiresAt(Date(System.currentTimeMillis() + 3600000))
-    .sign(config.algorithm)
-
-private fun Payload.realmRoles(): Set<String> {
-    val roles = getClaim("realm_access")?.asMap()?.get("roles") as? List<*>
-    return roles?.filterIsInstance<String>()?.toSet() ?: emptySet()
+): String = config.keys.accessToken(
+    issuer = config.issuer,
+    audience = config.audience,
+) {
+    subject = userId
+    this.email = email
+    this.name = name
+    claim("realm_access", mapOf("roles" to roles))
 }
 
-private fun Payload.resourceRoles(audience: String): Set<String> {
-    val resourceAccess = getClaim("resource_access")?.asMap()
-    val roles = (resourceAccess?.get(audience) as? Map<*, *>)?.get("roles") as? List<*>
-    return roles?.filterIsInstance<String>()?.toSet() ?: emptySet()
-}
-
+@OptIn(ExperimentalKtorApi::class)
 fun ApplicationTestBuilder.installTestAuth(config: JwtConfig = JwtConfig()) = application {
-    install(Authentication) {
-        jwt {
-            verifier(JWT.require(config.algorithm).withIssuer(config.issuer).build())
-            validate { credential: JWTCredential ->
-                val claims = credential.payload.claims
-                val email = claims["email"]?.asString()
-                val authHeader = request.headers["Authorization"]?.removePrefix("Bearer ") ?: ""
-                if (email != null) {
-                    UserPrincipal(
-                        userId = requireNotNull(credential.subject) { "Credential subject (userId) missing" },
-                        email = email,
-                        roles = credential.payload.realmRoles(),
-                        accessToken = authHeader
-                    )
-                } else null
+        val oidc = openIdConnect {}
+        val provider = oidc.provider(
+            name = "test",
+            transformPrincipal = transform@{
+                val accessToken = it as? OidcToken.Access ?: return@transform null
+                if (accessToken.userInfo?.email == null) return@transform null
+                UserPrincipal(accessToken)
             }
+        ) {
+            issuer = config.issuer
+            metadata = OpenIdProviderMetadata(
+                issuer = config.issuer,
+                jwksUri = "${config.issuer}/jwks",
+                tokenEndpoint = "${config.issuer}/token",
+                authorizationEndpoint = "${config.issuer}/authorize",
+            )
+            jwt(config.keys)
+            accessToken { audiences = setOf(config.audience) }
+            bearer()
         }
-    }
+        val authScheme = provider.bearer.withRoles { principal ->
+            principal.roles.mapNotNull { UserRole.fromClaim(it) }.toSet()
+        }
+        attributes.put(AuthSchemeKey, authScheme)
 }
 
 @TestRegistering

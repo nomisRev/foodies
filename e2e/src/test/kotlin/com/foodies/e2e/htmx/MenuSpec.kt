@@ -1,16 +1,17 @@
 package com.foodies.e2e.htmx
 
 import com.foodies.e2e.e2eSuite
+import com.foodies.e2e.navigateApp
 import com.foodies.e2e.page
 import com.foodies.e2e.waitForHtmxIdle
 import com.microsoft.playwright.*
 import kotlin.test.assertTrue
 
-val browseMenuSpec by e2eSuite {
+val browseMenuSpec by e2eSuite(authenticated = false) {
     test("Browse Menu Without Authentication - should display menu items") {
         val p = page()
 
-        p.navigate("/", Page.NavigateOptions().setTimeout(5000.0))
+        p.navigateApp("/")
         val menuItems = p.locator(".menu-card")
 
         menuItems.first().waitFor(Locator.WaitForOptions().setTimeout(5000.0))
@@ -21,7 +22,7 @@ val browseMenuSpec by e2eSuite {
     test("Menu Pagination - should load more items on scroll") {
         val p = page()
 
-        p.navigate("/", Page.NavigateOptions().setTimeout(5000.0))
+        p.navigateApp("/")
 
         p.waitForHtmxIdle()
 

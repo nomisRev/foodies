@@ -1,44 +1,28 @@
 package io.ktor.foodies.server.auth
 
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCallPipeline
-import io.ktor.server.application.call
-import io.ktor.server.application.createRouteScopedPlugin
-import io.ktor.server.auth.authenticate
-import io.ktor.server.auth.principal
-import io.ktor.server.response.respond
+import io.ktor.foodies.server.openid.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.typesafe.*
 import io.ktor.server.routing.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.withContext
 
-fun interface SecuredUser {
-    context(ctx: RoutingContext)
-    suspend fun userPrincipal(): UserPrincipal
-}
+@OptIn(ExperimentalKtorApi::class)
+fun Route.secure(
+    vararg roles: UserRole,
+    build: context(RoleBasedContext<UserPrincipal, UserRole>) Route.() -> Unit
+): Route = authenticateWith(application.authScheme, roles = roles.toSet()) {
+    val ctx = authenticatedContext()
 
-context(secured: SecuredUser, context: RoutingContext)
-suspend fun userPrincipal(): UserPrincipal = secured.userPrincipal()
-
-fun Route.secureUser(
-    vararg roles: String,
-    build: context(SecuredUser) Route.() -> Unit
-): Route = authenticate {
     install(createRouteScopedPlugin("SecureUserContext") {
         route!!.intercept(ApplicationCallPipeline.Call) {
-            val principal = requireNotNull(call.principal<UserPrincipal>()) { "UserPrincipal not found" }
-            if (roles.isNotEmpty()) {
-                val missingRoles = roles.filter { it !in principal.roles }
-                if (missingRoles.isNotEmpty()) {
-                    return@intercept call.respond(HttpStatusCode.Forbidden)
-                }
+            val user = ctx.principal(call)
+            val accessToken = user.accessToken.value
+            withContext(AuthContext(accessToken)) {
+                proceed()
             }
-            withContext(AuthContext(principal.accessToken)) { proceed() }
         }
     })
-    with(SecuredUser {
-        requireNotNull(contextOf<RoutingContext>().call.principal<UserPrincipal>()) {
-            "UserPrincipal not found - route not properly secured with secureUser"
-        }
-    }) {
-        build()
-    }
+
+    build()
 }

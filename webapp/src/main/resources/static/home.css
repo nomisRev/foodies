@@ -94,6 +94,15 @@ header .actions {
 
 .button.secondary:hover { transform: translateY(-1px); }
 
+.logout-form {
+    margin: 0;
+}
+
+.logout-form .button {
+    font: inherit;
+    cursor: pointer;
+}
+
 .menu-grid {
     margin-top: 28px;
     display: grid;

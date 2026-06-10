@@ -25,6 +25,7 @@ dependencies {
     implementation(ktorLibs.serialization.kotlinx.json)
     implementation(ktorLibs.server.auth)
     implementation(ktorLibs.server.auth.jwt)
+    implementation(ktorLibs.server.auth.oidc)
 
     implementation(ktorLibs.client.core)
     implementation(ktorLibs.client.apache5)

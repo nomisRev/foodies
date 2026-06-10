@@ -10,7 +10,8 @@ configMapGenerator:
     literals:
       - HOST=0.0.0.0
       - PORT=8080
-      - AUTH_ISSUER=http://keycloak:8000/auth/realms/foodies-keycloak
+      - AUTH_ISSUER=http://foodies.localhost/auth/realms/foodies-keycloak
+      - AUTH_AUDIENCE=foodies
       - AUTH_CLIENT_ID=foodies
       - MENU_BASE_URL=http://menu:8082
       - BASKET_BASE_URL=http://basket:8083

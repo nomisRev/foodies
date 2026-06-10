@@ -3,8 +3,10 @@ config:
   port: "$PORT:8080"
   security:
     issuer: "$AUTH_ISSUER:http://localhost:8000/realms/foodies-keycloak"
+    audience: "$AUTH_AUDIENCE:foodies"
     clientId: "$AUTH_CLIENT_ID:foodies"
     clientSecret: "$AUTH_CLIENT_SECRET:foodies_client_secret"
+    stateEncryptionKey: "$AUTH_STATE_ENCRYPTION_KEY:"
   menu:
     baseUrl: "$MENU_BASE_URL:http://localhost:8082"
   basket:

@@ -1,5 +1,6 @@
 dependencyResolutionManagement {
     repositories {
+        mavenLocal()
         mavenCentral()
     }
     versionCatalogs {
@@ -7,7 +8,7 @@ dependencyResolutionManagement {
             from(files("../gradle/libs.versions.toml"))
         }
         create("ktorLibs") {
-            from("io.ktor:ktor-version-catalog:3.4.1")
+            from("io.ktor:ktor-version-catalog:3.5.6")
         }
     }
 }

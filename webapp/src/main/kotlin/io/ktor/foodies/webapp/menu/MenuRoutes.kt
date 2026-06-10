@@ -1,45 +1,29 @@
 package io.ktor.foodies.webapp.menu
 
-import io.ktor.foodies.server.getValue
-import io.ktor.foodies.webapp.menu.buildMenuFragment
-import io.ktor.foodies.webapp.security.UserSession
-import io.ktor.foodies.webapp.security.public
-import io.ktor.foodies.webapp.respondHtmxFragment
-import io.ktor.foodies.webapp.security.public
-import io.ktor.server.htmx.hx
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.get
-import io.ktor.server.sessions.get
-import io.ktor.server.sessions.sessions
-import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.foodies.server.*
+import io.ktor.foodies.webapp.*
+import io.ktor.server.auth.oidc.*
+import io.ktor.server.auth.typesafe.*
+import io.ktor.server.htmx.*
+import io.ktor.server.routing.*
+import io.ktor.utils.io.*
+import kotlinx.html.*
 import java.math.RoundingMode
-import kotlinx.html.ButtonType
-import kotlinx.html.TagConsumer
-import kotlinx.html.a
-import kotlinx.html.article
-import kotlinx.html.button
-import kotlinx.html.div
-import kotlinx.html.form
-import kotlinx.html.h3
-import kotlinx.html.hiddenInput
-import kotlinx.html.id
-import kotlinx.html.img
-import kotlinx.html.p
-import kotlinx.html.span
-import kotlin.collections.set
 
 const val DefaultMenuPageSize = 12
-const val MenuIntersectTrigger = "intersect once rootMargin: 800px"
+const val MenuIntersectTrigger = "intersect once"
 
 @OptIn(ExperimentalKtorApi::class)
-fun Route.menuRoutes(menuService: MenuService) {
-    public {
+fun Route.menuRoutes(menuService: MenuService, provider: OidcProvider<OidcToken.Id>) {
+    authenticateWith(provider.sessions.optional()) {
+        val ctx = authenticatedContext()
+
         hx {
             get("/menu") {
                 val offset: Int by call.parameters
                 val limit: Int by call.parameters
                 val items = menuService.menuItems(offset, limit)
-                val isLoggedIn = call.sessions.get<UserSession>() != null
+                val isLoggedIn = with(ctx) { principal } != null
                 call.respondHtmxFragment { buildMenuFragment(items, offset, limit, isLoggedIn) }
             }
         }
@@ -69,7 +53,9 @@ private fun TagConsumer<Appendable>.buildMenuFragment(
 
 private fun TagConsumer<Appendable>.menuCard(item: MenuItem, isLoggedIn: Boolean) {
     article(classes = "menu-card") {
-        img(src = item.imageUrl, alt = item.name)
+        img(src = item.imageUrl, alt = item.name) {
+            loading = ImgLoading.lazy
+        }
 
         div(classes = "content") {
             h3 { +item.name }

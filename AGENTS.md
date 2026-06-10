@@ -18,7 +18,8 @@
 
 # Kubernetes Debugging
 
-The development machine has `127.0.0.1       foodies.local` configured in `/etc/hosts`.
+The development hostname is `foodies.localhost` (resolves to `127.0.0.1` on macOS without `/etc/hosts`).
+Pods need a CoreDNS `hosts` entry mapping `foodies.localhost` to the ingress controller ClusterIP — see `k8s/README.md#configure-coredns`.
 
 Everything runs in the foodies namespace:
 

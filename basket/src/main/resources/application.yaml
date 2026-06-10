@@ -1,7 +1,7 @@
 config:
   host: "$HOST:0.0.0.0"
   port: "$PORT:8083"
-  auth:
+  keycloak:
     issuer: "$AUTH_ISSUER:http://localhost:9090/realms/foodies-keycloak"
     audience: "$AUTH_AUDIENCE:foodies"
   redis:

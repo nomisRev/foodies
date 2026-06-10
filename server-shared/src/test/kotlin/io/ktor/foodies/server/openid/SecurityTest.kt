@@ -1,26 +1,24 @@
 package io.ktor.foodies.server.openid
 
 import de.infix.testBalloon.framework.core.testSuite
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.statement.bodyAsText
-import io.ktor.foodies.server.test.authTest
-import io.ktor.foodies.server.test.createUserToken
-import io.ktor.foodies.server.auth.secureUser
-import io.ktor.foodies.server.auth.userPrincipal
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpStatusCode
-import io.ktor.server.response.respondText
-import io.ktor.server.routing.get
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.foodies.server.auth.secure
+import io.ktor.foodies.server.test.*
+import io.ktor.http.*
+import io.ktor.server.auth.typesafe.principal
+import io.ktor.server.response.*
+import io.ktor.server.routing.*
+import io.ktor.utils.io.ExperimentalKtorApi
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+@OptIn(ExperimentalKtorApi::class)
 val securitySpec by testSuite {
     authTest("user JWT validation extracts userId from subject") { config ->
         routing {
-            secureUser {
+            secure {
                 get("/user") {
-                    val principal = userPrincipal()
                     call.respondText(principal.userId)
                 }
             }
@@ -37,9 +35,8 @@ val securitySpec by testSuite {
 
     authTest("user JWT validation extracts email claim") { config ->
         routing {
-            secureUser {
+            secure {
                 get("/user") {
-                    val principal = userPrincipal()
                     call.respondText(principal.email ?: "no-email")
                 }
             }
@@ -56,9 +53,8 @@ val securitySpec by testSuite {
 
     authTest("user JWT validation extracts roles from realm_access") { config ->
         routing {
-            secureUser {
+            secure {
                 get("/user") {
-                    val principal = userPrincipal()
                     call.respondText(principal.roles.sorted().joinToString(","))
                 }
             }
@@ -75,20 +71,17 @@ val securitySpec by testSuite {
 
     authTest("user JWT validation rejects token without email") { config ->
         routing {
-            secureUser {
+            secure {
                 get("/user") {
                     call.respondText("Success")
                 }
             }
         }
 
-        val tokenWithoutEmail = com.auth0.jwt.JWT.create()
-            .withSubject("user-no-email")
-            .withClaim("realm_access", mapOf("roles" to listOf("user")))
-            .withAudience(config.audience)
-            .withIssuer(config.issuer)
-            .withExpiresAt(java.util.Date(System.currentTimeMillis() + 3600000))
-            .sign(config.algorithm)
+        val tokenWithoutEmail = config.keys.accessToken(config.issuer, config.audience) {
+            subject = "user-no-email"
+            claim("realm_access", mapOf("roles" to listOf("user")))
+        }
 
         val response = client.get("/user") {
             header(HttpHeaders.Authorization, "Bearer $tokenWithoutEmail")
@@ -99,10 +92,9 @@ val securitySpec by testSuite {
 
     authTest("user JWT validation stores access token") { config ->
         routing {
-            secureUser {
+            secure {
                 get("/user") {
-                    val principal = userPrincipal()
-                    call.respondText("Token length: ${principal.accessToken.length}")
+                    call.respondText("Token length: ${principal.accessToken.value.length}")
                 }
             }
         }

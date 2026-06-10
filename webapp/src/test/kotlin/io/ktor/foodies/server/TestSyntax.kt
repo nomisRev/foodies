@@ -20,6 +20,8 @@ import io.lettuce.core.ExperimentalLettuceCoroutinesApi
 import io.lettuce.core.RedisClient
 import io.opentelemetry.api.OpenTelemetry
 import kotlinx.coroutines.future.await
+import org.keycloak.representations.idm.CredentialRepresentation
+import org.keycloak.representations.idm.UserRepresentation
 import org.testcontainers.lifecycle.Startables
 import org.testcontainers.utility.MountableFile
 import java.nio.file.Paths
@@ -42,10 +44,39 @@ fun TestSuite.serviceContext(): ServiceContext {
             val clients = keycloakAdminClient.realm("foodies-keycloak").clients()
             val existingClient = clients.findByClientId("foodies").firstOrNull()
                 ?: error("Expected Keycloak client 'foodies' from realm import.")
+            existingClient.secret = "foodies_client_secret"
+            existingClient.setDirectAccessGrantsEnabled(true)
             existingClient.redirectUris = listOf("http://localhost:8080/oauth/callback")
             existingClient.webOrigins = listOf("http://localhost")
             existingClient.attributes = mapOf("post.logout.redirect.uris" to "http://localhost/*")
             clients[existingClient.id].update(existingClient)
+
+            val users = keycloakAdminClient.realm("foodies-keycloak").users()
+            if (users.searchByUsername("food_lover", true).isEmpty()) {
+                val password = CredentialRepresentation().apply {
+                    type = CredentialRepresentation.PASSWORD
+                    value = "password"
+                    isTemporary = false
+                }
+                val user = UserRepresentation().apply {
+                    username = "food_lover"
+                    email = "food_lover@gmail.com"
+                    firstName = "Food"
+                    lastName = "Lover"
+                    isEnabled = true
+                    isEmailVerified = true
+                    credentials = listOf(password)
+                    realmRoles = listOf("user")
+                }
+                val response = users.create(user)
+                try {
+                    require(response.status in 200..299 || response.status == 409) {
+                        "Expected user creation to succeed, got ${response.status}"
+                    }
+                } finally {
+                    response.close()
+                }
+            }
         }
         Pair(redis, keycloak)
     }
@@ -79,6 +110,7 @@ fun TestSuite.testWebAppService(
         port = 8080,
         security = Config.Security(
             issuer = "${keycloak.authServerUrl}/realms/foodies-keycloak",
+            audience = "foodies",
             clientId = "foodies",
             clientSecret = "foodies_client_secret"
         ),

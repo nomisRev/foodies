@@ -118,10 +118,12 @@ kubectl apply -k k8s/overlays/dev
 - Username: `food_lover@gmail.com`
 - Password: `password`
 
-This setup assumes '127.0.0.1 foodies.local' in /etc/hosts
+This setup assumes `127.0.0.1 foodies.localhost` in `/etc/hosts`.
+Pods must resolve `foodies.localhost` to the in-cluster ingress controller for OIDC discovery;
+see [Configure CoreDNS](k8s/README.md#configure-coredns) in the Kubernetes deployment guide.
 
-- **Web App**: http://foodies.local
-- **Keycloak Admin**: http://foodies.local/auth (admin/admin)
+- **Web App**: http://foodies.localhost
+- **Keycloak Admin**: http://foodies.localhost/auth (admin/admin)
 
 ## Documentation
 
